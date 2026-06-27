@@ -31,7 +31,6 @@
 | 项目 | 用途 | 追踪状态 |
 |------|------|----------|
 | [OSU-NLP-Group/GUI-Agents-Paper-List](https://github.com/OSU-NLP-Group/GUI-Agents-Paper-List) | GUI Agent 论文合集 (557+篇) | ✅ 每周自动追踪 |
-| [MuskAI/Awesome-AIGC-Detection](https://github.com/MuskAI/Awesome-AIGC-Detection) | AIGC 检测论文与工具 | ✅ 每周自动追踪 |
 
 ---
 

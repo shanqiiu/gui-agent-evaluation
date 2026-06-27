@@ -36,7 +36,7 @@ gui-agent-evaluation/
 ## 技术栈（规划）
 
 - **Python**: 3.10+
-- **VLM**: Qwen2.5-VL-7B（截图语义对齐）
+- **VLM**: Qwen3.5-VL-7B（截图语义对齐）
 - **LLM**: Qwen3-8B / GPT-4o（任务分解、Judge）
 - **Embedding**: text-embedding-3-large / BGE-M3（操作意图向量化）
 - **RAG**: ChromaDB / LanceDB（App 私有知识）
