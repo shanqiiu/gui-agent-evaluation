@@ -1,0 +1,13 @@
+pydantic
+numpy
+pydantic
+requests
+opencv-python
+Pillow
+scikit-image
+jpype1==1.5.2
+uvicorn==0.22.0
+fastapi
+esdk-obs-python
+redis==6.2.0
+python-multipart
