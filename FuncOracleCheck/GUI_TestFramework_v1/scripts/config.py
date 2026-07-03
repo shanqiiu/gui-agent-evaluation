@@ -33,12 +33,24 @@ class ModelConfig(object):
                  vlm_model_name: str = None,
                  vlm_model_url: str = None,
                  llm_model_name: str = None,
-                 llm_model_url: str = None):
-        # 模型名称
+                 llm_model_url: str = None,
+                 vlm_api_key: str = None,
+                 llm_api_key: str = None,
+                 vlm_api_key_env: str = None,
+                 llm_api_key_env: str = None,
+                 include_top_k: bool = True,
+                 request_timeout: int = 120):
+        # OpenAI-compatible chat completion endpoint settings.
         self.VLM_MODEL_NAME = vlm_model_name
         self.VLM_MODEL_URL = vlm_model_url
         self.LLM_MODEL_NAME = llm_model_name
         self.LLM_MODEL_URL = llm_model_url
+        self.VLM_API_KEY = vlm_api_key
+        self.LLM_API_KEY = llm_api_key
+        self.VLM_API_KEY_ENV = vlm_api_key_env
+        self.LLM_API_KEY_ENV = llm_api_key_env
+        self.INCLUDE_TOP_K = include_top_k
+        self.REQUEST_TIMEOUT = request_timeout
 
 
 # --------------------------
@@ -189,13 +201,19 @@ class Config(object):
             mode = self.configuration_reader.configuration.get('ProjectConfig', 'mode'),
             sliding_mode=self.sliding_mode)
 
+        model_config = self.configuration_reader.configuration
         self.model = ModelConfig(
-            vlm_model_name=self.configuration_reader.configuration.get('MLLMConfig', 'vlm_model_name'),
-            vlm_model_url=self.configuration_reader.configuration.get('MLLMConfig', 'vlm_model_url'),
-            llm_model_name=self.configuration_reader.configuration.get('MLLMConfig', 'llm_model_name'),
-            llm_model_url=self.configuration_reader.configuration.get('MLLMConfig', 'llm_model_url'),
+            vlm_model_name=model_config.get('MLLMConfig', 'vlm_model_name'),
+            vlm_model_url=model_config.get('MLLMConfig', 'vlm_model_url'),
+            llm_model_name=model_config.get('MLLMConfig', 'llm_model_name'),
+            llm_model_url=model_config.get('MLLMConfig', 'llm_model_url'),
+            vlm_api_key=model_config.get('MLLMConfig', 'vlm_api_key', fallback=''),
+            llm_api_key=model_config.get('MLLMConfig', 'llm_api_key', fallback=''),
+            vlm_api_key_env=model_config.get('MLLMConfig', 'vlm_api_key_env', fallback='MLOPS_API_KEY'),
+            llm_api_key_env=model_config.get('MLLMConfig', 'llm_api_key_env', fallback='MLOPS_API_KEY'),
+            include_top_k=model_config.getboolean('MLLMConfig', 'include_top_k', fallback=True),
+            request_timeout=model_config.getint('MLLMConfig', 'request_timeout', fallback=120),
         )
-
         if self.project.PREDICATE_MODE == 'test':
             self.benchmark_dir = self.configuration_reader.configuration.get('EvalConfig', 'benchmark_dir')
             self.max_workers = self.configuration_reader.configuration.getint('EvalConfig', 'max_workers')
@@ -220,4 +238,3 @@ class Config(object):
 
 if __name__ == '__main__':
     pass
-

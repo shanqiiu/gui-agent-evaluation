@@ -1,38 +1,43 @@
+import argparse
 import os
-from logging.config import DictConfigurator
+
 from GUI_TestFramework_v1 import scripts
+from oracle_service import run_sequence, run_single_step
 from utils import json_utils
 
 
-def sequence_test(config: scripts.config.Config):
-    if config.project.PREDICATE_MODE == 'test':
-        saved_path = os.path.join(config.data.OUTPUT_DIR, f'{os.path.basename(config.data.DATA_DIR)}.json')
+def sequence_test(config: scripts.Config):
+    if config.project.PREDICATE_MODE == "test":
+        saved_path = os.path.join(config.data.OUTPUT_DIR, f"{os.path.basename(config.data.DATA_DIR)}.json")
         if os.path.exists(saved_path):
             print(f"path: {saved_path} already exists, skip this task!")
             return
 
-        print(f"running single sequence bench-test from: {config.data.OUTPUT_DIR}...")
+        print(f"running single sequence bench-test from: {config.data.DATA_DIR}...")
 
-    e2eTest = scripts.sequence.HarmonyAppTest(config)
-    if len(e2eTest.json_data['seq_info']) == 1:
-        e2eTest.single_image_processing(sequence_id=0)
-        print(e2eTest.result_format_align())
-    else:
-        e2eTest.ab_pages_validate()
-        e2eTest.child_sequence_router()
-        e2eTest.test_result()
-        print(e2eTest.result_format_align())
+    print(run_sequence(config))
 
 
 def page_test(sample_dict: dict):
-    newtest = scripts.single_step.HarmonyAPPSingleStepTest(sample_dict)
-    print(newtest.run())
+    print(run_single_step(sample_dict))
 
 
-if __name__ == '__main__':
-    config_main = scripts.config.Config()
-    json_data = json_utils.load_json(r'D:\FuncOracleCheck\GUI_TestFramework_v1\examples\00ba4f13-c721-4491-83c1-b1c22db30e91#1755832141541\data1.json')
-    config_main.data.METADATA = json_data
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Run a Darwin oracle sequence check.")
+    parser.add_argument("--metadata", help="Production-format metadata JSON path.")
+    parser.add_argument("--data-dir", help="Benchmark single-sample directory used in test mode.")
+    args = parser.parse_args()
+
+    if args.metadata and args.data_dir:
+        parser.error("--metadata and --data-dir cannot be used together")
+
+    config_main = scripts.Config()
+    if args.metadata:
+        config_main.project.PREDICATE_MODE = "production"
+        config_main.data.METADATA = json_utils.load_json(args.metadata)
+    elif args.data_dir:
+        config_main.data.DATA_DIR = args.data_dir
+    elif config_main.project.PREDICATE_MODE == "test" and not config_main.data.DATA_DIR:
+        parser.error("--data-dir is required in test mode")
+
     sequence_test(config_main)
-
-    pass

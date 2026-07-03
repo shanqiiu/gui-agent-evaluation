@@ -1,5 +1,4 @@
 import os
-import json
 import time
 
 import requests
@@ -16,33 +15,30 @@ def request_mlops_llms(query_: str = None,
         "messages": [
             {
                 "role": "user",
-                "content": query_
+                "content": query_,
             }
         ],
-
         "top_p": top_p,
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
 
-    headers = {
-        'Authorization': 'Bearer sk-eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJkZXBhcnRtZW50TmFtZSI6IuWPr-S_oea1i-ivleW3peeoi-WunumqjOWupCIsImFjY291bnRJZCI6IngwMDU4NDk5NSIsImtleVZlcnNpb24iOiIyLjAiLCJhY2NvdW50TmFtZSI6Inh1ZXhpZGkiLCJ0ZW5hbnRJZCI6ImYyOGNlNWNjZGU5MTM4ZTMyZTQ5YjYyZDVmZjk3MGFjIn0.hp1pBoLR_Pbtn7yqYU9izYeLREq7-lHxCnk8Zl3cxVU',
-        "Content-Type": "application/json;charset=UTF-8"
-    }
+    headers = {"Content-Type": "application/json;charset=UTF-8"}
+    api_key = os.environ.get("MLOPS_API_KEY", "")
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
 
-    response = requests.post(url_, json.dumps(payload), headers=headers, verify=False)
+    response = requests.post(url_, json=payload, headers=headers, verify=False, timeout=120)
     print(response.text)
     if response.ok:
         result_json = response.json()
-        # print(result_json)
-        message = result_json['choices'][0]['message']['content']
-        return message
-    else:
-        print(f"request qwen server error! response status: {response.status_code}")
-        return None
+        return result_json["choices"][0]["message"]["content"]
+
+    print(f"request qwen server error! response status: {response.status_code}")
+    return None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     query = """你好！"""
     start_time = time.time()
     answer = request_mlops_llms(query_=query,
@@ -53,4 +49,4 @@ if __name__ == '__main__':
                                 max_tokens=1000)
 
     print(answer)
-    pass
+    print(f"time used: {time.time() - start_time}s")

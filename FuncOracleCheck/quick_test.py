@@ -7,7 +7,7 @@
     python quick_test.py --test 2 # 只测试场景 2（单步：播放页→点赞）
     python quick_test.py --test 3 # 只测试场景 3（E2E 序列：首页→播放→点赞→收藏）
 
-前提: uvicorn main:app --host 0.0.0.0 --port 20026 --reload 已启动
+前提: uvicorn main:app --host 0.0.0.0 --port 20025 --reload 已启动
 """
 
 import argparse
@@ -18,7 +18,7 @@ import sys
 
 import requests
 
-BASE_URL = "http://localhost:20026"
+BASE_URL = "http://localhost:20025"
 SCREENSHOTS_DIR = os.path.join(os.path.dirname(__file__), "screenshots")
 
 

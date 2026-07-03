@@ -132,6 +132,20 @@ processor = AutoProcessor.from_pretrained("./ddp2_Qwen2.5-VL_...")
 - 需要 `vllm>=0.19.0`（原生支持 Qwen2.5-VL 多模态）
 - 最低 GPU 要求：1x A100 40GB 或 2x 24GB GPU（tp=2）
 
+
+### 接入 FuncOracleCheck
+
+`inference.py --serve` 暴露的是 OpenAI-compatible `/v1/chat/completions` 接口。启动后在 `../conf/run_server_config.conf` 或 `../conf/run_benchmark_config.conf` 中配置：
+
+```ini
+llm_model_url=http://127.0.0.1:8000/v1/chat/completions
+vlm_model_url=http://127.0.0.1:8000/v1/chat/completions
+llm_model_name=<served-model-name>
+vlm_model_name=<served-model-name>
+llm_api_key_env=
+vlm_api_key_env=
+include_top_k=true
+```
 ## 工作指令
 
 - 此模型为微调检查点，不包含原始训练脚本或数据

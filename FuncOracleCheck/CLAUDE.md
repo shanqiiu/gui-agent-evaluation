@@ -16,8 +16,7 @@ The project has two running modes:
 
 Install Python dependencies:
 ```bash
-pip install -r requirments.txt    # core: pydantic, fastapi, uvicorn, redis, opencv, JPype1, esdk-obs-python
-pip install -r requirments2.txt   # alternative OCR: rapidocr
+pip install -r requirements.txt
 ```
 
 ### Server Mode (Production)
@@ -29,17 +28,10 @@ python main.py
 
 Or via uvicorn directly:
 ```bash
-uvicorn main:app --host 0.0.0.0 --port 20026 --reload
+uvicorn main:app --host 0.0.0.0 --port 20025 --reload
 ```
 
 The server mode spawns `CONSUMER_NUMBER` (default 48) multiprocessing workers that consume tasks from a Redis queue. Configuration in `config.py` controls Redis connection, OBS bucket, and thresholds.
-
-### Endside Service
-
-A lighter FastAPI service on port 8011:
-```bash
-python main_endside.py
-```
 
 ### Single Sequence Test (Test Mode)
 
@@ -75,7 +67,7 @@ python setup.py build_ext --inplace --build-lib=compiled -j 4
 | File | Purpose |
 |------|---------|
 | `main.py` | Main FastAPI server (port 20025). Spawns 48 multiprocess workers + HTTP endpoints |
-| `main_endside.py` | Lighter FastAPI server (port 8011) |
+| `oracle_service.py` | Shared service wrapper used by FastAPI and CLI entries |
 | `framework.py` | CLI entry for single sequence test in test mode |
 | `framework_batch_eval.py` | CLI entry for batch benchmark evaluation with threaded concurrency |
 
