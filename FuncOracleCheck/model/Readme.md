@@ -73,6 +73,11 @@
 ├── model-00002-of-00004.safetensors  # 权重分片2 (~4.6GB)
 ├── model-00003-of-00004.safetensors  # 权重分片3 (~4.6GB)
 ├── model-00004-of-00004.safetensors  # 权重分片4 (~1.6GB)
+├── model_config.yaml               # vLLM模型配置文件
+├── inference.py                    # vLLM推理脚本（CLI/批量/API）
+├── inference_api.py                # OpenAI兼容API客户端示例
+├── batch_example.json              # 批量推理输入示例
+├── CLAUDE.md                       # 本项目文档
 └── README.md                       # 原始Qwen2.5-VL文档
 ```
 
@@ -121,6 +126,11 @@ model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
 )
 processor = AutoProcessor.from_pretrained("./ddp2_Qwen2.5-VL_...")
 ```
+
+## vLLM 推理
+
+- 需要 `vllm>=0.19.0`（原生支持 Qwen2.5-VL 多模态）
+- 最低 GPU 要求：1x A100 40GB 或 2x 24GB GPU（tp=2）
 
 ## 工作指令
 
