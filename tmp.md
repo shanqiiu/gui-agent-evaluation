@@ -1,12 +1,51 @@
-root@L20-10-85-177-3:/data/FuncOracleCheck# uvicorn main:app --host 0.0.0.0 --port 8000  --reload
-INFO:     Will watch for changes in these directories: ['/data/FuncOracleCheck']
-INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [195131] using WatchFiles
-INFO:     Started server process [195141]
-INFO:     Waiting for application startup.
-INFO:     Application startup complete.
-2026-07-03 16:35:57,823 123660266932032 main.py[line:108] - INFO: check_single_funck 收到请求
------------------ configuration is read from: /data/FuncOracleCheck/conf/run_benchmark_config.conf -----------------
-HarmonyAPPSingleStepTest: run: API服务出现问题，重试...
-error: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=120)
-message: None
+  先按你的模型路径过滤，最可靠：
+
+  ps -eo pid,ppid,user,lstart,cmd | grep "/data/FuncOracleCheck/model/qwen" | grep -v grep
+
+  看启动命令里是否有：
+
+  --model /data/FuncOracleCheck/model/qwen
+  --port 8009
+  --tensor-parallel-size 2
+
+  再看端口 8009 是谁占用：
+
+  ss -lntp | grep 8009
+
+  如果输出里 PID 是 197022 或相关 Python 进程，就是你这次启动的 API server。
+
+  查看进程树：
+
+  pstree -ap 197022
+
+  你日志里的相关 PID 是：
+
+  APIServer pid=197022
+  EngineCore pid=197377
+  Worker pid=197717
+  Worker pid=197718
+
+  确认这些 PID：
+
+  ps -fp 197022 197377 197717 197718
+
+  看 GPU 进程详情：
+
+  nvidia-smi
+
+  如果只显示 python，不好区分，可以拿 nvidia-smi 里的 PID 再查：
+
+  ps -fp <PID>
+
+  或查看完整命令：
+
+  tr '\0' ' ' < /proc/<PID>/cmdline
+
+  最推荐的一组命令：
+
+  ps -eo pid,ppid,user,lstart,cmd | grep "/data/FuncOracleCheck/model/qwen" | grep -v grep
+  ss -lntp | grep 8009
+  ps -fp 197022 197377 197717 197718
+  nvidia-smi
+
+  只要模型路径、端口、启动时间都对上，就能确认是你启动的。
