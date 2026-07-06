@@ -6,6 +6,7 @@ from typing import Any
 
 from GUI_TestFramework_v1 import scripts
 from GUI_TestFramework_v1.scripts.config import Config
+from repeated_action_detector import detect_repeated_actions
 
 
 def run_sequence(config: Config) -> dict[str, Any]:
@@ -22,7 +23,16 @@ def run_sequence(config: Config) -> dict[str, Any]:
         test.child_sequence_router()
         test.test_result()
 
-    return test.result_format_align()
+    aligned_result = test.result_format_align()
+    repeated_action_result = detect_repeated_actions(
+        sample_dict=test.json_data,
+        raw_oracle_result=test.result,
+        aligned_result=aligned_result,
+    )
+    aligned_result["重复动作判定结果"] = repeated_action_result["label"]
+    aligned_result["重复动作判定依据"] = repeated_action_result["summary"]
+    aligned_result["repeated_action_result"] = repeated_action_result
+    return aligned_result
 
 
 def run_sequence_payload(sample_dict: dict[str, Any]) -> dict[str, Any]:

@@ -38,6 +38,114 @@ python framework.py --data-dir path/to/sample_dir
 python framework_batch_eval.py
 ```
 
+## E2E 输入与重复动作判定输出
+
+`POST /check_e2e` 的输入是一条实际 Agent 执行轨迹，不需要预置期望坐标。重复动作判定使用实际动作序列、实际点击坐标、截图序列和达尔文 E2E 判定结果。
+
+最小输入格式：
+
+```json
+{
+  "instruction": "在抖音首页点击视频进入播放页，然后点赞并收藏",
+  "step_level_instruction": "点击视频->点击点赞->点击收藏",
+  "seq_info": [
+    {
+      "index": 0,
+      "image_relative_path": "<第0张截图base64>",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [530, 1200],
+          "end_box": [],
+          "text": "点击视频",
+          "direction": ""
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image_relative_path": "<第1张截图base64>",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [995, 1448],
+          "end_box": [],
+          "text": "点击点赞按钮",
+          "direction": ""
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image_relative_path": "<第2张截图base64>",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [995, 1448],
+          "end_box": [],
+          "text": "再次点击点赞按钮",
+          "direction": ""
+        }
+      }
+    },
+    {
+      "index": 3,
+      "image_relative_path": "<第3张截图base64>",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "finished",
+          "start_box": [],
+          "end_box": [],
+          "text": "任务完成",
+          "direction": ""
+        }
+      }
+    }
+  ]
+}
+```
+
+字段说明：
+
+| 字段 | 说明 |
+|------|------|
+| `instruction` | 用户任务意图 |
+| `step_level_instruction` | 可选的步骤级计划，用于检查 Plan 覆盖进展 |
+| `seq_info[*].image_relative_path` | 生产接口中传 base64 截图；第 `i` 张截图是第 `i` 步动作执行前的页面 |
+| `parsed_action.action_type` | 实际动作类型，如 `click`、`type`、`swipe`、`wait`、`finished` |
+| `parsed_action.start_box` | Agent 实际执行坐标，不是预期坐标 |
+| `parsed_action.text` | Agent 的动作文本或输入文本 |
+| `parsed_action.direction` | 滑动/拖拽方向 |
+
+重复动作判定会在达尔文 E2E 判定后追加输出：
+
+```json
+{
+  "重复动作判定结果": "abnormal",
+  "重复动作判定依据": "检测到1段重复动作异常；首段位于步骤1到步骤2，动作为click，目标为点击播放页右侧点赞按钮。",
+  "repeated_action_result": {
+    "label": "abnormal",
+    "type": "repeated_action",
+    "severity": "low",
+    "confidence": 0.91,
+    "ranges": [
+      {
+        "start_step": 1,
+        "end_step": 2,
+        "action_type": "click",
+        "target": "点击播放页右侧点赞按钮",
+        "repeat_type": "repeated_action",
+        "evidence": [
+          "步骤1和步骤2动作等效",
+          "期间无新增检查点达成"
+        ]
+      }
+    ]
+  }
+}
+```
+
+当前重复动作判定是轻量规则实现：连续窗口内动作类型等效、点击坐标或控件语义相似、页面/Plan 无新增进展，且不属于重试、删除、多选等合理重复场景时，判为重复动作异常。
 
 ## 模型服务配置
 

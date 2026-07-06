@@ -6,14 +6,14 @@
 
 - **执行轨迹合理性判定**：基于操作前后截图，检测 Agent 操作是否出现异常
 - **结果正确性判定**：综合关键检查点和达尔文功能判定结果，评估任务是否达成
-- **执行效率判定**：通过语义相似性分析检测重复操作和无效操作
+- **执行效率判定**：通过实际动作坐标、控件语义和 Plan 进展检测重复操作和无效操作
 
 ## 达尔文判定集成
 
 `FuncOracleCheck/` 是当前项目集成的达尔文功能判定模块，提供：
 
 - 单步判定：`POST /check_single_funck`
-- E2E 序列判定：`POST /check_e2e`
+- E2E 序列判定：`POST /check_e2e`，返回整体意图、路径一致性、Plan 覆盖和重复动作判定结果
 - 队列式功能检查：`/upload_funcheck_task`、`/get_check_result`、`/get_check_batch_result`
 
 模块内部通过 `oracle_service.py` 收敛 API 与 CLI 的公共判定逻辑，避免入口重复维护。

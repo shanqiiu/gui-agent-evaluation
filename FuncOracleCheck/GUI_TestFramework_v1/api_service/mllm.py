@@ -22,6 +22,10 @@ else:
     ENABLE_LOG = False
 
 
+class ModelResponseError(RuntimeError):
+    pass
+
+
 def _resolve_api_key(explicit_key: str = None, env_name: str = None) -> str:
     if explicit_key:
         return explicit_key
@@ -52,6 +56,46 @@ def _add_sampling_params(payload: dict, top_k: int = None, top_p: float = None, 
         payload["temperature"] = temperature
     if top_k is not None and _include_top_k():
         payload["top_k"] = top_k
+
+
+def _truncate(value, limit: int = 1000) -> str:
+    text = str(value)
+    if len(text) > limit:
+        return text[:limit] + "..."
+    return text
+
+
+def _extract_message_content(result_json, endpoint_name: str, server_url: str):
+    if not isinstance(result_json, dict):
+        raise ModelResponseError(
+            f"{endpoint_name} returned non-object JSON from {server_url}: {_truncate(result_json)}"
+        )
+
+    choices = result_json.get("choices")
+    if choices:
+        first_choice = choices[0]
+        if isinstance(first_choice, dict):
+            message = first_choice.get("message")
+            if isinstance(message, dict) and "content" in message:
+                return message["content"]
+            if "text" in first_choice:
+                return first_choice["text"]
+
+    for key in ("content", "text", "response", "message", "answer"):
+        value = result_json.get(key)
+        if isinstance(value, str):
+            return value
+
+    error = result_json.get("error") or result_json.get("detail")
+    if error:
+        raise ModelResponseError(
+            f"{endpoint_name} returned error JSON from {server_url}: {_truncate(error)}"
+        )
+
+    raise ModelResponseError(
+        f"{endpoint_name} response missing choices/content from {server_url}; "
+        f"keys={list(result_json.keys())}; body={_truncate(result_json)}"
+    )
 
 
 @log_mllm_interactions(log_dir=LLM_LOG_DIR, enable_log=ENABLE_LOG)
@@ -92,13 +136,12 @@ def request_llm(user_str=None,
 
             response = requests.post(url_, json=payload, headers=headers, verify=False, timeout=_request_timeout())
             if response.ok:
-                result_json = response.json()
-                return result_json["choices"][0]["message"]["content"]
+                return _extract_message_content(response.json(), "LLM", url_)
             print(f"request LLM server error! response status: {response.status_code}\n"
-                  f"payload: {payload}\n"
-                  f"response: {response.text}")
+                  f"payload: {_truncate(payload)}\n"
+                  f"response: {_truncate(response.text)}")
         except Exception as e:
-            print(e)
+            print(f"request LLM server error: {e}")
     print("请求LLM服务3次均失败, 返回None.")
     return None
 
@@ -148,18 +191,21 @@ def request_vlm(user_query=None,
     _add_sampling_params(payload, top_k=top_k, top_p=top_p, temperature=temperature)
 
     api_key = _resolve_api_key(model_cfg.VLM_API_KEY, model_cfg.VLM_API_KEY_ENV)
-    response = requests.post(
-        server_url,
-        headers=_headers(api_key),
-        json=payload,
-        verify=False,
-        timeout=_request_timeout(),
-    )
-    if response.ok:
-        result_json = response.json()
-        return result_json["choices"][0]["message"]["content"]
+    try:
+        response = requests.post(
+            server_url,
+            headers=_headers(api_key),
+            json=payload,
+            verify=False,
+            timeout=_request_timeout(),
+        )
+        if response.ok:
+            return _extract_message_content(response.json(), "VLM", server_url)
 
-    print(f"request VLM server error! response status: {response.status_code}\nresponse: {response.text}")
+        print(f"request VLM server error! response status: {response.status_code}\n"
+              f"response: {_truncate(response.text)}")
+    except Exception as e:
+        print(f"request VLM server error: {e}")
     return None
 
 

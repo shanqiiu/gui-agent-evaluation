@@ -32,7 +32,21 @@ def request_mlops_llms(query_: str = None,
     print(response.text)
     if response.ok:
         result_json = response.json()
-        return result_json["choices"][0]["message"]["content"]
+        choices = result_json.get("choices") if isinstance(result_json, dict) else None
+        if choices:
+            first_choice = choices[0]
+            if isinstance(first_choice, dict):
+                message = first_choice.get("message")
+                if isinstance(message, dict) and "content" in message:
+                    return message["content"]
+                if "text" in first_choice:
+                    return first_choice["text"]
+        for key in ("content", "text", "response", "message", "answer"):
+            value = result_json.get(key) if isinstance(result_json, dict) else None
+            if isinstance(value, str):
+                return value
+        print(f"request qwen server response missing choices/content: {result_json}")
+        return None
 
     print(f"request qwen server error! response status: {response.status_code}")
     return None
