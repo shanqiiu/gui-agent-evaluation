@@ -6,6 +6,7 @@ from typing import Any
 
 from GUI_TestFramework_v1 import scripts
 from GUI_TestFramework_v1.scripts.config import Config
+from planning_failure_detector import detect_planning_failures
 from repeated_action_detector import detect_repeated_actions
 
 
@@ -32,6 +33,16 @@ def run_sequence(config: Config) -> dict[str, Any]:
     aligned_result["重复动作判定结果"] = repeated_action_result["label"]
     aligned_result["重复动作判定依据"] = repeated_action_result["summary"]
     aligned_result["repeated_action_result"] = repeated_action_result
+
+    planning_failure_result = detect_planning_failures(
+        sample_dict=test.json_data,
+        raw_oracle_result=test.result,
+        aligned_result=aligned_result,
+        repeated_action_result=repeated_action_result,
+    )
+    aligned_result["规划失效判定结果"] = planning_failure_result["label"]
+    aligned_result["规划失效判定依据"] = planning_failure_result["summary"]
+    aligned_result["planning_failure_result"] = planning_failure_result
     return aligned_result
 
 

@@ -146,6 +146,38 @@ python framework_batch_eval.py
 ```
 
 当前重复动作判定是轻量规则实现：连续窗口内动作类型等效、点击坐标或控件语义相似、页面/Plan 无新增进展，且不属于重试、删除、多选等合理重复场景时，判为重复动作异常。
+规划失效判定也会在达尔文 E2E 判定后追加输出：
+
+```json
+{
+  "规划失效判定结果": "abnormal",
+  "规划失效判定依据": "检测到规划失效：提前终止；缺失步骤：点击收藏。",
+  "planning_failure_result": {
+    "label": "abnormal",
+    "type": "planning_failure",
+    "subtype": "premature_termination",
+    "severity": "high",
+    "confidence": 0.88,
+    "first_error_step": 3,
+    "completion_score": 0.667,
+    "missing_checkpoints": [
+      {
+        "id": "step_3",
+        "name": "点击收藏",
+        "required": true,
+        "status": "not_started"
+      }
+    ],
+    "evidence": [
+      "最后动作是 finished/done",
+      "Plan 覆盖率为 0.67",
+      "整体意图测试结果为nok"
+    ]
+  }
+}
+```
+
+当前规划失效判定是轻量规则实现：复用达尔文整体意图、Plan 覆盖、缺失功能、功能 bug 和实际终止动作，优先识别遗漏必要步骤、提前终止、未能终止、目标或路径规划不一致，并避免把纯功能 bug 强行归因为规划失效。
 
 ## 模型服务配置
 
