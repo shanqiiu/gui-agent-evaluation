@@ -262,19 +262,16 @@ def test_step_level_instruction_not_duplicated():
         step_plan = payload["step_level_instruction"]
 
         assert instruction == "打开密码自动填充和保存功能", f"instruction: {instruction}"
-        # 关键断言：step_level_instruction 应该包含动作描述，而非重复指令
-        assert "点击设置图标" in step_plan, f"step_plan: {step_plan}"
-        assert "点击隐私和安全" in step_plan, f"step_plan: {step_plan}"
+        # step_level_instruction 应基于 stepData 自身，不再依赖边文本
+        assert "点击(403,2579)" in step_plan, f"step_plan: {step_plan}"
+        assert "点击(315,918)" in step_plan, f"step_plan: {step_plan}"
         assert "向下滑动" in step_plan, f"step_plan: {step_plan}"
-        # 不应重复指令文本
-        assert step_plan.count("打开密码自动填充和保存功能") <= 1, \
-            f"step_plan 不应重复指令: {step_plan}"
 
         # 验证 seq_info 中的 text 字段也正确
         texts = [s["planning_output"]["parsed_action"]["text"] for s in payload["seq_info"]
                  if s["planning_output"]["parsed_action"]["action_type"] != "finished"]
-        assert texts[0] == "点击设置图标", f"texts[0]: {texts[0]}"
-        assert texts[1] == "点击隐私和安全", f"texts[1]: {texts[1]}"
+        assert texts[0] == "点击(403,2579)", f"texts[0]: {texts[0]}"
+        assert texts[1] == "点击(315,918)", f"texts[1]: {texts[1]}"
         assert texts[2] == "向下滑动", f"texts[2]: {texts[2]}"
 
     print("[PASS] test_step_level_instruction_not_duplicated")

@@ -316,6 +316,28 @@ def extract_event_text(edge: dict) -> str:
     return ""
 
 
+def step_action_to_text(action: dict) -> str:
+    """将已解析的 stepData 动作转为可读文本，不依赖边数据。"""
+    at = action["type"]
+    direction = action.get("direction", "")
+    start_box = action.get("start_box", [])
+
+    if at in ("click", "long_press"):
+        if start_box and len(start_box) >= 2:
+            return f"点击({start_box[0]},{start_box[1]})" if at == "click" else f"长按({start_box[0]},{start_box[1]})"
+        return "点击" if at == "click" else "长按"
+    if at in ("scroll", "swipe", "drag"):
+        dir_map = {"down": "向下滑动", "up": "向上滑动", "left": "向左滑动", "right": "向右滑动"}
+        if direction:
+            return dir_map.get(direction, f"向{direction}滑动")
+        return "滑动"
+    if at == "type":
+        return "输入文本"
+    if at == "finished":
+        return "任务完成"
+    return at
+
+
 def build_node_index(utg: dict) -> dict:
     """构建 node id → node 的索引（同时支持字符串和整数 key）。"""
     index: dict = {}
@@ -392,8 +414,6 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
                 home_turn = t
                 break
 
-    edge_to_index = build_edge_to_index(utg)
-
     action_steps: list[dict] = []
     for sd in utg.get("stepData", []):
         at = sd.get("action_type", "")
@@ -439,25 +459,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         if before_turn is not None:
             screenshot_ref = get_screenshot_ref(task_dir, before_turn, as_path=save_paths)
 
-        text = action.get("raw_action_type", "")
-        # 用 to_index 查找"进入此步骤"的边 → event_type.nodeText 描述此步操作的元素
-        edges_into_step = edge_to_index.get(str(step_id), [])
-        if edges_into_step:
-            event_text = extract_event_text(edges_into_step[0])
-            if event_text:
-                text = event_text
-
-        # 滑动类动作补充方向信息（event_type 中通常没有 direction）
-        direction = action.get("direction", "")
-        if direction and action["type"] in ("scroll", "swipe", "drag"):
-            dir_map = {"down": "向下滑动", "up": "向上滑动", "left": "向左滑动", "right": "向右滑动"}
-            dir_cn = dir_map.get(direction, f"向{direction}滑动")
-            if "滑动屏幕" in text:
-                text = text.replace("滑动屏幕", dir_cn, 1)
-            elif "滑动" in text:
-                text = text.replace("滑动", dir_cn, 1)
-            elif text == action.get("raw_action_type", ""):
-                text = dir_cn
+        text = step_action_to_text(action)
 
         short_desc = text if text else action["type"]
         descriptions.append(short_desc)
@@ -578,30 +580,13 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         parsed["raw_action_type"] = at
         action_steps_raw.append(parsed)
 
-    edge_to_index = build_edge_to_index(utg)
     descriptions: list[str] = []
     seq_info: list[dict] = []
 
     for idx, action in enumerate(action_steps_raw):
         screenshot_ref = screenshots[idx] if idx < len(screenshots) else ""
 
-        text = action.get("raw_action_type", "")
-        edges_into_step = edge_to_index.get(str(action["stepId"]), [])
-        if edges_into_step:
-            event_text = extract_event_text(edges_into_step[0])
-            if event_text:
-                text = event_text
-
-        direction = action.get("direction", "")
-        if direction and action["type"] in ("scroll", "swipe", "drag"):
-            dir_map = {"down": "向下滑动", "up": "向上滑动", "left": "向左滑动", "right": "向右滑动"}
-            dir_cn = dir_map.get(direction, f"向{direction}滑动")
-            if "滑动屏幕" in text:
-                text = text.replace("滑动屏幕", dir_cn, 1)
-            elif "滑动" in text:
-                text = text.replace("滑动", dir_cn, 1)
-            elif text == action.get("raw_action_type", ""):
-                text = dir_cn
+        text = step_action_to_text(action)
 
         descriptions.append(text if text else action["type"])
 
