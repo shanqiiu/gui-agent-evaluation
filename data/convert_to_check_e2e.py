@@ -49,45 +49,34 @@ _ACTION_FINISHED = re.compile(r"(finished|done|任务完成)")
 # 核心转换逻辑
 # ═══════════════════════════════════════════════════════════════════
 
-def parse_action_type(action_type_str: str) -> Optional[dict]:
+def parse_action_type(action_type_str: str) -> dict:
     """
-    解析 stepData.action_type 字符串，提取动作类型、坐标、方向。
-
-    示例:
-        "click([315, 918])"           → {"type": "click", "start_box": [315, 918]}
-        "scroll([500, 800], down)"    → {"type": "scroll", "start_box": [500, 800], "direction": "down"}
-        "clarify(当前页面需要手动操作);" → {"type": "clarify", "start_box": []}
+    解析 stepData.action_type 字符串。
+    不修改原始文本——action_type 使用原文（去尾部分号）。
+    提取 start_box 和 direction（有则填，无则空）。
+    永不返回 None。
     """
     at = action_type_str.strip().rstrip(";")
+    result: dict = {"type": at, "start_box": [], "direction": ""}
 
     m = _ACTION_CLICK.search(at)
     if m:
-        return {"type": "click", "start_box": [int(m.group(1)), int(m.group(2))]}
+        result["start_box"] = [int(m.group(1)), int(m.group(2))]
+        return result
 
     m = _ACTION_LONG_PRESS.search(at)
     if m:
-        return {"type": "long_press", "start_box": [int(m.group(1)), int(m.group(2))]}
+        result["start_box"] = [int(m.group(1)), int(m.group(2))]
+        return result
 
     m = _ACTION_SCROLL.search(at)
     if m:
-        result: dict = {"type": "scroll", "start_box": [int(m.group(2)), int(m.group(3))]}
+        result["start_box"] = [int(m.group(2)), int(m.group(3))]
         if m.group(4):
             result["direction"] = m.group(4)
         return result
 
-    if _ACTION_TYPE_EDIT.search(at):
-        return {"type": "type", "start_box": []}
-
-    if _ACTION_CLARIFY.search(at):
-        return {"type": "clarify", "start_box": []}
-
-    if _ACTION_OPEN.search(at):
-        return {"type": "open", "start_box": []}
-
-    if _ACTION_FINISHED.search(at):
-        return {"type": "finished", "start_box": []}
-
-    return None
+    return result
 
 
 def extract_turn_from_path(image_path: str) -> Optional[int]:
@@ -317,28 +306,34 @@ def extract_event_text(edge: dict) -> str:
 
 
 def step_action_to_text(action: dict) -> str:
-    """将已解析的 stepData 动作转为可读文本，不依赖边数据。"""
+    """将已解析的 stepData 动作转为可读文本。基于原始 action_type 字符串判断。"""
     at = action["type"]
     direction = action.get("direction", "")
     start_box = action.get("start_box", [])
 
-    if at in ("click", "long_press"):
+    at_lower = at.lower()
+    if "click" in at_lower:
         if start_box and len(start_box) >= 2:
-            return f"点击({start_box[0]},{start_box[1]})" if at == "click" else f"长按({start_box[0]},{start_box[1]})"
-        return "点击" if at == "click" else "长按"
-    if at in ("scroll", "swipe", "drag"):
+            return f"点击({start_box[0]},{start_box[1]})"
+        return "点击"
+    if "long_press" in at_lower:
+        if start_box and len(start_box) >= 2:
+            return f"长按({start_box[0]},{start_box[1]})"
+        return "长按"
+    if any(kw in at_lower for kw in ("scroll", "swipe", "drag")):
         dir_map = {"down": "向下滑动", "up": "向上滑动", "left": "向左滑动", "right": "向右滑动"}
         if direction:
             return dir_map.get(direction, f"向{direction}滑动")
         return "滑动"
-    if at == "type":
+    if any(kw in at_lower for kw in ("type", "edit")):
         return "输入文本"
-    if at == "open":
-        return "打开应用"
-    if at == "clarify":
+    if "clarify" in at_lower:
         return "需手动操作"
-    if at == "finished":
+    if "open" in at_lower:
+        return "打开应用"
+    if any(kw in at_lower for kw in ("finished", "done")):
         return "任务完成"
+    # 兜底：用原文本身
     return at
 
 
@@ -422,11 +417,8 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
     for sd in utg.get("stepData", []):
         at = sd.get("action_type", "")
         parsed = parse_action_type(at)
-        if parsed is None:
-            continue
         parsed["stepId"] = sd.get("stepId", "")
         parsed["cost_time"] = sd.get("cost_time", "0")
-        parsed["raw_action_type"] = at
         action_steps.append(parsed)
 
     seq_info: list[dict] = []
@@ -575,11 +567,8 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
     for sd in utg.get("stepData", []):
         at = sd.get("action_type", "")
         parsed = parse_action_type(at)
-        if parsed is None:
-            continue
         parsed["stepId"] = sd.get("stepId", "")
         parsed["cost_time"] = sd.get("cost_time", "0")
-        parsed["raw_action_type"] = at
         action_steps_raw.append(parsed)
 
     descriptions: list[str] = []

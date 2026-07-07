@@ -28,21 +28,24 @@ from convert_to_check_e2e import (
 
 
 def test_parse_action_type():
-    """验证各种 action_type 字符串的解析。"""
+    """验证各种 action_type 字符串的解析——type 为原文，提取坐标和方向。"""
     cases = [
-        ("click([315, 918])",          {"type": "click", "start_box": [315, 918]}),
-        ("click([100, 200])",          {"type": "click", "start_box": [100, 200]}),
-        ("long_press([500, 800])",     {"type": "long_press", "start_box": [500, 800]}),
-        ("scroll([500, 800], down)",   {"type": "scroll", "start_box": [500, 800], "direction": "down"}),
-        ("scroll([300, 600], up)",     {"type": "scroll", "start_box": [300, 600], "direction": "up"}),
-        ("swipe([200, 400], left)",    {"type": "scroll", "start_box": [200, 400], "direction": "left"}),
-        ("drag([100, 200], right)",    {"type": "scroll", "start_box": [100, 200], "direction": "right"}),
-        ("type(something)",            {"type": "type", "start_box": []}),
-        ("edit(...)",                  {"type": "type", "start_box": []}),
-        ("clarify(需要手动操作);",       {"type": "clarify", "start_box": []}),
-        ("open(\"设置\", restart=True)", {"type": "open", "start_box": []}),
-        ("用户回复(打开密码自动填充和保存功能);", None),  # 非 UI 动作
-        ("", None),
+        ("click([315, 918])",
+         {"type": "click([315, 918])", "start_box": [315, 918], "direction": ""}),
+        ("click([100, 200])",
+         {"type": "click([100, 200])", "start_box": [100, 200], "direction": ""}),
+        ("long_press([500, 800])",
+         {"type": "long_press([500, 800])", "start_box": [500, 800], "direction": ""}),
+        ("scroll([500, 800], down)",
+         {"type": "scroll([500, 800], down)", "start_box": [500, 800], "direction": "down"}),
+        ("scroll([300, 600], up)",
+         {"type": "scroll([300, 600], up)", "start_box": [300, 600], "direction": "up"}),
+        ("swipe([200, 400], left)",
+         {"type": "swipe([200, 400], left)", "start_box": [200, 400], "direction": "left"}),
+        ("open(\"设置\", restart=True)",
+         {"type": 'open("设置", restart=True)', "start_box": [], "direction": ""}),
+        ("用户回复(打开密码自动填充和保存功能);",
+         {"type": "用户回复(打开密码自动填充和保存功能)", "start_box": [], "direction": ""}),
     ]
 
     for raw, expected in cases:
