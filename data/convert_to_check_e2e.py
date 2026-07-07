@@ -492,7 +492,9 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         parsed["cost_time"] = sd.get("cost_time", "0")
 
         # 用 node 的 directives 丰富信息（坐标、元素文本）
-        node = node_by_id.get(step_id) or node_by_id.get(int(step_id)) if step_id.isdigit() else None
+        node = node_by_id.get(step_id)
+        if node is None and step_id.isdigit():
+            node = node_by_id.get(int(step_id))
         if node:
             dir_info = parse_node_directives(node)
             # directives 中的坐标优先（更精确）
@@ -663,7 +665,9 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         parsed["stepId"] = step_id
         parsed["cost_time"] = sd.get("cost_time", "0")
 
-        node = node_by_id_p.get(step_id) or node_by_id_p.get(int(step_id)) if step_id.isdigit() else None
+        node = node_by_id_p.get(step_id)
+        if node is None and step_id.isdigit():
+            node = node_by_id_p.get(int(step_id))
         if node:
             dir_info = parse_node_directives(node)
             if dir_info.get("start_box"):
