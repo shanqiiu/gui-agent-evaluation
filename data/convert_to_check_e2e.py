@@ -621,7 +621,6 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
     save_paths=True:   image_relative_path 存相对路径 ("0.jpg", "1.jpg", ...)
     save_paths=False:  image_relative_path 存 base64
     """
-    processed_path = processed_dir / "_processed.json"
     utg_path = processed_dir / "utg.json"
 
     if not utg_path.is_file():
@@ -632,28 +631,19 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
 
     instruction = extract_instruction(utg)
 
-    steps: list[dict] = []
-    if processed_path.is_file():
-        with open(processed_path, "r", encoding="utf-8") as f:
-            processed = json.load(f)
-        steps = processed.get("steps", [])
+    # 构建 step→turn 映射（与 raw 模式一致）
+    step_turn, turn_images = build_step_turn_mapping(processed_dir, utg)
 
-    # 读取扁平化截图 -> 路径或 base64
-    screenshots: list[str] = []
-    img_idx = 0
-    while True:
+    # 按 turn ID 命名的截图加载
+    def _load_turn_image(turn_id: int) -> str:
         for ext in (".jpg", ".png", ".jpeg"):
-            img_path = processed_dir / f"{img_idx}{ext}"
+            img_path = processed_dir / f"catchDataTurnId{turn_id}{ext}"
             if img_path.is_file():
                 if save_paths:
-                    screenshots.append(f"{img_idx}{ext}")
-                else:
-                    with open(img_path, "rb") as f:
-                        screenshots.append(base64.b64encode(f.read()).decode())
-                break
-        else:
-            break
-        img_idx += 1
+                    return f"catchDataTurnId{turn_id}{ext}"
+                with open(img_path, "rb") as f:
+                    return base64.b64encode(f.read()).decode()
+        return ""
 
     node_by_id_p: dict = {}
     for node in utg.get("nodes", []):
@@ -683,20 +673,57 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
 
         action_steps_raw.append(parsed)
 
+    all_step_ids = [str(sd.get("stepId", "")) for sd in utg.get("stepData", [])]
+
+    # home_turn 与 raw 模式一致
+    home_turn_p: Optional[int] = None
+    for node in utg.get("nodes", []):
+        if node.get("id") == "home":
+            ht = extract_turn_from_path(node.get("image", ""))
+            if ht is not None:
+                home_turn_p = ht
+                break
+    if home_turn_p is None:
+        for sid in all_step_ids:
+            t = step_turn.get(sid)
+            if t is not None:
+                home_turn_p = t
+                break
+
+    def _prev_turn_p(current_step_id: str) -> Optional[int]:
+        try:
+            pos = all_step_ids.index(str(current_step_id))
+        except ValueError:
+            return None
+        for prev_pos in range(pos - 1, -1, -1):
+            prev_turn = step_turn.get(all_step_ids[prev_pos])
+            if prev_turn is not None:
+                return prev_turn
+        return None
+
     descriptions: list[str] = []
     seq_info: list[dict] = []
 
     for idx, action in enumerate(action_steps_raw):
-        screenshot_ref = screenshots[idx] if idx < len(screenshots) else ""
+        step_id = action["stepId"]
+        if idx == 0:
+            before_turn = home_turn_p if home_turn_p is not None else _prev_turn_p(step_id)
+        else:
+            before_turn = _prev_turn_p(step_id)
+            if before_turn is None:
+                prev_action_step_id = action_steps_raw[idx - 1]["stepId"]
+                before_turn = step_turn.get(str(prev_action_step_id))
+
+        screenshot_ref = _load_turn_image(before_turn) if before_turn is not None else ""
+        image_source = turn_images.get(before_turn, "") if before_turn is not None else ""
 
         text = step_action_to_text(action)
-
         descriptions.append(text if text else action["type"])
 
         seq_info.append({
             "index": idx,
             "image_relative_path": screenshot_ref,
-            "_image_source": "",
+            "_image_source": image_source,
             "planning_output": {
                 "parsed_action": {
                     "action_type": action["type"],
@@ -708,13 +735,20 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             },
         })
 
-    # finished
+    # finished: 最后一步的截图作为最终状态
+    last_step_id = action_steps_raw[-1]["stepId"] if action_steps_raw else ""
+    last_turn = step_turn.get(str(last_step_id))
+    last_screenshot = _load_turn_image(last_turn) if last_turn is not None else ""
+    finished_source = ""
+    for node in utg.get("nodes", []):
+        if node.get("id") == "end":
+            finished_source = node.get("image", "")
+            break
 
-    last_screenshot = screenshots[-1] if screenshots else ""
     seq_info.append({
         "index": len(seq_info),
         "image_relative_path": last_screenshot,
-        "_image_source": "",
+        "_image_source": finished_source,
         "planning_output": {
             "parsed_action": {
                 "action_type": "finished",

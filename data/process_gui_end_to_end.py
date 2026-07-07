@@ -265,7 +265,7 @@ def parse_task_dir(task_dir: Path) -> dict:
 def copy_images_from_steps(task_dir: Path, steps: list[dict], output_dir: Path) -> int:
     """
     根据 steps 中的 turnId 和 images 信息，从原始 catchDataTurnIdN/ 目录
-    复制截图到 output_dir，按顺序重命名为 0.jpg, 1.jpg, ...
+    复制截图到 output_dir，命名为 catchDataTurnId{turn_id}.jpg。
 
     返回复制的截图数量。
     """
@@ -279,7 +279,6 @@ def copy_images_from_steps(task_dir: Path, steps: list[dict], output_dir: Path) 
             continue
 
         for img_name in images:
-            # 方法1: 直接构造路径 catchDataTurnId{turn_id}/
             turn_dir = task_dir / f"catchDataTurnId{turn_id}"
             src_file = None
 
@@ -289,7 +288,6 @@ def copy_images_from_steps(task_dir: Path, steps: list[dict], output_dir: Path) 
                         src_file = f
                         break
 
-            # 方法2: 遍历所有 catchDataTurnId* 目录查找（兜底）
             if src_file is None:
                 for entry in task_dir.iterdir():
                     if entry.is_dir() and _TURN_RE.search(entry.name):
@@ -301,7 +299,7 @@ def copy_images_from_steps(task_dir: Path, steps: list[dict], output_dir: Path) 
                         break
 
             if src_file:
-                dest_name = f"{image_index}.jpg"
+                dest_name = f"catchDataTurnId{turn_id}.jpg"
                 shutil.copy2(str(src_file), str(output_dir / dest_name))
                 image_index += 1
 
