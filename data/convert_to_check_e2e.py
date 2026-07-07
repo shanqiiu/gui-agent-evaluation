@@ -457,67 +457,63 @@ def convert_processed_to_check_e2e(processed_dir: Path) -> dict:
 # 命令行入口
 # ═══════════════════════════════════════════════════════════════════
 
-def _output_payload(payload: dict, output_path: Optional[str]):
-    """输出 payload 到文件或 stdout。"""
+def _output_payload(payload: dict, output_path: str) -> str:
+    """输出 payload 到文件，返回写入路径。"""
     json_str = json.dumps(payload, ensure_ascii=False, indent=2)
-    if output_path:
-        with open(output_path, "w", encoding="utf-8") as f:
-            f.write(json_str)
-        print(f"已写入: {output_path}")
-    else:
-        print(json_str)
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(json_str)
+    # 只输出文件名，不过长
+    print(f"    payload 已保存: {Path(output_path).name}")
+    return output_path
 
 
-def _send_payload(payload: dict, base_url: str, timeout: int = 300):
-    """向 /check_e2e 发送请求并打印结果。"""
+def _save_result(result: dict, result_path: str):
+    """保存判定结果到文件。"""
+    with open(result_path, "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=2)
+    print(f"    result 已保存: {Path(result_path).name}")
+
+
+def _send_payload(payload: dict, base_url: str, timeout: int = 300) -> dict:
+    """向 /check_e2e 发送请求，返回判定结果 dict。"""
     import requests
 
     url = f"{base_url.rstrip('/')}/check_e2e"
-    print(f"发送到 {url} ...")
-    print(f"  instruction: {payload['instruction']}")
-    print(f"  seq_info: {len(payload['seq_info'])} 步")
-    print()
+    print(f"    发送到 {url} ...")
 
     try:
         resp = requests.post(url, json=payload, timeout=timeout)
     except requests.ConnectionError:
-        print(f"[ERROR] 无法连接 {base_url}，请确认服务已启动")
+        print(f"    [ERROR] 无法连接 {base_url}，请确认服务已启动")
         sys.exit(1)
 
     if resp.status_code != 200:
-        print(f"[ERROR] HTTP {resp.status_code}: {resp.text[:500]}")
+        print(f"    [ERROR] HTTP {resp.status_code}: {resp.text[:500]}")
         sys.exit(1)
 
     result = resp.json().get("check_result", {})
-    print("=" * 60)
-    print("判定结果")
-    print("=" * 60)
 
     ra = result.get("重复动作判定结果", "-")
     pf = result.get("规划失效判定结果", "-")
-    print(f"  重复动作: {ra}")
-    print(f"  规划失效: {pf}")
-    print()
 
     repeated = result.get("repeated_action_result", {})
-    if repeated.get("ranges"):
-        print("  重复动作详情:")
-        for r in repeated["ranges"]:
-            print(f"    步骤{r['start_step']}→{r['end_step']}: {r['repeat_type']} "
-                  f"({r['target']}) 置信度={r['confidence']}")
+    repeated_ranges = len(repeated.get("ranges", []))
 
     planning = result.get("planning_failure_result", {})
-    if planning.get("events"):
-        print("  规划失效详情:")
-        for ev in planning["events"]:
-            print(f"    {ev['subtype']}, 首错步骤={ev['first_error_step']}, "
-                  f"置信度={ev['confidence']}")
+    planning_events = len(planning.get("events", []))
 
-    # 也输出完整 JSON（可选）
-    output_file = f"check_e2e_result_{os.getpid()}.json"
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
-    print(f"\n完整结果已保存: {output_file}")
+    status_line = f"重复动作={ra}({repeated_ranges}段) 规划失效={pf}({planning_events}项)"
+    if ra == "normal" and pf == "normal":
+        status_line += " [OK]"
+    else:
+        status_line += " [ANOMALY]"
+    print(f"    {status_line}")
+
+    return result
+
+
+DEFAULT_PAYLOAD_DIR = "payloads"
+DEFAULT_RESULT_DIR = "results"
 
 
 def main():
@@ -526,19 +522,28 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
+  # 单任务：输出 payload JSON
   python convert_to_check_e2e.py task_0072df9f/ -o payload.json
+
+  # 单任务：发送 + 自动保存 payload 和结果
   python convert_to_check_e2e.py task_0072df9f/ --send http://localhost:20025
-  python convert_to_check_e2e.py --batch reorg_output/ -o payloads/
+
+  # 批量：保存 payload → payloads/ 目录（可复用）
   python convert_to_check_e2e.py --batch reorg_output/ --processed
+
+  # 批量：发送 + 保存 payload + 保存判定结果
+  python convert_to_check_e2e.py --batch reorg_output/ --send http://localhost:20025 --processed
         """,
     )
 
     parser.add_argument("task_dir", nargs="?", help="单个任务目录路径")
-    parser.add_argument("-o", "--output", help="输出 JSON 文件路径（默认输出到 stdout）")
-    parser.add_argument("--send", help="直接发送到 /check_e2e 服务地址")
+    parser.add_argument("-o", "--output", help="输出文件路径（单任务）或目录（批量），默认 payloads/")
+    parser.add_argument("--send", help="发送到 /check_e2e 服务地址（发送时自动保存 payload 和结果）")
     parser.add_argument("--batch", help="批量模式：父目录（包含多个 task_uuid/ 子目录）")
     parser.add_argument("--processed", action="store_true",
                         help="使用预处理模式（从 _processed.json + 扁平截图转换）")
+    parser.add_argument("--no-save", action="store_true",
+                        help="不保存 payload 和结果文件（仅当 --send 时有效）")
     args = parser.parse_args()
 
     if args.batch:
@@ -546,6 +551,13 @@ def main():
         if not batch_dir.is_dir():
             print(f"[ERROR] 目录不存在: {args.batch}")
             sys.exit(1)
+
+        # 确定输出目录
+        payload_dir = Path(args.output) if args.output else Path(DEFAULT_PAYLOAD_DIR)
+        result_dir = payload_dir / DEFAULT_RESULT_DIR if args.send else payload_dir
+        payload_dir.mkdir(parents=True, exist_ok=True)
+        if args.send and not args.no_save:
+            result_dir.mkdir(parents=True, exist_ok=True)
 
         task_dirs = sorted(
             [d for d in batch_dir.iterdir() if d.is_dir() and not d.name.startswith(".")],
@@ -556,30 +568,35 @@ def main():
         fail = 0
         for i, td in enumerate(task_dirs):
             uuid = td.name
-            print(f"[{i+1}/{len(task_dirs)}] {uuid} ...", end=" ")
+            print(f"[{i+1}/{len(task_dirs)}] {uuid}", end="")
             try:
                 if args.processed:
                     payload = convert_processed_to_check_e2e(td)
                 else:
                     payload = convert_utg_to_check_e2e(td)
 
-                if args.output:
-                    out_dir = Path(args.output)
-                    out_dir.mkdir(parents=True, exist_ok=True)
-                    out_path = out_dir / f"{uuid}.json"
-                    _output_payload(payload, str(out_path))
-                elif args.send:
-                    _send_payload(payload, args.send)
-                else:
-                    _output_payload(payload, None)
+                # 保存 payload（除非 --no-save）
+                if not args.no_save:
+                    payload_path = payload_dir / f"{uuid}.json"
+                    _output_payload(payload, str(payload_path))
+
+                # 发送到判定服务
+                if args.send:
+                    result = _send_payload(payload, args.send)
+                    if not args.no_save:
+                        result_path = result_dir / f"{uuid}_result.json"
+                        _save_result(result, str(result_path))
 
                 success += 1
-                print("OK")
             except Exception as e:
                 fail += 1
-                print(f"FAIL: {e}")
+                print(f" FAIL: {e}")
 
         print(f"\n完成: 成功 {success}, 失败 {fail}")
+        if not args.no_save:
+            print(f"payload 目录: {payload_dir.resolve()}")
+            if args.send:
+                print(f"结果目录:   {result_dir.resolve()}")
 
     elif args.task_dir:
         task_dir = Path(args.task_dir)
@@ -593,9 +610,21 @@ def main():
             payload = convert_utg_to_check_e2e(task_dir)
 
         if args.send:
-            _send_payload(payload, args.send)
+            # 发送模式：自动保存 payload + result
+            if not args.no_save:
+                payload_path = args.output or f"{task_dir.name}.json"
+                _output_payload(payload, payload_path)
+            result = _send_payload(payload, args.send)
+            if not args.no_save:
+                result_path = args.output.replace(".json", "_result.json") if args.output else f"{task_dir.name}_result.json"
+                _save_result(result, result_path)
         else:
-            _output_payload(payload, args.output)
+            # 纯保存模式
+            if args.output:
+                _output_payload(payload, args.output)
+            else:
+                # 默认输出到 stdout
+                print(json.dumps(payload, ensure_ascii=False, indent=2))
 
     else:
         parser.print_help()
