@@ -1,0 +1,58 @@
+{
+  "instruction": "在抖音首页点击视频进入播放页，然后点赞并收藏",
+  "step_level_instruction": "点击视频→点击点赞→点击收藏",
+  "seq_info": [
+    {
+      "index": 0,
+      "image_relative_path": "<BASE64_SCREENSHOT_STEP_0>",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [530, 1200],
+          "end_box": [],
+          "text": "点击视频",
+          "direction": ""
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image_relative_path": "<BASE64_SCREENSHOT_STEP_1>",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [995, 1448],
+          "end_box": [],
+          "text": "点击点赞按钮",
+          "direction": ""
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image_relative_path": "<BASE64_SCREENSHOT_STEP_2>",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [995, 1448],
+          "end_box": [],
+          "text": "再次点击点赞按钮",
+          "direction": ""
+        }
+      }
+    },
+    {
+      "index": 3,
+      "image_relative_path": "<BASE64_SCREENSHOT_STEP_3>",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "finished",
+          "start_box": [],
+          "end_box": [],
+          "text": "任务完成",
+          "direction": ""
+        }
+      }
+    }
+  ]
+}
