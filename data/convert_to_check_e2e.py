@@ -490,35 +490,31 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
 
         action_steps.append(parsed)
 
-    # 按 nodes 顺序遍历，记上一个有 image 的节点 URL
-    step_images: dict = {}   # step_id → (before_url, own_url)
-    prev_img: Optional[str] = None
+    # node_id → image URL（直接取每个节点自己的 image）
+    node_images: dict = {}
     for node in utg.get("nodes", []):
         nid = node.get("id")
         if nid is None:
             continue
-        own = node.get("image", "") or None
-        entry = (prev_img or "", own)
-        step_images[nid] = entry
+        own = node.get("image", "") or ""
+        node_images[nid] = own
         if isinstance(nid, int):
-            step_images[str(nid)] = entry
+            node_images[str(nid)] = own
         elif isinstance(nid, str) and nid.isdigit():
-            step_images[int(nid)] = entry
-        if own:
-            prev_img = own
+            node_images[int(nid)] = own
 
     seq_info: list[dict] = []
     descriptions: list[str] = []
 
     for idx, action in enumerate(action_steps):
         step_id = action["stepId"]
-        before_url, _ = step_images.get(step_id, ("", None))
+        own_url = node_images.get(step_id, "")
         screenshot_ref, image_source = "", ""
-        if before_url:
-            turn_id = extract_turn_from_path(before_url)
+        if own_url:
+            turn_id = extract_turn_from_path(own_url)
             if turn_id is not None:
                 screenshot_ref = get_screenshot_ref(task_dir, turn_id, as_path=save_paths)
-                image_source = before_url
+                image_source = own_url
 
         text = step_action_to_text(action)
 
@@ -541,13 +537,14 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         })
 
     if seq_info:
-        # finished 步: 取遍历中最后一个有 image 的节点的截图
+        # finished 步: 取 end 节点自己的 image
         last_screenshot, finished_source = "", ""
-        if prev_img:
-            turn_id = extract_turn_from_path(prev_img)
+        end_url = node_images.get("end", "")
+        if end_url:
+            turn_id = extract_turn_from_path(end_url)
             if turn_id is not None:
                 last_screenshot = get_screenshot_ref(task_dir, turn_id, as_path=save_paths)
-            finished_source = prev_img
+            finished_source = end_url
 
         seq_info.append({
             "index": len(seq_info),
@@ -631,34 +628,30 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
 
         action_steps_raw.append(parsed)
 
-    step_images_p: dict = {}
-    prev_img_p: Optional[str] = None
+    node_images_p: dict = {}
     for node in utg.get("nodes", []):
         nid = node.get("id")
         if nid is None:
             continue
-        own = node.get("image", "") or None
-        entry = (prev_img_p or "", own)
-        step_images_p[nid] = entry
+        own = node.get("image", "") or ""
+        node_images_p[nid] = own
         if isinstance(nid, int):
-            step_images_p[str(nid)] = entry
+            node_images_p[str(nid)] = own
         elif isinstance(nid, str) and nid.isdigit():
-            step_images_p[int(nid)] = entry
-        if own:
-            prev_img_p = own
+            node_images_p[int(nid)] = own
 
     descriptions: list[str] = []
     seq_info: list[dict] = []
 
     for idx, action in enumerate(action_steps_raw):
         step_id = action["stepId"]
-        before_url, _ = step_images_p.get(step_id, ("", None))
+        own_url = node_images_p.get(step_id, "")
         screenshot_ref, image_source = "", ""
-        if before_url:
-            turn_id = extract_turn_from_path(before_url)
+        if own_url:
+            turn_id = extract_turn_from_path(own_url)
             if turn_id is not None:
                 screenshot_ref = get_screenshot_ref(processed_dir, turn_id, as_path=save_paths)
-                image_source = before_url
+                image_source = own_url
 
         text = step_action_to_text(action)
         descriptions.append(text if text else action["type"])
@@ -678,13 +671,14 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             },
         })
 
-    # finished: 取遍历中最后一个有 image 的节点的截图
+    # finished: 取 end 节点自己的 image
     last_screenshot_p, finished_source_p = "", ""
-    if prev_img_p:
-        turn_id = extract_turn_from_path(prev_img_p)
+    end_url_p = node_images_p.get("end", "")
+    if end_url_p:
+        turn_id = extract_turn_from_path(end_url_p)
         if turn_id is not None:
             last_screenshot_p = get_screenshot_ref(processed_dir, turn_id, as_path=save_paths)
-        finished_source_p = prev_img_p
+        finished_source_p = end_url_p
 
     seq_info.append({
         "index": len(seq_info),

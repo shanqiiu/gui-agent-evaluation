@@ -348,17 +348,16 @@ def test_same_page_consecutive_actions():
         # 应该有 2 个动作 + 1 个 finished = 3 项
         assert len(payload["seq_info"]) == 3, f"预期 3 步, 实际 {len(payload['seq_info'])}"
 
-        # 第 0 步 (click 按钮A): before 截图 = home (turn 0)
+        # 第 0 步 (click 按钮A): own 截图 = node 5 (turn 5)
         s0_img = payload["seq_info"][0]["image_relative_path"]
-        assert "catchDataTurnId0" in s0_img, f"step0 img: {s0_img}"
+        assert "catchDataTurnId5" in s0_img, f"step0 img: {s0_img}"
 
-        # 第 1 步 (click 按钮B): before 截图 = node 5 (turn 5)，与 step0 不同
-        # 关键：这一步在修复前会因为 used_turns 而被跳过，或查到错误的 edge
+        # 第 1 步 (click 按钮B): own 截图 = node 6 (turn 6)
         s1_img = payload["seq_info"][1]["image_relative_path"]
-        assert "catchDataTurnId5" in s1_img, f"step1 img: {s1_img}"
+        assert "catchDataTurnId6" in s1_img, f"step1 img: {s1_img}"
 
-        # 两步的截图应该不同（不同 turn）
-        assert s0_img != s1_img, "两步应有不同的 before 截图"
+        # 两步的截图应该不同
+        assert s0_img != s1_img, "两步应有不同的截图"
 
         # finished 步: 应有 end 截图
         s_fin_img = payload["seq_info"][2]["image_relative_path"]
