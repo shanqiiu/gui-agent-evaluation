@@ -96,6 +96,94 @@ def extract_turn_from_path(image_path: str) -> Optional[int]:
     return int(m.group(1)) if m else None
 
 
+def extract_step_id_from_title(title_str: str) -> Optional[int]:
+    """从 node title JSON 字符串中提取 stepId。"""
+    if not title_str:
+        return None
+    try:
+        title = json.loads(title_str)
+        sid = title.get("stepId")
+        return int(sid) if sid is not None else None
+    except (json.JSONDecodeError, TypeError):
+        return None
+
+
+def extract_turn_from_label(label: str) -> Optional[int]:
+    """从 node label 中提取 catchDataTurnId 提示。"""
+    m = _TURN_RE.search(str(label))
+    return int(m.group(1)) if m else None
+
+
+# ═══════════════════════════════════════════════════════════════════
+# 核心映射：stepData ↔ node ↔ catchDataTurnId
+# ═══════════════════════════════════════════════════════════════════
+
+def find_matching_turn(node: dict, all_turn_dirs: dict[int, Path]) -> Optional[int]:
+    """
+    根据节点信息匹配对应的 catchDataTurnId。
+    优先级: image 路径中的 turn > label 中的 turn > title 中的 stepId
+    （与 process_gui_end_to_end.py 的 find_matching_turn 逻辑一致）
+    """
+    turn_from_image = extract_turn_from_path(node.get("image", ""))
+    turn_from_label = extract_turn_from_label(node.get("label", ""))
+    step_id = extract_step_id_from_title(node.get("title", ""))
+
+    if turn_from_image is not None and turn_from_image in all_turn_dirs:
+        return turn_from_image
+    if turn_from_label is not None and turn_from_label in all_turn_dirs:
+        return turn_from_label
+    if step_id is not None and step_id in all_turn_dirs:
+        return step_id
+
+    return None
+
+
+def build_step_turn_mapping(task_dir: Path, utg: dict) -> dict[str, Optional[int]]:
+    """
+    构建 stepId → catchDataTurnId 映射表。
+
+    步骤：
+    1. 扫描任务目录下的所有 catchDataTurnIdN/ 子目录
+    2. 对 utg.json 中每个 node 运行 find_matching_turn，得到 node_id → turn_id
+    3. stepData.stepId 匹配 node.id → 得到 stepId → turn_id
+    """
+    # 收集所有 turn 目录
+    all_turn_dirs: dict[int, Path] = {}
+    for entry in sorted(task_dir.iterdir()):
+        tid = extract_turn_from_path(entry.name)  # 复用正则：catchDataTurnId(\d+)
+        if tid is not None and entry.is_dir():
+            all_turn_dirs[tid] = entry
+
+    # node_id → turn_id
+    node_turn: dict = {}
+    for node in utg.get("nodes", []):
+        nid = node.get("id")
+        if nid is None:
+            continue
+        turn = find_matching_turn(node, all_turn_dirs)
+        if turn is not None:
+            node_turn[nid] = turn
+            # 同时注册字符串形式
+            if isinstance(nid, int):
+                node_turn[str(nid)] = turn
+            elif isinstance(nid, str) and nid.isdigit():
+                node_turn[int(nid)] = turn
+
+    # stepId → turn_id
+    mapping: dict[str, Optional[int]] = {}
+    for sd in utg.get("stepData", []):
+        step_id_str = str(sd.get("stepId", ""))
+        sid_int = int(step_id_str) if step_id_str.isdigit() else None
+        turn = None
+        if sid_int is not None:
+            turn = node_turn.get(sid_int)
+        if turn is None:
+            turn = node_turn.get(step_id_str)
+        mapping[step_id_str] = turn
+
+    return mapping
+
+
 def find_screenshot_file(task_dir: Path, turn_id: int) -> Optional[Path]:
     """在 catchDataTurnId{turn_id}/ 下找到 -origin.jpg 截图。"""
     turn_dir = task_dir / f"catchDataTurnId{turn_id}"
@@ -286,9 +374,30 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         utg = json.load(f)
 
     instruction = extract_instruction(utg)
-    node_index = build_node_index(utg)
-    edge_index = build_edge_index(utg)
-    edge_to_index = build_edge_to_index(utg)    # 用于查找"描述此动作的边"
+
+    # ── 核心映射: stepId → catchDataTurnId ──
+    step_turn = build_step_turn_mapping(task_dir, utg)
+
+    # 获取所有 stepData 中的 stepId 顺序列表（用于找"前一步"）
+    all_step_ids = [str(sd.get("stepId", "")) for sd in utg.get("stepData", [])]
+
+    # home turn: 节点 home 对应的 catchDataTurnId（初始截图）
+    home_turn: Optional[int] = None
+    for node in utg.get("nodes", []):
+        if node.get("id") == "home":
+            ht = extract_turn_from_path(node.get("image", ""))
+            if ht is not None:
+                home_turn = ht
+                break
+    # 兜底: 用 step_turn 中第一个有 turn 的 step 前的一个
+    if home_turn is None:
+        for sid in all_step_ids:
+            t = step_turn.get(sid)
+            if t is not None:
+                home_turn = t
+                break
+
+    edge_to_index = build_edge_to_index(utg)    # 仅用于提取动作文本描述
 
     action_steps: list[dict] = []
     for sd in utg.get("stepData", []):
@@ -306,41 +415,34 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
     seq_info: list[dict] = []
     descriptions: list[str] = []
 
+    # 辅助: 给定 stepId，找到它"前一个"有 turn 的 stepId 对应的 turn
+    def _prev_turn(current_step_id: str) -> Optional[int]:
+        try:
+            pos = all_step_ids.index(str(current_step_id))
+        except ValueError:
+            return None
+        for prev_pos in range(pos - 1, -1, -1):
+            prev_turn = step_turn.get(all_step_ids[prev_pos])
+            if prev_turn is not None:
+                return prev_turn
+        return None
+
     for idx, action in enumerate(action_steps):
         step_id = action["stepId"]
 
-        # 截图映射规则:
-        #   第 i 步动作"执行前"的截图 = 前一个视图节点的截图。
-        #   - 首个动作: home 节点截图（初始页面）
-        #   - 后续动作: 边 (from=prev, to=step_id) 的 from 节点截图
-        #   同一页面上两步操作共用同一张截图是正常的（如连续点击两个按钮），
-        #   因此不限制重复使用。
+        # 截图: 动作执行前 = 前一个步骤的截图目录（或 home）
+        # 注意: turn_id 可以是 0，不能用 bool(turn_id) 判断，必须用 is not None
         screenshot_ref = ""
-        if idx == 0 and "home" in node_index:
-            home_node = node_index["home"]
-            home_turn = extract_turn_from_path(home_node.get("image", ""))
-            if home_turn is not None:
-                screenshot_ref = get_screenshot_ref(task_dir, home_turn, as_path=save_paths)
+        if idx == 0:
+            before_turn = home_turn if home_turn is not None else _prev_turn(step_id)
         else:
-            # 用 to_index 查找"前一个动作的边" → from 节点 = 此步的 before 截图
-            edges_into = edge_to_index.get(str(step_id), [])
-            if edges_into:
-                from_id = edges_into[0].get("from")
-                from_node = node_index.get(from_id)
-                if from_node:
-                    turn = extract_turn_from_path(from_node.get("image", ""))
-                    if turn is not None:
-                        screenshot_ref = get_screenshot_ref(task_dir, turn, as_path=save_paths)
+            before_turn = _prev_turn(step_id)
+            if before_turn is None:
+                prev_action_step_id = action_steps[idx - 1]["stepId"]
+                before_turn = step_turn.get(str(prev_action_step_id))
 
-        # 兜底：若上面的都失败，回退到当前节点自身的截图
-        if not screenshot_ref:
-            sid_int = int(step_id) if str(step_id).isdigit() else None
-            if sid_int is not None:
-                node = node_index.get(sid_int) or node_index.get(str(step_id))
-                if node:
-                    turn = extract_turn_from_path(node.get("image", ""))
-                    if turn is not None:
-                        screenshot_ref = get_screenshot_ref(task_dir, turn, as_path=save_paths)
+        if before_turn is not None:
+            screenshot_ref = get_screenshot_ref(task_dir, before_turn, as_path=save_paths)
 
         text = action.get("raw_action_type", "")
         # 用 to_index 查找"到达此步骤"的边 → 该边描述的就是此步骤的动作
@@ -368,22 +470,20 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         })
 
     if seq_info:
+        # finished 步截图: 最终页面 = end 节点或最后一步动作后的截图
         last_screenshot = ""
-        if "end" in node_index:
-            end_turn = extract_turn_from_path(node_index["end"].get("image", ""))
-            if end_turn is not None:
-                last_screenshot = get_screenshot_ref(task_dir, end_turn, as_path=save_paths)
-        elif action_steps:
-            # 最后一步动作 → 用它的 to 节点截图作为 finished 的"最终状态"
-            last_step_id = action_steps[-1]["stepId"]
-            edges_from_last = edge_index.get(str(last_step_id), [])
-            if edges_from_last:
-                to_id = edges_from_last[0].get("to")
-                to_node = node_index.get(to_id)
-                if to_node:
-                    turn = extract_turn_from_path(to_node.get("image", ""))
-                    if turn is not None:
-                        last_screenshot = get_screenshot_ref(task_dir, turn, as_path=save_paths)
+        # 优先: end 节点
+        for node in utg.get("nodes", []):
+            if node.get("id") == "end":
+                end_turn = extract_turn_from_path(node.get("image", ""))
+                if end_turn is not None:
+                    last_screenshot = get_screenshot_ref(task_dir, end_turn, as_path=save_paths)
+                    break
+        # 兜底: 最后一个动作 step 的 turn
+        if not last_screenshot and action_steps:
+            last_turn = step_turn.get(str(action_steps[-1]["stepId"]))
+            if last_turn is not None:
+                last_screenshot = get_screenshot_ref(task_dir, last_turn, as_path=save_paths)
 
         seq_info.append({
             "index": len(seq_info),
