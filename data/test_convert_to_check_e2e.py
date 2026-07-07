@@ -40,7 +40,7 @@ def test_parse_action_type():
         ("type(something)",            {"type": "type", "start_box": []}),
         ("edit(...)",                  {"type": "type", "start_box": []}),
         ("clarify(需要手动操作);",       {"type": "clarify", "start_box": []}),
-        ("open(\"设置\", restart=True)", {"type": "open_app", "start_box": []}),
+        ("open(\"设置\", restart=True)", {"type": "open", "start_box": []}),
         ("用户回复(打开密码自动填充和保存功能);", None),  # 非 UI 动作
         ("", None),
     ]

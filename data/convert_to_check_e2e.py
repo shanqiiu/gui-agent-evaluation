@@ -82,7 +82,7 @@ def parse_action_type(action_type_str: str) -> Optional[dict]:
         return {"type": "clarify", "start_box": []}
 
     if _ACTION_OPEN.search(at):
-        return {"type": "open_app", "start_box": []}
+        return {"type": "open", "start_box": []}
 
     if _ACTION_FINISHED.search(at):
         return {"type": "finished", "start_box": []}
@@ -333,7 +333,7 @@ def step_action_to_text(action: dict) -> str:
         return "滑动"
     if at == "type":
         return "输入文本"
-    if at == "open_app":
+    if at == "open":
         return "打开应用"
     if at == "clarify":
         return "需手动操作"
