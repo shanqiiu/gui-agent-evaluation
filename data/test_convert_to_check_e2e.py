@@ -281,6 +281,77 @@ def test_step_level_instruction_not_duplicated():
     print("[PASS] test_step_level_instruction_not_duplicated")
 
 
+def test_same_page_consecutive_actions():
+    """
+    回归测试：同一页面上连续两步操作（如连点两个按钮），
+    两步应有各自的截图引用（即使指向同一张图也不应被过滤掉）。
+    对应问题："操作步骤 >= catchDataTurnId 数量时，截图映射不丢步"。
+    """
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        task_dir = Path(tmpdir)
+
+        utg = {
+            "nodes": [
+                {"id": "home", "image": "catchDataTurnId0/dummy.jpg", "title": "{}",
+                 "raw_item": {"directives": "{}"}},
+                # node 5 是打开 App 后的页面（两个 click 共用这个 before 截图）
+                {"id": "5", "image": "catchDataTurnId5/dummy.jpg", "title": "{}",
+                 "raw_item": {"directives": "{}"}},
+                {"id": "6", "image": "catchDataTurnId6/dummy.jpg", "title": "{}",
+                 "raw_item": {"directives": "{}"}},
+                {"id": "end", "image": "catchDataTurnId99/dummy.jpg", "title": "{}",
+                 "raw_item": {"directives": "{}"}},
+            ],
+            "stepData": [
+                {"stepId": "5", "action_type": "click([100, 200])", "cost_time": "100"},
+                {"stepId": "6", "action_type": "click([300, 400])", "cost_time": "200"},
+            ],
+            "edges": [
+                {"from": "home", "to": "5",
+                 "title": json.dumps({"instruction": "test"}),
+                 "events": [{"event_type": '{"type":"click","nodeText":"按钮A"}',
+                             "event_str": ""}]},
+                {"from": "5", "to": "6",
+                 "events": [{"event_type": '{"type":"click","nodeText":"按钮B"}',
+                             "event_str": ""}]},
+            ],
+        }
+
+        with open(task_dir / "utg.json", "w", encoding="utf-8") as f:
+            json.dump(utg, f, ensure_ascii=False)
+
+        for turn_id in (0, 5, 6, 99):
+            turn_dir = task_dir / f"catchDataTurnId{turn_id}"
+            turn_dir.mkdir()
+            with open(turn_dir / "temp_image-screenshot-origin.jpg", "wb") as f:
+                f.write(b"\xff\xd8\xff\xe0")
+
+        payload = convert_utg_to_check_e2e(task_dir, save_paths=True)
+
+        # 应该有 2 个动作 + 1 个 finished = 3 项
+        assert len(payload["seq_info"]) == 3, f"预期 3 步, 实际 {len(payload['seq_info'])}"
+
+        # 第 0 步 (click 按钮A): before 截图 = home (turn 0)
+        s0_img = payload["seq_info"][0]["image_relative_path"]
+        assert "catchDataTurnId0" in s0_img, f"step0 img: {s0_img}"
+
+        # 第 1 步 (click 按钮B): before 截图 = node 5 (turn 5)，与 step0 不同
+        # 关键：这一步在修复前会因为 used_turns 而被跳过，或查到错误的 edge
+        s1_img = payload["seq_info"][1]["image_relative_path"]
+        assert "catchDataTurnId5" in s1_img, f"step1 img: {s1_img}"
+
+        # 两步的截图应该不同（不同 turn）
+        assert s0_img != s1_img, "两步应有不同的 before 截图"
+
+        # finished 步: 应有 end 截图
+        s_fin_img = payload["seq_info"][2]["image_relative_path"]
+        assert "catchDataTurnId99" in s_fin_img, f"finished img: {s_fin_img}"
+
+    print("[PASS] test_same_page_consecutive_actions")
+
+
 if __name__ == "__main__":
     test_parse_action_type()
     test_extract_turn_from_path()
@@ -290,4 +361,5 @@ if __name__ == "__main__":
     test_is_image_path()
     test_hydrate_payload()
     test_step_level_instruction_not_duplicated()
+    test_same_page_consecutive_actions()
     print("\nAll tests passed.")

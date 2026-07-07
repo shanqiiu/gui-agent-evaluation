@@ -305,36 +305,42 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
 
     seq_info: list[dict] = []
     descriptions: list[str] = []
-    used_turns: set = set()
 
     for idx, action in enumerate(action_steps):
         step_id = action["stepId"]
-        sid_int = int(step_id) if str(step_id).isdigit() else None
 
+        # 截图映射规则:
+        #   第 i 步动作"执行前"的截图 = 前一个视图节点的截图。
+        #   - 首个动作: home 节点截图（初始页面）
+        #   - 后续动作: 边 (from=prev, to=step_id) 的 from 节点截图
+        #   同一页面上两步操作共用同一张截图是正常的（如连续点击两个按钮），
+        #   因此不限制重复使用。
         screenshot_ref = ""
         if idx == 0 and "home" in node_index:
             home_node = node_index["home"]
             home_turn = extract_turn_from_path(home_node.get("image", ""))
-            if home_turn is not None and home_turn not in used_turns:
+            if home_turn is not None:
                 screenshot_ref = get_screenshot_ref(task_dir, home_turn, as_path=save_paths)
-                used_turns.add(home_turn)
         else:
-            edges_from_prev = edge_index.get(str(step_id), [])
-            if edges_from_prev:
-                from_id = edges_from_prev[0].get("from")
+            # 用 to_index 查找"前一个动作的边" → from 节点 = 此步的 before 截图
+            edges_into = edge_to_index.get(str(step_id), [])
+            if edges_into:
+                from_id = edges_into[0].get("from")
                 from_node = node_index.get(from_id)
                 if from_node:
                     turn = extract_turn_from_path(from_node.get("image", ""))
-                    if turn is not None and turn not in used_turns:
+                    if turn is not None:
                         screenshot_ref = get_screenshot_ref(task_dir, turn, as_path=save_paths)
-                        used_turns.add(turn)
-            if not screenshot_ref and sid_int is not None:
+
+        # 兜底：若上面的都失败，回退到当前节点自身的截图
+        if not screenshot_ref:
+            sid_int = int(step_id) if str(step_id).isdigit() else None
+            if sid_int is not None:
                 node = node_index.get(sid_int) or node_index.get(str(step_id))
                 if node:
                     turn = extract_turn_from_path(node.get("image", ""))
-                    if turn is not None and turn not in used_turns:
+                    if turn is not None:
                         screenshot_ref = get_screenshot_ref(task_dir, turn, as_path=save_paths)
-                        used_turns.add(turn)
 
         text = action.get("raw_action_type", "")
         # 用 to_index 查找"到达此步骤"的边 → 该边描述的就是此步骤的动作
@@ -368,10 +374,11 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
             if end_turn is not None:
                 last_screenshot = get_screenshot_ref(task_dir, end_turn, as_path=save_paths)
         elif action_steps:
+            # 最后一步动作 → 用它的 to 节点截图作为 finished 的"最终状态"
             last_step_id = action_steps[-1]["stepId"]
-            edges_for_last = edge_index.get(str(last_step_id), [])
-            if edges_for_last:
-                to_id = edges_for_last[0].get("to")
+            edges_from_last = edge_index.get(str(last_step_id), [])
+            if edges_from_last:
+                to_id = edges_from_last[0].get("to")
                 to_node = node_index.get(to_id)
                 if to_node:
                     turn = extract_turn_from_path(to_node.get("image", ""))
