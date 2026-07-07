@@ -263,6 +263,56 @@ def get_screenshot_ref(task_dir: Path, turn_id: int, *, as_path: bool = False) -
         return base64.b64encode(f.read()).decode()
 
 
+def build_node_image_chain(utg: dict) -> dict:
+    """
+    按节点顺序遍历，跟踪截图链。
+
+    返回: node_id → {"before": str, "own": str|None}
+
+    - before: 最近一个"有截图"的前置节点的 image 字段 → 此步动作执行前的页面
+    - own:    当前节点自身的 image 字段 → None 表示此节点无截图
+    """
+    chain: dict = {}
+    previous: Optional[str] = None
+
+    for node in utg.get("nodes", []):
+        nid = node.get("id")
+        if nid is None:
+            continue
+        own_img = node.get("image", "") or None
+        entry = {"before": previous or "", "own": own_img}
+        chain[nid] = entry
+        if isinstance(nid, int):
+            chain[str(nid)] = entry
+        elif isinstance(nid, str) and nid.isdigit():
+            chain[int(nid)] = entry
+        if own_img:
+            previous = own_img
+
+    return chain
+
+
+def _img_for_step(node_chain: dict, step_id: str, task_dir: Path,
+                  as_path: bool = False) -> tuple[str, str]:
+    """
+    根据节点截图链获取某步骤的截图引用。
+
+    返回: (image_relative_path, _image_source)
+      image_relative_path: 文件名/相对路径（或 base64）
+      _image_source:       原始 REST URL
+    """
+    info = node_chain.get(step_id) or node_chain.get(int(step_id)) if step_id.isdigit() else None
+    if info is None:
+        return "", ""
+    before_url = info.get("before", "")
+    if not before_url:
+        return "", ""
+    turn_id = extract_turn_from_path(before_url)
+    if turn_id is not None:
+        return get_screenshot_ref(task_dir, turn_id, as_path=as_path), before_url
+    return "", before_url
+
+
 def _is_image_path(s: str) -> bool:
     """判断字符串是否可能是图片文件路径（而非 base64）。"""
     if not s:
@@ -456,28 +506,6 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
 
     instruction = extract_instruction(utg)
 
-    # ── 核心映射: stepId → catchDataTurnId ──
-    step_turn, turn_images = build_step_turn_mapping(task_dir, utg)
-
-    # 获取所有 stepData 中的 stepId 顺序列表（用于找"前一步"）
-    all_step_ids = [str(sd.get("stepId", "")) for sd in utg.get("stepData", [])]
-
-    # home turn: 节点 home 对应的 catchDataTurnId（初始截图）
-    home_turn: Optional[int] = None
-    for node in utg.get("nodes", []):
-        if node.get("id") == "home":
-            ht = extract_turn_from_path(node.get("image", ""))
-            if ht is not None:
-                home_turn = ht
-                break
-    # 兜底: 用 step_turn 中第一个有 turn 的 step 前的一个
-    if home_turn is None:
-        for sid in all_step_ids:
-            t = step_turn.get(sid)
-            if t is not None:
-                home_turn = t
-                break
-
     # node id → node 索引（用于从 directives 提取动作详情）
     node_by_id: dict = {}
     for node in utg.get("nodes", []):
@@ -512,37 +540,17 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
 
         action_steps.append(parsed)
 
+    # 节点截图链: 按节点顺序遍历，每个步骤取前一个有截图的节点的 image
+    node_chain = build_node_image_chain(utg)
+
     seq_info: list[dict] = []
     descriptions: list[str] = []
-
-    # 辅助: 给定 stepId，找到它"前一个"有 turn 的 stepId 对应的 turn
-    def _prev_turn(current_step_id: str) -> Optional[int]:
-        try:
-            pos = all_step_ids.index(str(current_step_id))
-        except ValueError:
-            return None
-        for prev_pos in range(pos - 1, -1, -1):
-            prev_turn = step_turn.get(all_step_ids[prev_pos])
-            if prev_turn is not None:
-                return prev_turn
-        return None
 
     for idx, action in enumerate(action_steps):
         step_id = action["stepId"]
 
-        # 截图: 动作执行前 = 前一个步骤的截图目录（或 home）
-        # 注意: turn_id 可以是 0，不能用 bool(turn_id) 判断，必须用 is not None
-        screenshot_ref = ""
-        if idx == 0:
-            before_turn = home_turn if home_turn is not None else _prev_turn(step_id)
-        else:
-            before_turn = _prev_turn(step_id)
-            if before_turn is None:
-                prev_action_step_id = action_steps[idx - 1]["stepId"]
-                before_turn = step_turn.get(str(prev_action_step_id))
-
-        if before_turn is not None:
-            screenshot_ref = get_screenshot_ref(task_dir, before_turn, as_path=save_paths)
+        screenshot_ref, image_source = _img_for_step(
+            node_chain, step_id, task_dir, as_path=save_paths)
 
         text = step_action_to_text(action)
 
@@ -552,7 +560,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         seq_info.append({
             "index": idx,
             "image_relative_path": screenshot_ref,
-            "_image_source": turn_images.get(before_turn, "") if before_turn is not None else "",
+            "_image_source": image_source,
             "planning_output": {
                 "parsed_action": {
                     "action_type": action["type"],
@@ -565,27 +573,15 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         })
 
     if seq_info:
-        # finished 步截图: 最终页面 = end 节点或最后一步动作后的截图
+        # finished 步: 取 end 节点的截图（或最后一个动作的 before 截图）
+        end_info = node_chain.get("end", {})
+        end_own = end_info.get("own")
         last_screenshot = ""
-        # 优先: end 节点
-        for node in utg.get("nodes", []):
-            if node.get("id") == "end":
-                end_turn = extract_turn_from_path(node.get("image", ""))
-                if end_turn is not None:
-                    last_screenshot = get_screenshot_ref(task_dir, end_turn, as_path=save_paths)
-                    break
-        # 兜底: 最后一个动作 step 的 turn
-        if not last_screenshot and action_steps:
-            last_turn = step_turn.get(str(action_steps[-1]["stepId"]))
-            if last_turn is not None:
-                last_screenshot = get_screenshot_ref(task_dir, last_turn, as_path=save_paths)
-
-        # finished 步的 image source: end 节点的原始 image URL
-        finished_source = ""
-        for node in utg.get("nodes", []):
-            if node.get("id") == "end":
-                finished_source = node.get("image", "")
-                break
+        if end_own:
+            end_turn = extract_turn_from_path(end_own)
+            if end_turn is not None:
+                last_screenshot = get_screenshot_ref(task_dir, end_turn, as_path=save_paths)
+        finished_source = end_info.get("before", "") or ""
 
         seq_info.append({
             "index": len(seq_info),
@@ -639,20 +635,6 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
 
     instruction = extract_instruction(utg)
 
-    # 构建 step→turn 映射（与 raw 模式一致）
-    step_turn, turn_images = build_step_turn_mapping(processed_dir, utg)
-
-    # 按 turn ID 命名的截图加载
-    def _load_turn_image(turn_id: int) -> str:
-        for ext in (".jpg", ".png", ".jpeg"):
-            img_path = processed_dir / f"catchDataTurnId{turn_id}{ext}"
-            if img_path.is_file():
-                if save_paths:
-                    return f"catchDataTurnId{turn_id}{ext}"
-                with open(img_path, "rb") as f:
-                    return base64.b64encode(f.read()).decode()
-        return ""
-
     node_by_id_p: dict = {}
     for node in utg.get("nodes", []):
         nid = node.get("id")
@@ -683,49 +665,16 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
 
         action_steps_raw.append(parsed)
 
-    all_step_ids = [str(sd.get("stepId", "")) for sd in utg.get("stepData", [])]
-
-    # home_turn 与 raw 模式一致
-    home_turn_p: Optional[int] = None
-    for node in utg.get("nodes", []):
-        if node.get("id") == "home":
-            ht = extract_turn_from_path(node.get("image", ""))
-            if ht is not None:
-                home_turn_p = ht
-                break
-    if home_turn_p is None:
-        for sid in all_step_ids:
-            t = step_turn.get(sid)
-            if t is not None:
-                home_turn_p = t
-                break
-
-    def _prev_turn_p(current_step_id: str) -> Optional[int]:
-        try:
-            pos = all_step_ids.index(str(current_step_id))
-        except ValueError:
-            return None
-        for prev_pos in range(pos - 1, -1, -1):
-            prev_turn = step_turn.get(all_step_ids[prev_pos])
-            if prev_turn is not None:
-                return prev_turn
-        return None
+    node_chain_p = build_node_image_chain(utg)
 
     descriptions: list[str] = []
     seq_info: list[dict] = []
 
     for idx, action in enumerate(action_steps_raw):
         step_id = action["stepId"]
-        if idx == 0:
-            before_turn = home_turn_p if home_turn_p is not None else _prev_turn_p(step_id)
-        else:
-            before_turn = _prev_turn_p(step_id)
-            if before_turn is None:
-                prev_action_step_id = action_steps_raw[idx - 1]["stepId"]
-                before_turn = step_turn.get(str(prev_action_step_id))
 
-        screenshot_ref = _load_turn_image(before_turn) if before_turn is not None else ""
-        image_source = turn_images.get(before_turn, "") if before_turn is not None else ""
+        screenshot_ref, image_source = _img_for_step(
+            node_chain_p, step_id, processed_dir, as_path=save_paths)
 
         text = step_action_to_text(action)
         descriptions.append(text if text else action["type"])
@@ -745,15 +694,15 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             },
         })
 
-    # finished: 最后一步的截图作为最终状态
-    last_step_id = action_steps_raw[-1]["stepId"] if action_steps_raw else ""
-    last_turn = step_turn.get(str(last_step_id))
-    last_screenshot = _load_turn_image(last_turn) if last_turn is not None else ""
-    finished_source = ""
-    for node in utg.get("nodes", []):
-        if node.get("id") == "end":
-            finished_source = node.get("image", "")
-            break
+    # finished: 取 end 节点的截图
+    end_info_p = node_chain_p.get("end", {})
+    end_own_p = end_info_p.get("own")
+    last_screenshot = ""
+    if end_own_p:
+        end_turn = extract_turn_from_path(end_own_p)
+        if end_turn is not None:
+            last_screenshot = get_screenshot_ref(processed_dir, end_turn, as_path=save_paths)
+    finished_source = end_info_p.get("before", "") or ""
 
     seq_info.append({
         "index": len(seq_info),
