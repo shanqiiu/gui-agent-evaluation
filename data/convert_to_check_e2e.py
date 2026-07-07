@@ -593,6 +593,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
 
     seq_info: list[dict] = []
     descriptions: list[str] = []
+    last_loaded = ""  # 兜底：上一步成功加载的截图路径
 
     for idx, action in enumerate(action_steps):
         step_id = action["stepId"]
@@ -601,6 +602,11 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         if own_url:
             screenshot_ref = screenshot_from_url(task_dir, own_url, as_path=save_paths)
             image_source = own_url
+        # 文件不存在 → 用上一步的截图兜底
+        if not screenshot_ref and last_loaded:
+            screenshot_ref = last_loaded
+        if screenshot_ref:
+            last_loaded = screenshot_ref
 
         text = step_action_to_text(action)
 
@@ -741,6 +747,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
 
     descriptions: list[str] = []
     seq_info: list[dict] = []
+    last_loaded_p = ""
 
     for idx, action in enumerate(action_steps_raw):
         step_id = action["stepId"]
@@ -749,6 +756,10 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         if own_url:
             screenshot_ref = flat_screenshot_from_url(processed_dir, own_url, as_path=save_paths)
             image_source = own_url
+        if not screenshot_ref and last_loaded_p:
+            screenshot_ref = last_loaded_p
+        if screenshot_ref:
+            last_loaded_p = screenshot_ref
 
         text = step_action_to_text(action)
         descriptions.append(text if text else action["type"])
