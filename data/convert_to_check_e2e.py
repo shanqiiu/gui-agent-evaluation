@@ -485,7 +485,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
 
     action_steps: list[dict] = []
     for sd in utg.get("stepData", []):
-        step_id = sd.get("stepId", "")
+        step_id = str(sd.get("stepId", ""))
         at = sd.get("action_type", "")
         parsed = parse_action_type(at)
         parsed["stepId"] = step_id
@@ -659,7 +659,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
 
     action_steps_raw: list[dict] = []
     for sd in utg.get("stepData", []):
-        step_id = sd.get("stepId", "")
+        step_id = str(sd.get("stepId", ""))
         at = sd.get("action_type", "")
         parsed = parse_action_type(at)
         parsed["stepId"] = step_id
