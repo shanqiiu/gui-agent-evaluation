@@ -226,6 +226,9 @@ def parse_task_dir(task_dir: Path) -> dict:
     steps = []
 
     for node in nodes:
+        if "image" not in node:
+            continue
+
         matching_turn = find_matching_turn(node, all_turn_dirs)
         if matching_turn is None:
             continue
@@ -247,21 +250,6 @@ def parse_task_dir(task_dir: Path) -> dict:
         })
 
     steps.sort(key=lambda x: x.get("stepId") or 0)
-
-    # 诊断：报告已匹配和未匹配的 turn 目录
-    matched_turns = {s["turnId"] for s in steps}
-    unmatched = {tid for tid in all_turn_dirs if tid not in matched_turns}
-    if unmatched:
-        unmatched_has_images = {
-            tid: bool(extract_screenshots(all_turn_dirs[tid]))
-            for tid in sorted(unmatched)
-        }
-        log.warning(
-            "[%s] %d 个 turn 目录未被任何 node 匹配: %s",
-            task_uuid, len(unmatched),
-            ", ".join(f"{tid}(img={'Y' if unmatched_has_images[tid] else 'N'})"
-                      for tid in sorted(unmatched)),
-        )
 
     return {
         "uuid": task_uuid,
