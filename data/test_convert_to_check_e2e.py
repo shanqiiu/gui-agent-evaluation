@@ -24,6 +24,8 @@ from convert_to_check_e2e import (
     hydrate_payload,
     get_screenshot_ref,
     convert_utg_to_check_e2e,
+    parse_node_directives,
+    step_action_to_text,
 )
 
 
@@ -226,6 +228,20 @@ def test_step_level_instruction_not_duplicated():
             "nodes": [
                 {"id": "home", "image": f"catchDataTurnId0/dummy.jpg", "title": "{}",
                  "raw_item": {"directives": "{}"}},
+                {"id": 6, "image": f"catchDataTurnId6/dummy.jpg", "title": "{}",
+                 "raw_item": {"directives": json.dumps(
+                     [{"payload": {"actions": [
+                         {"action": "click", "id": "[403, 2579]",
+                          "params": {"node": {"text": "设置图标"}}}]},
+                       "header": {"namespace": "SimulatingOperation", "name": "ExecuteCommand"}}])}},
+                {"id": 7, "image": f"catchDataTurnId7/dummy.jpg", "title": "{}",
+                 "raw_item": {"directives": json.dumps(
+                     [{"payload": {"actions": [
+                         {"action": "click", "id": "[315, 918]",
+                          "params": {"node": {"text": "隐私和安全"}}}]},
+                       "header": {"namespace": "SimulatingOperation", "name": "ExecuteCommand"}}])}},
+                {"id": 8, "image": f"catchDataTurnId8/dummy.jpg", "title": "{}",
+                 "raw_item": {"directives": "{}"}},
                 {"id": "end", "image": f"catchDataTurnId99/dummy.jpg", "title": "{}",
                  "raw_item": {"directives": "{}"}},
             ],
@@ -266,15 +282,15 @@ def test_step_level_instruction_not_duplicated():
 
         assert instruction == "打开密码自动填充和保存功能", f"instruction: {instruction}"
         # step_level_instruction 应基于 stepData 自身，不再依赖边文本
-        assert "点击(403,2579)" in step_plan, f"step_plan: {step_plan}"
-        assert "点击(315,918)" in step_plan, f"step_plan: {step_plan}"
+        assert "点击设置图标" in step_plan, f"step_plan: {step_plan}"
+        assert "点击隐私和安全" in step_plan, f"step_plan: {step_plan}"
         assert "向下滑动" in step_plan, f"step_plan: {step_plan}"
 
         # 验证 seq_info 中的 text 字段也正确
         texts = [s["planning_output"]["parsed_action"]["text"] for s in payload["seq_info"]
                  if s["planning_output"]["parsed_action"]["action_type"] != "finished"]
-        assert texts[0] == "点击(403,2579)", f"texts[0]: {texts[0]}"
-        assert texts[1] == "点击(315,918)", f"texts[1]: {texts[1]}"
+        assert texts[0] == "点击设置图标", f"texts[0]: {texts[0]}"
+        assert texts[1] == "点击隐私和安全", f"texts[1]: {texts[1]}"
         assert texts[2] == "向下滑动", f"texts[2]: {texts[2]}"
 
     print("[PASS] test_step_level_instruction_not_duplicated")
@@ -351,6 +367,50 @@ def test_same_page_consecutive_actions():
     print("[PASS] test_same_page_consecutive_actions")
 
 
+def test_parse_node_directives():
+    """验证从 node.raw_item.directives 提取动作信息。"""
+    import json as _json
+
+    # 模拟真实 directives 结构
+    directives = _json.dumps([{
+        "payload": {
+            "actions": [{
+                "action": "click",
+                "id": "[193, 964]",
+                "params": {
+                    "node": {
+                        "text": "密码保险箱",
+                        "bounds": [90, 2701, 383, 2772],
+                    }
+                }
+            }]
+        },
+        "header": {"namespace": "SimulatingOperation", "name": "ExecuteCommand"}
+    }])
+
+    node = {"raw_item": {"directives": directives}}
+    result = parse_node_directives(node)
+    assert result["action_type"] == "click"
+    assert result["start_box"] == [193, 964]
+    assert result["element_text"] == "密码保险箱"
+
+    # 无 directives → 空 dict
+    assert parse_node_directives({"raw_item": {"directives": ""}}) == {}
+    assert parse_node_directives({}) == {}
+
+    # step_action_to_text 使用 element_text
+    action = {"type": "click([193,964])", "start_box": [193, 964],
+              "element_text": "密码保险箱", "direction": ""}
+    assert step_action_to_text(action) == "点击密码保险箱"
+
+    # 无 element_text → 回退到坐标
+    action2 = {"type": "click([315,918])", "start_box": [315, 918],
+               "element_text": "", "direction": ""}
+    assert step_action_to_text(action2) == "点击(315,918)"
+
+    print("[PASS] test_parse_node_directives")
+
+
 if __name__ == "__main__":
     test_parse_action_type()
     test_extract_turn_from_path()
@@ -361,4 +421,5 @@ if __name__ == "__main__":
     test_hydrate_payload()
     test_step_level_instruction_not_duplicated()
     test_same_page_consecutive_actions()
+    test_parse_node_directives()
     print("\nAll tests passed.")

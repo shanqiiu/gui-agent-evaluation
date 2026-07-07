@@ -103,6 +103,56 @@ def extract_turn_from_label(label: str) -> Optional[int]:
     return int(m.group(1)) if m else None
 
 
+def _parse_coord_str(coord_str: str) -> Optional[list[int]]:
+    """解析 "[193, 964]" 格式的坐标字符串。"""
+    nums = re.findall(r"\d+", coord_str)
+    if len(nums) >= 2:
+        return [int(nums[0]), int(nums[1])]
+    return None
+
+
+def parse_node_directives(node: dict) -> dict:
+    """
+    从 node.raw_item.directives 中提取动作信息。
+
+    返回: {"action_type": str, "start_box": [x,y], "element_text": str}
+    解析失败返回空 dict。
+    """
+    raw_item = node.get("raw_item") or {}
+    directives_str = raw_item.get("directives", "")
+    if not directives_str:
+        return {}
+
+    try:
+        directives = json.loads(directives_str)
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
+    for cmd in directives:
+        if not isinstance(cmd, dict):
+            continue
+        actions = (cmd.get("payload") or {}).get("actions") or []
+        for action in actions:
+            if not isinstance(action, dict):
+                continue
+            result: dict = {}
+            act_type = action.get("action", "")
+            if act_type:
+                result["action_type"] = act_type
+            coord_str = action.get("id", "")
+            coords = _parse_coord_str(coord_str)
+            if coords:
+                result["start_box"] = coords
+            node_info = (action.get("params") or {}).get("node") or {}
+            if isinstance(node_info, dict):
+                element_text = node_info.get("text", "")
+                if element_text:
+                    result["element_text"] = element_text
+            if result:
+                return result
+    return {}
+
+
 # ═══════════════════════════════════════════════════════════════════
 # 核心映射：stepData ↔ node ↔ catchDataTurnId
 # ═══════════════════════════════════════════════════════════════════
@@ -306,17 +356,22 @@ def extract_event_text(edge: dict) -> str:
 
 
 def step_action_to_text(action: dict) -> str:
-    """将已解析的 stepData 动作转为可读文本。基于原始 action_type 字符串判断。"""
+    """将已解析的 action 转为可读文本。优先使用 directives 中的元素文本。"""
     at = action["type"]
     direction = action.get("direction", "")
     start_box = action.get("start_box", [])
+    element_text = action.get("element_text", "")
 
     at_lower = at.lower()
     if "click" in at_lower:
+        if element_text:
+            return f"点击{element_text}"
         if start_box and len(start_box) >= 2:
             return f"点击({start_box[0]},{start_box[1]})"
         return "点击"
     if "long_press" in at_lower:
+        if element_text:
+            return f"长按{element_text}"
         if start_box and len(start_box) >= 2:
             return f"长按({start_box[0]},{start_box[1]})"
         return "长按"
@@ -413,12 +468,36 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
                 home_turn = t
                 break
 
+    # node id → node 索引（用于从 directives 提取动作详情）
+    node_by_id: dict = {}
+    for node in utg.get("nodes", []):
+        nid = node.get("id")
+        if nid is not None:
+            node_by_id[nid] = node
+            if isinstance(nid, int):
+                node_by_id[str(nid)] = node
+            elif isinstance(nid, str) and nid.isdigit():
+                node_by_id[int(nid)] = node
+
     action_steps: list[dict] = []
     for sd in utg.get("stepData", []):
+        step_id = sd.get("stepId", "")
         at = sd.get("action_type", "")
         parsed = parse_action_type(at)
-        parsed["stepId"] = sd.get("stepId", "")
+        parsed["stepId"] = step_id
         parsed["cost_time"] = sd.get("cost_time", "0")
+
+        # 用 node 的 directives 丰富信息（坐标、元素文本）
+        node = node_by_id.get(step_id) or node_by_id.get(int(step_id)) if step_id.isdigit() else None
+        if node:
+            dir_info = parse_node_directives(node)
+            # directives 中的坐标优先（更精确）
+            if dir_info.get("start_box"):
+                parsed["start_box"] = dir_info["start_box"]
+            # 保存元素文本用于生成描述
+            if dir_info.get("element_text"):
+                parsed["element_text"] = dir_info["element_text"]
+
         action_steps.append(parsed)
 
     seq_info: list[dict] = []
@@ -563,12 +642,32 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             break
         img_idx += 1
 
+    node_by_id_p: dict = {}
+    for node in utg.get("nodes", []):
+        nid = node.get("id")
+        if nid is not None:
+            node_by_id_p[nid] = node
+            if isinstance(nid, int):
+                node_by_id_p[str(nid)] = node
+            elif isinstance(nid, str) and nid.isdigit():
+                node_by_id_p[int(nid)] = node
+
     action_steps_raw: list[dict] = []
     for sd in utg.get("stepData", []):
+        step_id = sd.get("stepId", "")
         at = sd.get("action_type", "")
         parsed = parse_action_type(at)
-        parsed["stepId"] = sd.get("stepId", "")
+        parsed["stepId"] = step_id
         parsed["cost_time"] = sd.get("cost_time", "0")
+
+        node = node_by_id_p.get(step_id) or node_by_id_p.get(int(step_id)) if step_id.isdigit() else None
+        if node:
+            dir_info = parse_node_directives(node)
+            if dir_info.get("start_box"):
+                parsed["start_box"] = dir_info["start_box"]
+            if dir_info.get("element_text"):
+                parsed["element_text"] = dir_info["element_text"]
+
         action_steps_raw.append(parsed)
 
     descriptions: list[str] = []
