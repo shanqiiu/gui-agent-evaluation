@@ -246,9 +246,9 @@ def find_screenshot_file(task_dir: Path, turn_id: int) -> Optional[Path]:
 
 def get_screenshot_ref(task_dir: Path, turn_id: int, *, as_path: bool = False) -> str:
     """
-    获取截图引用。
+    获取截图引用（raw 模式：catchDataTurnIdN/*-origin.jpg）。
 
-    as_path=True:  返回相对路径 (如 "catchDataTurnId6/temp_image-screenshot-origin.jpg")
+    as_path=True:  返回相对路径
     as_path=False: 返回 base64 编码字符串
     """
     filepath = find_screenshot_file(task_dir, turn_id)
@@ -261,6 +261,23 @@ def get_screenshot_ref(task_dir: Path, turn_id: int, *, as_path: bool = False) -
             return str(filepath).replace("\\", "/")
     with open(filepath, "rb") as f:
         return base64.b64encode(f.read()).decode()
+
+
+def get_flat_screenshot_ref(base_dir: Path, turn_id: int, *, as_path: bool = False) -> str:
+    """
+    获取截图引用（processed 模式：catchDataTurnId{turn_id}.jpg 平铺文件）。
+
+    as_path=True:  返回文件名 (如 "catchDataTurnId6.jpg")
+    as_path=False: 返回 base64 编码字符串
+    """
+    for ext in (".jpg", ".png", ".jpeg"):
+        filepath = base_dir / f"catchDataTurnId{turn_id}{ext}"
+        if filepath.is_file():
+            if as_path:
+                return filepath.name
+            with open(filepath, "rb") as f:
+                return base64.b64encode(f.read()).decode()
+    return ""
 
 
 def _is_image_path(s: str) -> bool:
@@ -673,7 +690,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         if own_url:
             turn_id = extract_turn_from_path(own_url)
             if turn_id is not None:
-                screenshot_ref = get_screenshot_ref(processed_dir, turn_id, as_path=save_paths)
+                screenshot_ref = get_flat_screenshot_ref(processed_dir, turn_id, as_path=save_paths)
                 image_source = own_url
 
         text = step_action_to_text(action)
@@ -700,7 +717,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
     if end_url_p:
         turn_id = extract_turn_from_path(end_url_p)
         if turn_id is not None:
-            last_screenshot_p = get_screenshot_ref(processed_dir, turn_id, as_path=save_paths)
+            last_screenshot_p = get_flat_screenshot_ref(processed_dir, turn_id, as_path=save_paths)
         finished_source_p = end_url_p
 
     seq_info.append({
