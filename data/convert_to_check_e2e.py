@@ -471,23 +471,34 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
     for sd in utg.get("stepData", []):
         step_id = str(sd.get("stepId", ""))
         at = sd.get("action_type", "")
-        parsed = parse_action_type(at)
-        parsed["stepId"] = step_id
-        parsed["cost_time"] = sd.get("cost_time", "0")
 
-        # 用 node 的 directives 丰富信息（坐标、元素文本）
         node = node_by_id.get(step_id)
         if node is None and step_id.isdigit():
             node = node_by_id.get(int(step_id))
-        if node:
-            dir_info = parse_node_directives(node)
-            # directives 中的坐标优先（更精确）
-            if dir_info.get("start_box"):
-                parsed["start_box"] = dir_info["start_box"]
-            # 保存元素文本用于生成描述
-            if dir_info.get("element_text"):
-                parsed["element_text"] = dir_info["element_text"]
+        if node is None:
+            continue
 
+        # 过滤无 raw_item.directives 的步骤（思考/反射，非 UI 操作）
+        raw_item = node.get("raw_item") or {}
+        directives_str = raw_item.get("directives", "")
+        if not directives_str or directives_str == "{}":
+            continue
+
+        dir_info = parse_node_directives(node)
+        action_type = dir_info.get("action_type") or at
+        if not action_type:
+            continue
+
+        # 坐标从 directives 取，方向仍从 stepData 解析（directives 通常无 direction）
+        coord_parsed = parse_action_type(at)
+        parsed = {
+            "type": action_type,
+            "stepId": step_id,
+            "cost_time": sd.get("cost_time", "0"),
+            "start_box": dir_info.get("start_box", []) or coord_parsed.get("start_box", []),
+            "element_text": dir_info.get("element_text", ""),
+            "direction": coord_parsed.get("direction", ""),
+        }
         action_steps.append(parsed)
 
     # node_id → image URL（直接取每个节点自己的 image）
@@ -612,20 +623,32 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
     for sd in utg.get("stepData", []):
         step_id = str(sd.get("stepId", ""))
         at = sd.get("action_type", "")
-        parsed = parse_action_type(at)
-        parsed["stepId"] = step_id
-        parsed["cost_time"] = sd.get("cost_time", "0")
 
         node = node_by_id_p.get(step_id)
         if node is None and step_id.isdigit():
             node = node_by_id_p.get(int(step_id))
-        if node:
-            dir_info = parse_node_directives(node)
-            if dir_info.get("start_box"):
-                parsed["start_box"] = dir_info["start_box"]
-            if dir_info.get("element_text"):
-                parsed["element_text"] = dir_info["element_text"]
+        if node is None:
+            continue
 
+        raw_item = node.get("raw_item") or {}
+        directives_str = raw_item.get("directives", "")
+        if not directives_str or directives_str == "{}":
+            continue
+
+        dir_info = parse_node_directives(node)
+        action_type = dir_info.get("action_type") or at
+        if not action_type:
+            continue
+
+        coord_parsed = parse_action_type(at)
+        parsed = {
+            "type": action_type,
+            "stepId": step_id,
+            "cost_time": sd.get("cost_time", "0"),
+            "start_box": dir_info.get("start_box", []) or coord_parsed.get("start_box", []),
+            "element_text": dir_info.get("element_text", ""),
+            "direction": coord_parsed.get("direction", ""),
+        }
         action_steps_raw.append(parsed)
 
     node_images_p: dict = {}

@@ -241,7 +241,11 @@ def test_step_level_instruction_not_duplicated():
                           "params": {"node": {"text": "隐私和安全"}}}]},
                        "header": {"namespace": "SimulatingOperation", "name": "ExecuteCommand"}}])}},
                 {"id": 8, "image": f"catchDataTurnId8/dummy.jpg", "title": "{}",
-                 "raw_item": {"directives": "{}"}},
+                 "raw_item": {"directives": json.dumps(
+                     [{"payload": {"actions": [
+                         {"action": "scroll", "id": "[500, 800]",
+                          "params": {"node": {"text": ""}}}]},
+                       "header": {"namespace": "SimulatingOperation", "name": "ExecuteCommand"}}])}},
                 {"id": "end", "image": f"catchDataTurnId99/dummy.jpg", "title": "{}",
                  "raw_item": {"directives": "{}"}},
             ],
@@ -311,11 +315,20 @@ def test_same_page_consecutive_actions():
             "nodes": [
                 {"id": "home", "image": "catchDataTurnId0/dummy.jpg", "title": "{}",
                  "raw_item": {"directives": "{}"}},
-                # node 5 是打开 App 后的页面（两个 click 共用这个 before 截图）
+                # node 5 — 第一个点击（按钮A）
                 {"id": "5", "image": "catchDataTurnId5/dummy.jpg", "title": "{}",
-                 "raw_item": {"directives": "{}"}},
+                 "raw_item": {"directives": json.dumps(
+                     [{"payload": {"actions": [
+                         {"action": "click", "id": "[100, 200]",
+                          "params": {"node": {"text": "按钮A"}}}]},
+                       "header": {"namespace": "SimulatingOperation", "name": "ExecuteCommand"}}])}},
+                # node 6 — 第二个点击（按钮B）
                 {"id": "6", "image": "catchDataTurnId6/dummy.jpg", "title": "{}",
-                 "raw_item": {"directives": "{}"}},
+                 "raw_item": {"directives": json.dumps(
+                     [{"payload": {"actions": [
+                         {"action": "click", "id": "[300, 400]",
+                          "params": {"node": {"text": "按钮B"}}}]},
+                       "header": {"namespace": "SimulatingOperation", "name": "ExecuteCommand"}}])}},
                 {"id": "end", "image": "catchDataTurnId99/dummy.jpg", "title": "{}",
                  "raw_item": {"directives": "{}"}},
             ],
