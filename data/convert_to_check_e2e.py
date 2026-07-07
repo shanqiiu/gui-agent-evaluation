@@ -447,6 +447,18 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
             if event_text:
                 text = event_text
 
+        # 滑动类动作补充方向信息（event_type 中通常没有 direction）
+        direction = action.get("direction", "")
+        if direction and action["type"] in ("scroll", "swipe", "drag"):
+            dir_map = {"down": "向下滑动", "up": "向上滑动", "left": "向左滑动", "right": "向右滑动"}
+            dir_cn = dir_map.get(direction, f"向{direction}滑动")
+            if "滑动屏幕" in text:
+                text = text.replace("滑动屏幕", dir_cn, 1)
+            elif "滑动" in text:
+                text = text.replace("滑动", dir_cn, 1)
+            elif text == action.get("raw_action_type", ""):
+                text = dir_cn
+
         short_desc = text if text else action["type"]
         descriptions.append(short_desc)
 
@@ -579,6 +591,17 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             event_text = extract_event_text(edges_into_step[0])
             if event_text:
                 text = event_text
+
+        direction = action.get("direction", "")
+        if direction and action["type"] in ("scroll", "swipe", "drag"):
+            dir_map = {"down": "向下滑动", "up": "向上滑动", "left": "向左滑动", "right": "向右滑动"}
+            dir_cn = dir_map.get(direction, f"向{direction}滑动")
+            if "滑动屏幕" in text:
+                text = text.replace("滑动屏幕", dir_cn, 1)
+            elif "滑动" in text:
+                text = text.replace("滑动", dir_cn, 1)
+            elif text == action.get("raw_action_type", ""):
+                text = dir_cn
 
         descriptions.append(text if text else action["type"])
 

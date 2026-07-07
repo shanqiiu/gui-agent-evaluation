@@ -265,7 +265,7 @@ def test_step_level_instruction_not_duplicated():
         # 关键断言：step_level_instruction 应该包含动作描述，而非重复指令
         assert "点击设置图标" in step_plan, f"step_plan: {step_plan}"
         assert "点击隐私和安全" in step_plan, f"step_plan: {step_plan}"
-        assert "滑动屏幕" in step_plan, f"step_plan: {step_plan}"
+        assert "向下滑动" in step_plan, f"step_plan: {step_plan}"
         # 不应重复指令文本
         assert step_plan.count("打开密码自动填充和保存功能") <= 1, \
             f"step_plan 不应重复指令: {step_plan}"
@@ -275,7 +275,7 @@ def test_step_level_instruction_not_duplicated():
                  if s["planning_output"]["parsed_action"]["action_type"] != "finished"]
         assert texts[0] == "点击设置图标", f"texts[0]: {texts[0]}"
         assert texts[1] == "点击隐私和安全", f"texts[1]: {texts[1]}"
-        assert texts[2] == "滑动屏幕", f"texts[2]: {texts[2]}"
+        assert texts[2] == "向下滑动", f"texts[2]: {texts[2]}"
 
     print("[PASS] test_step_level_instruction_not_duplicated")
 
