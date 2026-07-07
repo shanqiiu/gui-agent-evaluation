@@ -100,22 +100,21 @@ def test_build_indices():
 def test_extract_event_text():
     # event_type 中有 nodeText → 优先
     edge_with_nodetext = {
-        "events": [{"event_str": "打开密码自动填充和保存功能",
-                     "event_type": '{"type":"click","nodeText":"隐私和安全"}'}]
+        "events": [{"event_type": '{"type":"click","nodeText":"隐私和安全"}'}]
     }
     assert extract_event_text(edge_with_nodetext) == "点击隐私和安全"
 
-    # event_type 中无 nodeText → 回退到 event_str（短文本才可能是动作描述）
-    edge_with_str = {
-        "events": [{"event_str": "向下滑动屏幕", "event_type": "{}"}]
-    }
-    assert extract_event_text(edge_with_str) == "向下滑动屏幕"
-
-    # event_type 中有 scroll
+    # event_type 中有 scroll → 返回"滑动屏幕"
     edge_scroll = {
-        "events": [{"event_str": "", "event_type": '{"type":"scroll custom"}'}]
+        "events": [{"event_type": '{"type":"scroll custom"}'}]
     }
     assert extract_event_text(edge_scroll) == "滑动屏幕"
+
+    # event_str 被丢弃（数据不准确），无 event_type → 返回空
+    edge_bad_str = {
+        "events": [{"event_str": "打开密码自动填充和保存功能", "event_type": ""}]
+    }
+    assert extract_event_text(edge_bad_str) == ""
 
     edge_empty = {"events": []}
     assert extract_event_text(edge_empty) == ""

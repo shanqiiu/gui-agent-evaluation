@@ -282,41 +282,36 @@ def extract_event_text(edge: dict) -> str:
     """
     从 edge 的 events 中提取动作描述文本。
 
-    优先解析 event_type JSON 获取结构化动作信息（nodeText + type），
-    event_str 中通常存储的是完整任务指令而非逐步描述，仅作兜底。
+    只解析 event_type JSON 获取结构化信息（nodeText + type）。
+    event_str 存储的是任务指令或其他不准确文本，不采用。
     """
     for event in edge.get("events", []):
-        # Priority 1: 解析 event_type JSON → 获取 nodeText + 动作类型
         et_str = event.get("event_type", "")
-        if et_str:
-            try:
-                et = json.loads(et_str)
-                if isinstance(et, list) and et:
-                    et = et[0]
-                if isinstance(et, dict):
-                    action_type = str(et.get("type", "")).lower()
-                    node_text = str(et.get("nodeText", "")).strip()
-                    set_text = str(et.get("setText", "")).strip()
+        if not et_str:
+            continue
+        try:
+            et = json.loads(et_str)
+            if isinstance(et, list) and et:
+                et = et[0]
+            if isinstance(et, dict):
+                action_type = str(et.get("type", "")).lower()
+                node_text = str(et.get("nodeText", "")).strip()
+                set_text = str(et.get("setText", "")).strip()
 
-                    if node_text:
-                        if "click" in action_type or "long_press" in action_type:
-                            return f"点击{node_text}"
-                        return node_text
-                    if set_text and "clarify" in action_type:
-                        return f"需手动操作: {set_text}"
-                    if "scroll" in action_type:
-                        return "滑动屏幕"
-                    if "edit" in action_type or "type" in action_type:
-                        return "输入文本"
-                    if action_type:
-                        return action_type
-            except (json.JSONDecodeError, TypeError):
-                pass
-
-        # Priority 2: event_str 兜底（通常存的是任务指令，不适合做逐步描述）
-        event_str = event.get("event_str", "").strip()
-        if event_str:
-            return event_str
+                if node_text:
+                    if "click" in action_type or "long_press" in action_type:
+                        return f"点击{node_text}"
+                    return node_text
+                if set_text and "clarify" in action_type:
+                    return f"需手动操作: {set_text}"
+                if "scroll" in action_type:
+                    return "滑动屏幕"
+                if "edit" in action_type or "type" in action_type:
+                    return "输入文本"
+                if action_type:
+                    return action_type
+        except (json.JSONDecodeError, TypeError):
+            continue
 
     return ""
 
@@ -397,7 +392,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
                 home_turn = t
                 break
 
-    edge_to_index = build_edge_to_index(utg)    # 仅用于提取动作文本描述
+    edge_to_index = build_edge_to_index(utg)
 
     action_steps: list[dict] = []
     for sd in utg.get("stepData", []):
@@ -445,7 +440,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
             screenshot_ref = get_screenshot_ref(task_dir, before_turn, as_path=save_paths)
 
         text = action.get("raw_action_type", "")
-        # 用 to_index 查找"到达此步骤"的边 → 该边描述的就是此步骤的动作
+        # 用 to_index 查找"进入此步骤"的边 → event_type.nodeText 描述此步操作的元素
         edges_into_step = edge_to_index.get(str(step_id), [])
         if edges_into_step:
             event_text = extract_event_text(edges_into_step[0])
@@ -571,7 +566,6 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         parsed["raw_action_type"] = at
         action_steps_raw.append(parsed)
 
-    edge_index = build_edge_index(utg)
     edge_to_index = build_edge_to_index(utg)
     descriptions: list[str] = []
     seq_info: list[dict] = []
