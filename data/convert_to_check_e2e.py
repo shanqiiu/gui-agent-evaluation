@@ -177,24 +177,24 @@ def find_matching_turn(node: dict, all_turn_dirs: dict[int, Path]) -> Optional[i
     return None
 
 
-def build_step_turn_mapping(task_dir: Path, utg: dict) -> dict[str, Optional[int]]:
+def build_step_turn_mapping(task_dir: Path, utg: dict) -> tuple[dict[str, Optional[int]], dict[int, str]]:
     """
-    构建 stepId → catchDataTurnId 映射表。
+    构建 stepId → catchDataTurnId 映射表，同时返回 turn_id → 原始 image URL。
 
-    步骤：
-    1. 扫描任务目录下的所有 catchDataTurnIdN/ 子目录
-    2. 对 utg.json 中每个 node 运行 find_matching_turn，得到 node_id → turn_id
-    3. stepData.stepId 匹配 node.id → 得到 stepId → turn_id
+    返回: (step_turn, turn_images)
+      step_turn:  stepId → turn_id
+      turn_images: turn_id → node.image 原始地址
     """
     # 收集所有 turn 目录
     all_turn_dirs: dict[int, Path] = {}
     for entry in sorted(task_dir.iterdir()):
-        tid = extract_turn_from_path(entry.name)  # 复用正则：catchDataTurnId(\d+)
+        tid = extract_turn_from_path(entry.name)
         if tid is not None and entry.is_dir():
             all_turn_dirs[tid] = entry
 
-    # node_id → turn_id
+    # node_id → turn_id, 同时记录 turn_id → image URL
     node_turn: dict = {}
+    turn_images: dict[int, str] = {}
     for node in utg.get("nodes", []):
         nid = node.get("id")
         if nid is None:
@@ -202,11 +202,15 @@ def build_step_turn_mapping(task_dir: Path, utg: dict) -> dict[str, Optional[int
         turn = find_matching_turn(node, all_turn_dirs)
         if turn is not None:
             node_turn[nid] = turn
-            # 同时注册字符串形式
             if isinstance(nid, int):
                 node_turn[str(nid)] = turn
             elif isinstance(nid, str) and nid.isdigit():
                 node_turn[int(nid)] = turn
+            # 记录原始 image URL（取第一个匹配的）
+            if turn not in turn_images:
+                image_url = node.get("image", "")
+                if image_url:
+                    turn_images[turn] = image_url
 
     # stepId → turn_id
     mapping: dict[str, Optional[int]] = {}
@@ -220,7 +224,7 @@ def build_step_turn_mapping(task_dir: Path, utg: dict) -> dict[str, Optional[int
             turn = node_turn.get(step_id_str)
         mapping[step_id_str] = turn
 
-    return mapping
+    return mapping, turn_images
 
 
 def find_screenshot_file(task_dir: Path, turn_id: int) -> Optional[Path]:
@@ -447,7 +451,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
     instruction = extract_instruction(utg)
 
     # ── 核心映射: stepId → catchDataTurnId ──
-    step_turn = build_step_turn_mapping(task_dir, utg)
+    step_turn, turn_images = build_step_turn_mapping(task_dir, utg)
 
     # 获取所有 stepData 中的 stepId 顺序列表（用于找"前一步"）
     all_step_ids = [str(sd.get("stepId", "")) for sd in utg.get("stepData", [])]
@@ -540,6 +544,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         seq_info.append({
             "index": idx,
             "image_relative_path": screenshot_ref,
+            "_image_source": turn_images.get(before_turn, "") if before_turn is not None else "",
             "planning_output": {
                 "parsed_action": {
                     "action_type": action["type"],
@@ -567,9 +572,17 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
             if last_turn is not None:
                 last_screenshot = get_screenshot_ref(task_dir, last_turn, as_path=save_paths)
 
+        # finished 步的 image source: end 节点的原始 image URL
+        finished_source = ""
+        for node in utg.get("nodes", []):
+            if node.get("id") == "end":
+                finished_source = node.get("image", "")
+                break
+
         seq_info.append({
             "index": len(seq_info),
             "image_relative_path": last_screenshot,
+            "_image_source": finished_source,
             "planning_output": {
                 "parsed_action": {
                     "action_type": "finished",
@@ -683,6 +696,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         seq_info.append({
             "index": idx,
             "image_relative_path": screenshot_ref,
+            "_image_source": "",
             "planning_output": {
                 "parsed_action": {
                     "action_type": action["type"],
@@ -694,10 +708,13 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             },
         })
 
+    # finished
+
     last_screenshot = screenshots[-1] if screenshots else ""
     seq_info.append({
         "index": len(seq_info),
         "image_relative_path": last_screenshot,
+        "_image_source": "",
         "planning_output": {
             "parsed_action": {
                 "action_type": "finished",
