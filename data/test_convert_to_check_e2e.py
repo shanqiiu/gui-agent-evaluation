@@ -18,10 +18,12 @@ from convert_to_check_e2e import (
     extract_turn_from_path,
     build_node_index,
     build_edge_index,
+    build_edge_to_index,
     extract_event_text,
     _is_image_path,
     hydrate_payload,
     get_screenshot_ref,
+    convert_utg_to_check_e2e,
 )
 
 
@@ -83,23 +85,37 @@ def test_build_indices():
 
     edge_idx = build_edge_index(utg)
     assert len(edge_idx["home"]) == 1
-    assert edge_idx["home"][0]["from"] == "home"
     assert len(edge_idx["1"]) == 1
-    assert edge_idx["1"][0]["from"] == 1
+
+    to_idx = build_edge_to_index(utg)
+    # edge home→1: to=1, so to_idx["1"] should have it
+    assert len(to_idx["1"]) == 1
+    assert to_idx["1"][0]["from"] == "home"
+    # edge 1→2: to=2
+    assert len(to_idx["2"]) == 1
 
     print("[PASS] test_build_indices")
 
 
 def test_extract_event_text():
-    edge_with_str = {
-        "events": [{"event_str": "点击设置图标", "event_type": "{}"}]
-    }
-    assert extract_event_text(edge_with_str) == "点击设置图标"
-
+    # event_type 中有 nodeText → 优先
     edge_with_nodetext = {
-        "events": [{"event_str": "", "event_type": '{"nodeText":"隐私和安全"}'}]
+        "events": [{"event_str": "打开密码自动填充和保存功能",
+                     "event_type": '{"type":"click","nodeText":"隐私和安全"}'}]
     }
     assert extract_event_text(edge_with_nodetext) == "点击隐私和安全"
+
+    # event_type 中无 nodeText → 回退到 event_str（短文本才可能是动作描述）
+    edge_with_str = {
+        "events": [{"event_str": "向下滑动屏幕", "event_type": "{}"}]
+    }
+    assert extract_event_text(edge_with_str) == "向下滑动屏幕"
+
+    # event_type 中有 scroll
+    edge_scroll = {
+        "events": [{"event_str": "", "event_type": '{"type":"scroll custom"}'}]
+    }
+    assert extract_event_text(edge_scroll) == "滑动屏幕"
 
     edge_empty = {"events": []}
     assert extract_event_text(edge_empty) == ""
@@ -193,6 +209,78 @@ def test_hydrate_payload():
     print("[PASS] test_hydrate_payload")
 
 
+def test_step_level_instruction_not_duplicated():
+    """
+    回归测试：event_str 存的是指令全文时，
+    step_level_instruction 不应重复指令文本，而应使用 event_type 中的动作描述。
+    """
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        task_dir = Path(tmpdir)
+
+        # 构造 utg.json：模拟 "打开密码自动填充和保存功能" 任务
+        utg = {
+            "nodes": [
+                {"id": "home", "image": f"catchDataTurnId0/dummy.jpg", "title": "{}",
+                 "raw_item": {"directives": "{}"}},
+                {"id": "end", "image": f"catchDataTurnId99/dummy.jpg", "title": "{}",
+                 "raw_item": {"directives": "{}"}},
+            ],
+            "stepData": [
+                {"stepId": "6", "action_type": "click([403, 2579])", "cost_time": "3309"},
+                {"stepId": "7", "action_type": "click([315, 918])", "cost_time": "3619"},
+                {"stepId": "8", "action_type": "scroll([500, 800], down)", "cost_time": "3813"},
+            ],
+            "edges": [
+                {"from": "home", "to": "6",
+                 "title": json.dumps({"instruction": "打开密码自动填充和保存功能"}),
+                 "events": [{"event_str": "打开密码自动填充和保存功能",
+                             "event_type": '{"type":"click","nodeText":"设置图标"}'}]},
+                {"from": "6", "to": "7",
+                 "events": [{"event_str": "打开密码自动填充和保存功能",
+                             "event_type": '{"type":"click","nodeText":"隐私和安全"}'}]},
+                {"from": "7", "to": "8",
+                 "events": [{"event_str": "打开密码自动填充和保存功能",
+                             "event_type": '{"type":"scroll custom"}'}]},
+            ],
+        }
+
+        # 写 utg.json
+        with open(task_dir / "utg.json", "w", encoding="utf-8") as f:
+            json.dump(utg, f, ensure_ascii=False)
+
+        # 创建假的截图
+        for turn_id in (0, 6, 7, 8, 99):
+            turn_dir = task_dir / f"catchDataTurnId{turn_id}"
+            turn_dir.mkdir()
+            with open(turn_dir / "temp_image-screenshot-origin.jpg", "wb") as f:
+                f.write(b"\xff\xd8\xff\xe0")
+
+        payload = convert_utg_to_check_e2e(task_dir, save_paths=True)
+
+        instruction = payload["instruction"]
+        step_plan = payload["step_level_instruction"]
+
+        assert instruction == "打开密码自动填充和保存功能", f"instruction: {instruction}"
+        # 关键断言：step_level_instruction 应该包含动作描述，而非重复指令
+        assert "点击设置图标" in step_plan, f"step_plan: {step_plan}"
+        assert "点击隐私和安全" in step_plan, f"step_plan: {step_plan}"
+        assert "滑动屏幕" in step_plan, f"step_plan: {step_plan}"
+        # 不应重复指令文本
+        assert step_plan.count("打开密码自动填充和保存功能") <= 1, \
+            f"step_plan 不应重复指令: {step_plan}"
+
+        # 验证 seq_info 中的 text 字段也正确
+        texts = [s["planning_output"]["parsed_action"]["text"] for s in payload["seq_info"]
+                 if s["planning_output"]["parsed_action"]["action_type"] != "finished"]
+        assert texts[0] == "点击设置图标", f"texts[0]: {texts[0]}"
+        assert texts[1] == "点击隐私和安全", f"texts[1]: {texts[1]}"
+        assert texts[2] == "滑动屏幕", f"texts[2]: {texts[2]}"
+
+    print("[PASS] test_step_level_instruction_not_duplicated")
+
+
 if __name__ == "__main__":
     test_parse_action_type()
     test_extract_turn_from_path()
@@ -201,4 +289,5 @@ if __name__ == "__main__":
     test_extract_instruction()
     test_is_image_path()
     test_hydrate_payload()
+    test_step_level_instruction_not_duplicated()
     print("\nAll tests passed.")

@@ -191,21 +191,45 @@ def extract_instruction(utg: dict) -> str:
 
 
 def extract_event_text(edge: dict) -> str:
-    """从 edge 的 events 中提取动作描述文本。"""
+    """
+    从 edge 的 events 中提取动作描述文本。
+
+    优先解析 event_type JSON 获取结构化动作信息（nodeText + type），
+    event_str 中通常存储的是完整任务指令而非逐步描述，仅作兜底。
+    """
     for event in edge.get("events", []):
-        event_str = event.get("event_str", "")
+        # Priority 1: 解析 event_type JSON → 获取 nodeText + 动作类型
+        et_str = event.get("event_type", "")
+        if et_str:
+            try:
+                et = json.loads(et_str)
+                if isinstance(et, list) and et:
+                    et = et[0]
+                if isinstance(et, dict):
+                    action_type = str(et.get("type", "")).lower()
+                    node_text = str(et.get("nodeText", "")).strip()
+                    set_text = str(et.get("setText", "")).strip()
+
+                    if node_text:
+                        if "click" in action_type or "long_press" in action_type:
+                            return f"点击{node_text}"
+                        return node_text
+                    if set_text and "clarify" in action_type:
+                        return f"需手动操作: {set_text}"
+                    if "scroll" in action_type:
+                        return "滑动屏幕"
+                    if "edit" in action_type or "type" in action_type:
+                        return "输入文本"
+                    if action_type:
+                        return action_type
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+        # Priority 2: event_str 兜底（通常存的是任务指令，不适合做逐步描述）
+        event_str = event.get("event_str", "").strip()
         if event_str:
             return event_str
-        # 兜底：尝试从 event_type JSON 中提取 nodeText
-        try:
-            et = json.loads(event.get("event_type", "{}"))
-            if isinstance(et, list) and et:
-                et = et[0]
-            node_text = et.get("nodeText", "") if isinstance(et, dict) else ""
-            if node_text:
-                return f"点击{node_text}"
-        except (json.JSONDecodeError, TypeError):
-            continue
+
     return ""
 
 
@@ -232,6 +256,19 @@ def build_edge_index(utg: dict) -> dict[str, list[dict]]:
     return index
 
 
+def build_edge_to_index(utg: dict) -> dict[str, list[dict]]:
+    """构建 to_node_id → [edges] 的索引。
+
+    边 (from=A, to=B) 描述从 A 到 B 的动作。
+    用 to=B 作为 key 可查到"是什么动作导致了到达 B 这一步"。"""
+    index: dict = {}
+    for edge in utg.get("edges", []):
+        to_id = edge.get("to")
+        key = str(to_id) if to_id is not None else ""
+        index.setdefault(key, []).append(edge)
+    return index
+
+
 def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dict:
     """
     将单个任务目录的 utg.json 转换为 /check_e2e payload。
@@ -251,6 +288,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
     instruction = extract_instruction(utg)
     node_index = build_node_index(utg)
     edge_index = build_edge_index(utg)
+    edge_to_index = build_edge_to_index(utg)    # 用于查找"描述此动作的边"
 
     action_steps: list[dict] = []
     for sd in utg.get("stepData", []):
@@ -299,9 +337,10 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
                         used_turns.add(turn)
 
         text = action.get("raw_action_type", "")
-        edges_for_step = edge_index.get(str(step_id), [])
-        if edges_for_step:
-            event_text = extract_event_text(edges_for_step[0])
+        # 用 to_index 查找"到达此步骤"的边 → 该边描述的就是此步骤的动作
+        edges_into_step = edge_to_index.get(str(step_id), [])
+        if edges_into_step:
+            event_text = extract_event_text(edges_into_step[0])
             if event_text:
                 text = event_text
 
@@ -426,6 +465,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         action_steps_raw.append(parsed)
 
     edge_index = build_edge_index(utg)
+    edge_to_index = build_edge_to_index(utg)
     descriptions: list[str] = []
     seq_info: list[dict] = []
 
@@ -433,9 +473,9 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         screenshot_ref = screenshots[idx] if idx < len(screenshots) else ""
 
         text = action.get("raw_action_type", "")
-        edges_for_step = edge_index.get(str(action["stepId"]), [])
-        if edges_for_step:
-            event_text = extract_event_text(edges_for_step[0])
+        edges_into_step = edge_to_index.get(str(action["stepId"]), [])
+        if edges_into_step:
+            event_text = extract_event_text(edges_into_step[0])
             if event_text:
                 text = event_text
 
