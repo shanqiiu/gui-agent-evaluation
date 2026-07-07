@@ -82,12 +82,19 @@ def extract_screenshots(turn_dir: Path) -> list[str]:
 
 
 def extract_step_id_from_title(title_str: str) -> Optional[int]:
-    """从 node title JSON 字符串中提取 stepId"""
+    """从 node title JSON 字符串中提取 stepId（仅数字 stepId）"""
     if not title_str:
         return None
     try:
         title = json.loads(title_str)
-        return title.get("stepId")
+        sid = title.get("stepId")
+        if sid is None:
+            return None
+        if isinstance(sid, int):
+            return sid
+        if isinstance(sid, str) and sid.isdigit():
+            return int(sid)
+        return None
     except (json.JSONDecodeError, TypeError):
         return None
 
