@@ -1,6 +1,6 @@
 {
   "instruction": "打开密码自动填充和保存功能",
-  "step_level_instruction": "open(设置)→滑动屏幕→点击隐私和安全→滑动屏幕→滑动屏幕→滑动屏幕",
+  "step_level_instruction": "open(设置)→滑动屏幕→点击隐私和安全→向下滑动→向下滑动→滑动屏幕",
   "seq_info": [
     {
       "index": 0,
@@ -61,7 +61,7 @@
             800
           ],
           "end_box": [],
-          "text": "滑动屏幕",
+          "text": "向下滑动",
           "direction": "down"
         }
       }
@@ -77,7 +77,7 @@
             800
           ],
           "end_box": [],
-          "text": "滑动屏幕",
+          "text": "向下滑动",
           "direction": "down"
         }
       }
