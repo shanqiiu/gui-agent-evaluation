@@ -624,3 +624,44 @@ def parse_action(action_type: str):
 ## 附录 C：文件编码
 
 所有 JSON 文件使用 **UTF-8** 编码。
+
+---
+
+## 附录 D：/check_e2e 格式转换
+
+`convert_to_check_e2e.py` 将 utg.json 数据转换为 FuncOracleCheck 的 `/check_e2e` 判定接口所需格式，打通"Agent 原始执行数据 → 异常判定"的完整链路。
+
+### 转换映射
+
+| utg.json 来源 | /check_e2e 字段 |
+|---|---|
+| `edges[].title.instruction` | `instruction` |
+| `stepData[].action_type` 解析 + `→` 拼接 | `step_level_instruction` |
+| `stepData[].action_type` 正则解析 | `parsed_action.action_type` / `start_box` / `direction` |
+| `edges[].events[].event_str` / `nodeText` | `parsed_action.text` |
+| 节点 `image` → `catchDataTurnIdN/*-origin.jpg` base64 | `image_relative_path` |
+
+### 使用方式
+
+```bash
+# 单个原始任务目录 → payload JSON
+python data/convert_to_check_e2e.py <task_uuid_dir>/ -o payload.json
+
+# 直接发送到 /check_e2e 服务获取判定结果
+python data/convert_to_check_e2e.py <task_uuid_dir>/ --send http://localhost:20025
+
+# 批量转换（处理 process_gui_end_to_end.py 的输出）
+python data/convert_to_check_e2e.py --batch reorg_output/ -o payloads/
+
+# 预处理模式（从 _processed.json + 扁平截图转换）
+python data/convert_to_check_e2e.py <uuid_dir>/ --processed -o payload.json
+
+# 验证核心逻辑
+python data/test_convert_to_check_e2e.py
+```
+
+### 过滤规则
+
+- 只提取 `type="AAS"` 的实际 UI 动作（click/scroll/swipe/type/edit）
+- 跳过 `open_app`（无截图前后对比）、`clarify`（需人工介入）、`用户回复`（非 UI 操作）
+- 最后一步自动追加 `action_type: "finished"`
