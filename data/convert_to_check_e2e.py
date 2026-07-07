@@ -333,6 +333,8 @@ def step_action_to_text(action: dict) -> str:
         return "滑动"
     if at == "type":
         return "输入文本"
+    if at == "open_app":
+        return "打开应用"
     if at == "clarify":
         return "需手动操作"
     if at == "finished":
@@ -421,8 +423,6 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         at = sd.get("action_type", "")
         parsed = parse_action_type(at)
         if parsed is None:
-            continue
-        if parsed["type"] in ("open_app",):
             continue
         parsed["stepId"] = sd.get("stepId", "")
         parsed["cost_time"] = sd.get("cost_time", "0")
@@ -575,7 +575,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
     for sd in utg.get("stepData", []):
         at = sd.get("action_type", "")
         parsed = parse_action_type(at)
-        if parsed is None or parsed["type"] in ("open_app",):
+        if parsed is None:
             continue
         parsed["stepId"] = sd.get("stepId", "")
         parsed["cost_time"] = sd.get("cost_time", "0")
