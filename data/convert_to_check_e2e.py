@@ -263,6 +263,63 @@ def get_screenshot_ref(task_dir: Path, turn_id: int, *, as_path: bool = False) -
         return base64.b64encode(f.read()).decode()
 
 
+def resolve_image_from_url(task_dir: Path, image_url: str) -> Optional[Path]:
+    """
+    将 node.image REST URL 解析为 task_dir 下的本地文件路径。
+
+    URL:  .../<task_uuid>/catchDataTurnId6/temp_image-screenshot-origin.jpg
+    返回: task_dir / catchDataTurnId6 / temp_image-screenshot-origin.jpg
+    """
+    if not image_url:
+        return None
+    task_name = task_dir.name
+    pos = image_url.find(task_name)
+    if pos < 0:
+        # 兜底: 尝试 turn ID 提取（catchDataTurnIdN 格式）
+        turn_id = extract_turn_from_path(image_url)
+        if turn_id is not None:
+            return find_screenshot_file(task_dir, turn_id)
+        return None
+    relative = image_url[pos + len(task_name) + 1:]  # skip UUID and "/"
+    filepath = task_dir / relative
+    if filepath.is_file():
+        return filepath
+    # URL 中的文件名可能不同（如 -drawRect vs -origin），模糊匹配
+    parent = filepath.parent
+    basename = filepath.name
+    if parent.is_dir():
+        for f in parent.iterdir():
+            if f.is_file() and "-origin" in f.name:
+                return f
+    return None
+
+
+def screenshot_from_url(task_dir: Path, image_url: str, *, as_path: bool = False) -> str:
+    """将 node.image URL 解析为本地文件，返回路径或 base64。"""
+    filepath = resolve_image_from_url(task_dir, image_url)
+    if filepath is None:
+        return ""
+    if as_path:
+        try:
+            return str(filepath.relative_to(task_dir)).replace("\\", "/")
+        except ValueError:
+            return str(filepath).replace("\\", "/")
+    with open(filepath, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+
+def flat_screenshot_from_url(base_dir: Path, image_url: str, *, as_path: bool = False) -> str:
+    """
+    processed 模式：将 node.image URL 转为平铺文件。
+    尝试 turn ID 提取 → catchDataTurnId{turn_id}.jpg。
+    """
+    turn_id = extract_turn_from_path(image_url)
+    if turn_id is not None:
+        return get_flat_screenshot_ref(base_dir, turn_id, as_path=as_path)
+    # home/end 等无 turn ID 的：用 screenshot_from_url 兜底
+    return screenshot_from_url(base_dir, image_url, as_path=as_path)
+
+
 def get_flat_screenshot_ref(base_dir: Path, turn_id: int, *, as_path: bool = False) -> str:
     """
     获取截图引用（processed 模式：catchDataTurnId{turn_id}.jpg 平铺文件）。
@@ -542,10 +599,8 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         own_url = node_images.get(step_id, "")
         screenshot_ref, image_source = "", ""
         if own_url:
-            turn_id = extract_turn_from_path(own_url)
-            if turn_id is not None:
-                screenshot_ref = get_screenshot_ref(task_dir, turn_id, as_path=save_paths)
-                image_source = own_url
+            screenshot_ref = screenshot_from_url(task_dir, own_url, as_path=save_paths)
+            image_source = own_url
 
         text = step_action_to_text(action)
 
@@ -572,9 +627,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         last_screenshot, finished_source = "", ""
         end_url = node_images.get("end", "")
         if end_url:
-            turn_id = extract_turn_from_path(end_url)
-            if turn_id is not None:
-                last_screenshot = get_screenshot_ref(task_dir, turn_id, as_path=save_paths)
+            last_screenshot = screenshot_from_url(task_dir, end_url, as_path=save_paths)
             finished_source = end_url
 
         seq_info.append({
@@ -694,10 +747,8 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         own_url = node_images_p.get(step_id, "")
         screenshot_ref, image_source = "", ""
         if own_url:
-            turn_id = extract_turn_from_path(own_url)
-            if turn_id is not None:
-                screenshot_ref = get_flat_screenshot_ref(processed_dir, turn_id, as_path=save_paths)
-                image_source = own_url
+            screenshot_ref = flat_screenshot_from_url(processed_dir, own_url, as_path=save_paths)
+            image_source = own_url
 
         text = step_action_to_text(action)
         descriptions.append(text if text else action["type"])
@@ -721,9 +772,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
     last_screenshot_p, finished_source_p = "", ""
     end_url_p = node_images_p.get("end", "")
     if end_url_p:
-        turn_id = extract_turn_from_path(end_url_p)
-        if turn_id is not None:
-            last_screenshot_p = get_flat_screenshot_ref(processed_dir, turn_id, as_path=save_paths)
+        last_screenshot_p = flat_screenshot_from_url(processed_dir, end_url_p, as_path=save_paths)
         finished_source_p = end_url_p
 
     seq_info.append({
