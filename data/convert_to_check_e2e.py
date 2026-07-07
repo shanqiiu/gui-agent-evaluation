@@ -518,18 +518,21 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         }
         action_steps.append(parsed)
 
-    # node_id → image URL（直接取每个节点自己的 image）
+    # node_id → 最佳可用截图 URL（自己的 image，没有则用前一个有的）
     node_images: dict = {}
+    best_img = ""
     for node in utg.get("nodes", []):
         nid = node.get("id")
         if nid is None:
             continue
         own = node.get("image", "") or ""
-        node_images[nid] = own
+        if own:
+            best_img = own
+        node_images[nid] = best_img
         if isinstance(nid, int):
-            node_images[str(nid)] = own
+            node_images[str(nid)] = best_img
         elif isinstance(nid, str) and nid.isdigit():
-            node_images[int(nid)] = own
+            node_images[int(nid)] = best_img
 
     seq_info: list[dict] = []
     descriptions: list[str] = []
@@ -669,16 +672,19 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
         action_steps_raw.append(parsed)
 
     node_images_p: dict = {}
+    best_img_p = ""
     for node in utg.get("nodes", []):
         nid = node.get("id")
         if nid is None:
             continue
         own = node.get("image", "") or ""
-        node_images_p[nid] = own
+        if own:
+            best_img_p = own
+        node_images_p[nid] = best_img_p
         if isinstance(nid, int):
-            node_images_p[str(nid)] = own
+            node_images_p[str(nid)] = best_img_p
         elif isinstance(nid, str) and nid.isdigit():
-            node_images_p[int(nid)] = own
+            node_images_p[int(nid)] = best_img_p
 
     descriptions: list[str] = []
     seq_info: list[dict] = []
