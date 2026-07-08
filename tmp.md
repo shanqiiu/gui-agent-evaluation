@@ -14,6 +14,9 @@ message: None
 request VLM server error! response status: 400
 response: {"error":{"message":"cannot identify image file <_io.BytesIO object>","type":"BadRequestError","param":null,"code":400}}
 2026-07-08 10:10:38 - default - WARNING - rsync_multi_threads_ab_validator:88 - ABPageValidator：API服务出现问题，重试...
+
+
+
 e: 模型返回为空或不是可解析JSON
 message: None
 request VLM server error! response status: 400
