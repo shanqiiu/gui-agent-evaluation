@@ -415,10 +415,10 @@ def test_parse_node_directives():
               "element_text": "密码保险箱", "direction": ""}
     assert step_action_to_text(action) == "点击密码保险箱"
 
-    # 无 element_text → 回退到坐标
+    # 无 element_text → 回退到"页面元素"
     action2 = {"type": "click([315,918])", "start_box": [315, 918],
                "element_text": "", "direction": ""}
-    assert step_action_to_text(action2) == "点击(315,918)"
+    assert step_action_to_text(action2) == "点击页面元素"
 
     print("[PASS] test_parse_node_directives")
 

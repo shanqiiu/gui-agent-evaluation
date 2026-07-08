@@ -109,6 +109,22 @@ def extract_turn_from_label(label: str) -> Optional[int]:
     return int(m.group(1)) if m else None
 
 
+def _dedupe_descriptions(descs: list[str]) -> list[str]:
+    """描述去重：同名步骤加序号（①, ②, ...），超 10 个截断。"""
+    seen: dict[str, int] = {}
+    result = []
+    for d in descs[:10]:
+        if d in seen:
+            seen[d] += 1
+            result.append(f"{d}{seen[d]}")
+        else:
+            seen[d] = 1
+            result.append(d)
+    if len(descs) > 10:
+        result.append("...")
+    return result
+
+
 _ACTION_NORMALIZE: dict[str, str] = {
     "edit": "type",
     "preCheckDone": "do-nothing",
@@ -469,7 +485,8 @@ def step_action_to_text(action: dict) -> str:
         if element_text:
             return f"点击{element_text}"
         if start_box and len(start_box) >= 2:
-            return f"点击({start_box[0]},{start_box[1]})"
+            # 无元素文本时用"页面元素"代替坐标，避免 Plan 步骤名与轨迹文本不一致
+            return "点击页面元素"
         return "点击"
     if "long_press" in at_lower:
         if element_text:
@@ -630,8 +647,10 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
 
         text = step_action_to_text(action)
 
-        short_desc = text if text else action["type"]
-        descriptions.append(short_desc)
+        # step_level_instruction: 跳过 do-nothing，去重
+        if action["type"] not in ("do-nothing",):
+            short_desc = text if text else action["type"]
+            descriptions.append(short_desc)
 
         seq_info.append({
             "index": idx,
@@ -672,9 +691,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
             },
         })
 
-    display_descs = descriptions[:10]
-    if len(descriptions) > 10:
-        display_descs.append("...")
+    display_descs = _dedupe_descriptions(descriptions)
     step_level_instruction = "->".join(display_descs) if descriptions else ""
 
     payload: dict = {
@@ -827,9 +844,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
     })
 
 
-    display_descs = descriptions[:10]
-    if len(descriptions) > 10:
-        display_descs.append("...")
+    display_descs = _dedupe_descriptions(descriptions)
     step_level_instruction = "->".join(display_descs) if descriptions else ""
 
     payload: dict = {
