@@ -1,6 +1,6 @@
 {
   "instruction": "关闭一下发现附近的元服务功能",
-  "step_level_instruction": "向下滑动->点击隐私和安全->点击位置->点击位置->点击(336,1146)->点击允许访问->点击系统服务->点击(1112,1319)->等待/检查",
+  "step_level_instruction": "向下滑动->点击隐私和安全->点击位置->点击位置2->点击页面元素->点击允许访问->点击系统服务->点击页面元素2->等待/检查",
   "seq_info": [
     {
       "index": 0,
@@ -89,7 +89,7 @@
             1146
           ],
           "end_box": [],
-          "text": "点击(336,1146)",
+          "text": "点击页面元素",
           "direction": "",
           "content": ""
         }
@@ -143,7 +143,7 @@
             1319
           ],
           "end_box": [],
-          "text": "点击(1112,1319)",
+          "text": "点击页面元素",
           "direction": "",
           "content": ""
         }
@@ -180,6 +180,6 @@
       }
     }
   ],
-  "_image_base_dir": "/data/gui-agent-evaluation/data/reorg_output/03e0d45d-44bf-4b9d-8c86-7516ee1480b9",
+  "_image_base_dir": "/data/gui-agent-evaluation/data/test_data/03e0d45d-44bf-4b9d-8c86-7516ee1480b9",
   "_image_mode": "path"
 }
