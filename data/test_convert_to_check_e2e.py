@@ -403,7 +403,7 @@ def test_parse_node_directives():
     node = {"raw_item": {"directives": directives}}
     result = parse_node_directives(node)
     assert result["action_type"] == "click"
-    assert result["start_box"] == [193, 964]
+    assert result["start_box"] == [236, 2736]   # bounds center: (90+383)/2=236, (2701+2772)/2=2736
     assert result["element_text"] == "密码保险箱"
 
     # 无 directives → 空 dict

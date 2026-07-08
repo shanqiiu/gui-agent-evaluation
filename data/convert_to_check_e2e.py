@@ -152,16 +152,23 @@ def parse_node_directives(node: dict) -> dict:
             act_type = action.get("action", "")
             if act_type:
                 result["action_type"] = _ACTION_NORMALIZE.get(act_type, act_type)
-            # 坐标: 优先取 params.points（实际点击坐标），兜底用 action.id
+            # 坐标: params.points > node.bounds 中心 > action.id
             params = action.get("params") or {}
             points = params.get("points")
             if isinstance(points, list) and len(points) >= 2:
                 result["start_box"] = [int(points[0]), int(points[1])]
             else:
-                coord_str = action.get("id", "")
-                coords = _parse_coord_str(coord_str)
-                if coords:
-                    result["start_box"] = coords
+                node_info = params.get("node") or {}
+                bounds = node_info.get("bounds") if isinstance(node_info, dict) else None
+                if isinstance(bounds, list) and len(bounds) >= 4:
+                    cx = int((bounds[0] + bounds[2]) / 2)
+                    cy = int((bounds[1] + bounds[3]) / 2)
+                    result["start_box"] = [cx, cy]
+                else:
+                    coord_str = action.get("id", "")
+                    coords = _parse_coord_str(coord_str)
+                    if coords:
+                        result["start_box"] = coords
             node_info = params.get("node") or {}
             if isinstance(node_info, dict):
                 element_text = node_info.get("text", "")
