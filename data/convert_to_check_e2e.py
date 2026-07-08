@@ -117,6 +117,13 @@ def _parse_coord_str(coord_str: str) -> Optional[list[int]]:
     return None
 
 
+_ACTION_NORMALIZE: dict[str, str] = {
+    "edit": "type",
+    "preCheckDone": "do-nothing",
+    "scroll custom": "scroll",
+}
+
+
 def parse_node_directives(node: dict) -> dict:
     """
     从 node.raw_item.directives 中提取动作信息。
@@ -144,7 +151,7 @@ def parse_node_directives(node: dict) -> dict:
             result: dict = {}
             act_type = action.get("action", "")
             if act_type:
-                result["action_type"] = act_type
+                result["action_type"] = _ACTION_NORMALIZE.get(act_type, act_type)
             coord_str = action.get("id", "")
             coords = _parse_coord_str(coord_str)
             if coords:
@@ -472,7 +479,8 @@ def step_action_to_text(action: dict) -> str:
         return "打开应用"
     if any(kw in at_lower for kw in ("finished", "done")):
         return "任务完成"
-    # 兜底：用原文本身
+    if "do-nothing" in at_lower:
+        return "等待/检查"
     return at
 
 
