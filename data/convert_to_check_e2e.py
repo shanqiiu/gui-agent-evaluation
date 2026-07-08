@@ -647,12 +647,14 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         })
 
     if seq_info:
-        # finished 步: 取 end 节点自己的 image
+        # finished 步: 取 end 节点自己的 image，无则用上一步成功加载的
         last_screenshot, finished_source = "", ""
         end_url = node_images.get("end", "")
         if end_url:
             last_screenshot = screenshot_from_url(task_dir, end_url, as_path=save_paths)
             finished_source = end_url
+        if not last_screenshot and last_loaded:
+            last_screenshot = last_loaded
 
         seq_info.append({
             "index": len(seq_info),
@@ -798,12 +800,14 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             },
         })
 
-    # finished: 取 end 节点自己的 image
+    # finished: 取 end 节点自己的 image，无则用上一步成功加载的
     last_screenshot_p, finished_source_p = "", ""
     end_url_p = node_images_p.get("end", "")
     if end_url_p:
         last_screenshot_p = flat_screenshot_from_url(processed_dir, end_url_p, as_path=save_paths)
         finished_source_p = end_url_p
+    if not last_screenshot_p and last_loaded_p:
+        last_screenshot_p = last_loaded_p
 
     seq_info.append({
         "index": len(seq_info),
