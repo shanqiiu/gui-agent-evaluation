@@ -633,13 +633,16 @@ def parse_action(action_type: str):
 
 ### 转换映射
 
-| utg.json 来源 | /check_e2e 字段 |
-|---|---|
-| `edges[].title.instruction` | `instruction` |
-| `stepData[].action_type` 解析 + `→` 拼接 | `step_level_instruction` |
-| `stepData[].action_type` 正则解析 | `parsed_action.action_type` / `start_box` / `direction` |
-| `edges[].events[].event_str` / `nodeText` | `parsed_action.text` |
-| 节点 `image` → `catchDataTurnIdN/*-origin.jpg` base64 | `image_relative_path` |
+| utg.json 来源 | /check_e2e 字段 | 说明 |
+|---|---|---|
+| `nodes[].title.instruction` 或 `edges[].title.instruction` | `instruction` | 用户任务意图 |
+| 从 `node.raw_item.directives` 提取的动作描述，去重拼接 | `step_level_instruction` | 用 `->` 连接，do-nothing 不参与，同名步骤加序号 |
+| `node.raw_item.directives` JSON 解析 | `parsed_action.action_type` | `edit`→`type`, `preCheckDone`→`do-nothing`, `scroll custom`→`scroll` |
+| `params.points` / `node.bounds` 中心 | `parsed_action.start_box` / `end_box` | 优先取实际触点坐标 |
+| `params.node.text` / `params.node.content` | `parsed_action.text` / `content` | 元素文本和输入内容 |
+| `stepData.action_type` 正则解析 | `parsed_action.direction` | 仅提取方向（directives 中无此信息） |
+| `node.image` REST URL → 本地文件 | `image_relative_path` | 发送时 `hydrate_payload` 转为 base64 |
+| `node.image` REST URL | `_image_source` | 完整 URL，用于溯源 |
 
 ### 使用方式
 
@@ -650,11 +653,14 @@ python data/convert_to_check_e2e.py <task_uuid_dir>/ -o payload.json
 # 直接发送到 /check_e2e 服务获取判定结果
 python data/convert_to_check_e2e.py <task_uuid_dir>/ --send http://localhost:20025
 
-# 批量转换（处理 process_gui_end_to_end.py 的输出）
-python data/convert_to_check_e2e.py --batch reorg_output/ -o payloads/
+# 批量转换（支持断点续跑：已存在的 payload 自动跳过）
+python data/convert_to_check_e2e.py --batch reorg_output/ --processed -o payloads/
 
-# 预处理模式（从 _processed.json + 扁平截图转换）
-python data/convert_to_check_e2e.py <uuid_dir>/ --processed -o payload.json
+# 批量 + 发送 + 保存结果
+python data/convert_to_check_e2e.py --batch reorg_output/ --processed --send http://localhost:20025
+
+# 已保存的 payload 重发
+python data/send_payload.py payloads/ --send http://localhost:20025
 
 # 验证核心逻辑
 python data/test_convert_to_check_e2e.py
@@ -662,6 +668,12 @@ python data/test_convert_to_check_e2e.py
 
 ### 过滤规则
 
-- 只提取 `type="AAS"` 的实际 UI 动作（click/scroll/swipe/type/edit）
-- 跳过 `open_app`（无截图前后对比）、`clarify`（需人工介入）、`用户回复`（非 UI 操作）
-- 最后一步自动追加 `action_type: "finished"`
+- 只保留 `node.raw_item.directives` 非空的步骤（无 directives 的为思考/反射节点）
+- 不做过多的主观过滤——`open`、`clarify`、`do-nothing` 等均保留在轨迹中
+- 最后一步自动追加 `action_type: "finished"`（不参与 action_count 计数）
+
+### 截图三级兜底
+
+1. 用当前步骤对应节点的 `node.image` URL → 解析本地文件
+2. 文件不存在 → 用前一步成功加载的截图（`last_loaded` 追踪）
+3. 仍为空 → `image_relative_path = ""`
