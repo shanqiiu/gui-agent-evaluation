@@ -363,22 +363,22 @@ def _is_image_path(s: str) -> bool:
 def hydrate_payload(payload: dict) -> dict:
     """
     将 path-based payload 转为 base64-based payload，准备发送。
+    同时确保兼容旧 payload（补缺 content 字段）。
     """
     base_dir_str = payload.pop("_image_base_dir", "")
     image_base_dir = Path(base_dir_str) if base_dir_str else None
 
     for step in payload.get("seq_info", []):
         img = step.get("image_relative_path", "")
-        if not img:
-            continue
-        # 已是 base64（长字符串且不像路径）→ 跳过
-        if not _is_image_path(img) and len(img) > 100:
-            continue
-        if image_base_dir:
+        if img and _is_image_path(img) and image_base_dir:
             full_path = image_base_dir / img
             if full_path.is_file():
                 with open(full_path, "rb") as f:
                     step["image_relative_path"] = base64.b64encode(f.read()).decode()
+        # 兼容旧 payload：确保 content 字段存在
+        pa = (step.get("planning_output") or {}).get("parsed_action") or {}
+        if "content" not in pa:
+            pa["content"] = ""
 
     payload.pop("_image_mode", None)
     return payload
