@@ -675,7 +675,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
     display_descs = descriptions[:10]
     if len(descriptions) > 10:
         display_descs.append("...")
-    step_level_instruction = "→".join(display_descs) if descriptions else ""
+    step_level_instruction = "->".join(display_descs) if descriptions else ""
 
     payload: dict = {
         "instruction": instruction,
@@ -830,7 +830,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
     display_descs = descriptions[:10]
     if len(descriptions) > 10:
         display_descs.append("...")
-    step_level_instruction = "→".join(display_descs) if descriptions else ""
+    step_level_instruction = "->".join(display_descs) if descriptions else ""
 
     payload: dict = {
         "instruction": instruction,
