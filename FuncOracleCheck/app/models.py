@@ -60,6 +60,7 @@ class ParsedAction(BaseModel):
     end_box: list
     text: str
     direction: str
+    content: str = ""
 
 class PlanningOutput(BaseModel):
     parsed_action: ParsedAction
