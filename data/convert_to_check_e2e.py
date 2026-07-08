@@ -161,6 +161,13 @@ def parse_node_directives(node: dict) -> dict:
                 element_text = node_info.get("text", "")
                 if element_text:
                     result["element_text"] = element_text
+                element_content = node_info.get("content", "")
+                if element_content:
+                    result["content"] = element_content
+            # 输入文本: setText 或 params 中的 content
+            set_text = action.get("setText") or (action.get("params") or {}).get("content", "")
+            if set_text:
+                result["content"] = set_text
             if result:
                 return result
     return {}
@@ -632,6 +639,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
                     "end_box": action.get("end_box", []),
                     "text": text,
                     "direction": action.get("direction", ""),
+                    "content": action.get("content", ""),
                 }
             },
         })
@@ -652,7 +660,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
                 "parsed_action": {
                     "action_type": "finished",
                     "start_box": [], "end_box": [],
-                    "text": "任务完成", "direction": "",
+                    "text": "任务完成", "direction": "", "content": "",
                 }
             },
         })
@@ -783,6 +791,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
                     "end_box": action.get("end_box", []),
                     "text": text,
                     "direction": action.get("direction", ""),
+                    "content": action.get("content", ""),
                 }
             },
         })
@@ -802,10 +811,11 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             "parsed_action": {
                 "action_type": "finished",
                 "start_box": [], "end_box": [],
-                "text": "任务完成", "direction": "",
+                "text": "任务完成", "direction": "", "content": "",
             }
         },
     })
+
 
     display_descs = descriptions[:10]
     if len(descriptions) > 10:
