@@ -86,6 +86,8 @@ class RepeatedActionDetector:
             action_type = self._normalize_text(parsed_action.get("action_type"))
             if not action_type:
                 continue
+            if action_type in {"finished", "done"}:
+                continue  # 合成终止步骤，不算实际动作
 
             ab_result = ab_results.get(str(pos), {}) if isinstance(ab_results, dict) else {}
             action_des = ab_result.get("action_des") or parsed_action.get("text") or self._fallback_action_text(parsed_action)
