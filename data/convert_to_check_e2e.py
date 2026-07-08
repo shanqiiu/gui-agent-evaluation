@@ -109,14 +109,6 @@ def extract_turn_from_label(label: str) -> Optional[int]:
     return int(m.group(1)) if m else None
 
 
-def _parse_coord_str(coord_str: str) -> Optional[list[int]]:
-    """解析 "[193, 964]" 格式的坐标字符串。"""
-    nums = re.findall(r"\d+", coord_str)
-    if len(nums) >= 2:
-        return [int(nums[0]), int(nums[1])]
-    return None
-
-
 _ACTION_NORMALIZE: dict[str, str] = {
     "edit": "type",
     "preCheckDone": "do-nothing",
@@ -152,7 +144,7 @@ def parse_node_directives(node: dict) -> dict:
             act_type = action.get("action", "")
             if act_type:
                 result["action_type"] = _ACTION_NORMALIZE.get(act_type, act_type)
-            # 坐标: params.points > node.bounds 中心 > action.id
+            # 坐标: params.points > node.bounds 中心
             params = action.get("params") or {}
             points = params.get("points")
             if isinstance(points, list) and len(points) >= 2:
@@ -164,11 +156,6 @@ def parse_node_directives(node: dict) -> dict:
                     cx = int((bounds[0] + bounds[2]) / 2)
                     cy = int((bounds[1] + bounds[3]) / 2)
                     result["start_box"] = [cx, cy]
-                else:
-                    coord_str = action.get("id", "")
-                    coords = _parse_coord_str(coord_str)
-                    if coords:
-                        result["start_box"] = coords
             node_info = params.get("node") or {}
             if isinstance(node_info, dict):
                 element_text = node_info.get("text", "")
