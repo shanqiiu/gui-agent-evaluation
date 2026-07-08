@@ -375,6 +375,8 @@ def hydrate_payload(payload: dict) -> dict:
             if full_path.is_file():
                 with open(full_path, "rb") as f:
                     step["image_relative_path"] = base64.b64encode(f.read()).decode()
+            else:
+                step["image_relative_path"] = ""  # 文件不存在，清空避免垃圾数据
         # 兼容旧 payload：确保 content 字段存在
         pa = (step.get("planning_output") or {}).get("parsed_action") or {}
         if "content" not in pa:
