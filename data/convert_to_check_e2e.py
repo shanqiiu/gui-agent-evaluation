@@ -803,7 +803,9 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             last_loaded_p = screenshot_ref
 
         text = step_action_to_text(action)
-        descriptions.append(text if text else action["type"])
+        if action["type"] not in ("do-nothing",):
+            short_desc = text if text else action["type"]
+            descriptions.append(short_desc)
 
         seq_info.append({
             "index": idx,
