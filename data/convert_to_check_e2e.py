@@ -941,12 +941,21 @@ def main():
 
         success = 0
         fail = 0
+        skipped = 0
         for i, td in enumerate(task_dirs):
             uuid = td.name
             print(f"[{i+1}/{len(task_dirs)}] {uuid}", end="")
             try:
-                # 批量模式：始终存路径（JSON 小且可读），send 时自动 hydrate
+                # 断点续跑：payload 和 result 都已存在则跳过
                 save_paths = not args.no_save
+                payload_path = payload_dir / f"{uuid}.json"
+                result_path = result_dir / f"{uuid}_result.json"
+                if not args.no_save and payload_path.exists():
+                    if not args.send or result_path.exists():
+                        print(" SKIP")
+                        skipped += 1
+                        continue
+
                 if args.processed:
                     payload = convert_processed_to_check_e2e(td, save_paths=save_paths)
                 else:
@@ -954,14 +963,12 @@ def main():
 
                 # 保存 payload（除非 --no-save）
                 if not args.no_save:
-                    payload_path = payload_dir / f"{uuid}.json"
                     _output_payload(payload, str(payload_path))
 
                 # 发送到判定服务
                 if args.send:
                     result = _send_payload(payload, args.send)
                     if not args.no_save:
-                        result_path = result_dir / f"{uuid}_result.json"
                         _save_result(result, str(result_path))
 
                 success += 1
@@ -969,7 +976,7 @@ def main():
                 fail += 1
                 print(f" FAIL: {e}")
 
-        print(f"\n完成: 成功 {success}, 失败 {fail}")
+        print(f"\n完成: 成功 {success}, 失败 {fail}, 跳过 {skipped}")
         if not args.no_save:
             print(f"payload 目录: {payload_dir.resolve()}")
             if args.send:
