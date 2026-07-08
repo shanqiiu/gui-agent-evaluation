@@ -567,7 +567,7 @@ class HarmonyAppTest:
         for step, info in self.result[f'{result_dict}_intention_step'].items():
             if info['label'] == 'pok':
                 pok_steps.append(info['step'])
-            if info['page_id'] != (-1,) and info['page_id'] != -1:
+            if info['label'] == 'ok' or info['page_id'] != (-1,) and info['page_id'] != -1:
                 cnt_covered_steps += 1
         align_result['存在问题的功能'] = pok_steps
 
