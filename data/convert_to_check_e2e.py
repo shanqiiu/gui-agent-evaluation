@@ -144,11 +144,13 @@ def parse_node_directives(node: dict) -> dict:
             act_type = action.get("action", "")
             if act_type:
                 result["action_type"] = _ACTION_NORMALIZE.get(act_type, act_type)
-            # 坐标: params.points > node.bounds 中心
+            # 坐标: params.points → [x1,y1] 或 [x1,y1,x2,y2]
             params = action.get("params") or {}
             points = params.get("points")
             if isinstance(points, list) and len(points) >= 2:
                 result["start_box"] = [int(points[0]), int(points[1])]
+                if len(points) >= 4:
+                    result["end_box"] = [int(points[2]), int(points[3])]
             else:
                 node_info = params.get("node") or {}
                 bounds = node_info.get("bounds") if isinstance(node_info, dict) else None
@@ -587,6 +589,7 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
             "stepId": step_id,
             "cost_time": sd.get("cost_time", "0"),
             "start_box": dir_info.get("start_box", []) or coord_parsed.get("start_box", []),
+            "end_box": dir_info.get("end_box", []) or coord_parsed.get("end_box", []),
             "element_text": dir_info.get("element_text", ""),
             "direction": coord_parsed.get("direction", ""),
         }
@@ -745,6 +748,7 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
             "stepId": step_id,
             "cost_time": sd.get("cost_time", "0"),
             "start_box": dir_info.get("start_box", []) or coord_parsed.get("start_box", []),
+            "end_box": dir_info.get("end_box", []) or coord_parsed.get("end_box", []),
             "element_text": dir_info.get("element_text", ""),
             "direction": coord_parsed.get("direction", ""),
         }
