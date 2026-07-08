@@ -46,6 +46,13 @@ class HarmonyAppTest:
             sample_dict = sample_dict[0]
         self.json_data = sample_dict
 
+        # 设置可视化结果子目录：test 模式用 UUID，production 用 instruction 摘要
+        if self.config.project.PREDICATE_MODE == 'test':
+            prompt_utils.set_subdir(os.path.basename(config.data.DATA_DIR))
+        else:
+            instr = self.json_data.get('instruction', 'unknown')[:30]
+            prompt_utils.set_subdir(instr.replace('/', '_'))
+
         intention_steps = parse_steps(self.json_data['step_level_instruction'])
         self.intention_sequence = {}
         self.intention = self.json_data['instruction']

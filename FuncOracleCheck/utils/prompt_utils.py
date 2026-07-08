@@ -9,6 +9,15 @@ _VISUAL_PROMPT_SAVE_DIR = os.path.join(
 )
 os.makedirs(_VISUAL_PROMPT_SAVE_DIR, exist_ok=True)
 
+# 当前任务子目录名（由调用方设置）
+_current_subdir: str = ""
+
+
+def set_subdir(subdir: str):
+    """设置当前任务的保存子目录名。"""
+    global _current_subdir
+    _current_subdir = subdir
+
 def make_action_description(data_item: dict = None):
     if data_item['parsed_action']['action_type'] == 'click':
         action_description = f"操作类型：点击"
@@ -58,8 +67,12 @@ def make_visual_prompt(image: np.ndarray = None, parsed_action: dict = None, sav
         if save_hint:
             import cv2
             ts = int(time.time() * 1000)
+            save_dir = _VISUAL_PROMPT_SAVE_DIR
+            if _current_subdir:
+                save_dir = os.path.join(save_dir, _current_subdir)
+                os.makedirs(save_dir, exist_ok=True)
             filename = f"{save_hint}_{ts}.jpeg"
-            cv2.imwrite(os.path.join(_VISUAL_PROMPT_SAVE_DIR, filename), image_cv2_draw_circle_mask)
+            cv2.imwrite(os.path.join(save_dir, filename), image_cv2_draw_circle_mask)
         return image_cv2_draw_circle_mask, color
 
     else:
