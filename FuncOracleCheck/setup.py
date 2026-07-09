@@ -16,7 +16,7 @@ EXCLUDE_FILES = {
     "setup.py",
     "main.py",
     "api_client.py",
-
+    "mlops_mllms.py",
     "ui_tars.py",
     "ui_tars_output_parser.py",
     "ui_tars_prompts.py",
@@ -28,7 +28,7 @@ EXCLUDE_FILES = {
 }
 IGNORE_FILE = {
     "setup.py",
-
+    "mlops_mllms.py",
     "ui_tars.py",
     "ui_tars_output_parser.py",
     "ui_tars_prompts.py",

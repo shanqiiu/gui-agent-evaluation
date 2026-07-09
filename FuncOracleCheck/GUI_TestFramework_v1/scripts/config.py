@@ -209,8 +209,8 @@ class Config(object):
             llm_model_url=model_config.get('MLLMConfig', 'llm_model_url'),
             vlm_api_key=model_config.get('MLLMConfig', 'vlm_api_key', fallback=''),
             llm_api_key=model_config.get('MLLMConfig', 'llm_api_key', fallback=''),
-            vlm_api_key_env=model_config.get('MLLMConfig', 'vlm_api_key_env', fallback=''),
-            llm_api_key_env=model_config.get('MLLMConfig', 'llm_api_key_env', fallback=''),
+            vlm_api_key_env=model_config.get('MLLMConfig', 'vlm_api_key_env', fallback='MLOPS_API_KEY'),
+            llm_api_key_env=model_config.get('MLLMConfig', 'llm_api_key_env', fallback='MLOPS_API_KEY'),
             include_top_k=model_config.getboolean('MLLMConfig', 'include_top_k', fallback=True),
             request_timeout=model_config.getint('MLLMConfig', 'request_timeout', fallback=120),
         )
