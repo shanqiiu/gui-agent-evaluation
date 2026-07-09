@@ -188,8 +188,8 @@ llm_model_name=your-llm-model
 llm_model_url=http://host:port/v1/chat/completions
 vlm_model_name=your-vlm-model
 vlm_model_url=http://host:port/v1/chat/completions
-llm_api_key_env=MLOPS_API_KEY
-vlm_api_key_env=MLOPS_API_KEY
+llm_api_key=
+vlm_api_key=
 include_top_k=true
 request_timeout=120
 ```
