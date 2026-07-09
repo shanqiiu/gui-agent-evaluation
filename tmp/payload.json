@@ -1,17 +1,17 @@
 {
-  "instruction": "请关闭指关节截屏功能",
-  "step_level_instruction": "输入文本->点击指关节截屏->点击页面元素",
+  "instruction": "打开设置华为账号负一屏页面",
+  "step_level_instruction": "输入文本->点击负一屏设置->do_nothing()->点击页面元素",
   "seq_info": [
     {
       "index": 0,
       "image_relative_path": "catchDataTurnId1.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/056798cc-e614-4f41-b4e6-68bebca2e420/catchDataTurnId1/temp_image-screenshot-drawRect.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId1/temp_image-screenshot-drawRect.jpg",
       "planning_output": {
         "parsed_action": {
           "action_type": "type",
           "start_box": [
-            323,
-            444
+            328,
+            455
           ],
           "end_box": [],
           "text": "输入文本",
@@ -23,16 +23,16 @@
     {
       "index": 1,
       "image_relative_path": "catchDataTurnId2.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/056798cc-e614-4f41-b4e6-68bebca2e420/catchDataTurnId2/temp_image-screenshot-drawRect.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId2/temp_image-screenshot-drawRect.jpg",
       "planning_output": {
         "parsed_action": {
           "action_type": "click",
           "start_box": [
-            399,
-            444
+            403,
+            455
           ],
           "end_box": [],
-          "text": "点击指关节截屏",
+          "text": "点击负一屏设置",
           "direction": "",
           "content": ""
         }
@@ -41,13 +41,28 @@
     {
       "index": 2,
       "image_relative_path": "catchDataTurnId3.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/056798cc-e614-4f41-b4e6-68bebca2e420/catchDataTurnId3/temp_image-screenshot-drawRect.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId3/temp_image-screenshot-origin.jpg",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 3,
+      "image_relative_path": "catchDataTurnId4.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId4/temp_image-screenshot-drawRect.jpg",
       "planning_output": {
         "parsed_action": {
           "action_type": "click",
           "start_box": [
-            1114,
-            1849
+            1130,
+            1959
           ],
           "end_box": [],
           "text": "点击页面元素",
@@ -57,9 +72,9 @@
       }
     },
     {
-      "index": 3,
-      "image_relative_path": "catchDataTurnId4.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/056798cc-e614-4f41-b4e6-68bebca2e420/catchDataTurnId4/temp_image-screenshot-origin.jpg",
+      "index": 4,
+      "image_relative_path": "catchDataTurnId5.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId5/temp_image-screenshot-origin.jpg",
       "planning_output": {
         "parsed_action": {
           "action_type": "do-nothing",
@@ -72,9 +87,9 @@
       }
     },
     {
-      "index": 4,
-      "image_relative_path": "catchDataTurnId4.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/056798cc-e614-4f41-b4e6-68bebca2e420/end/temp_image-screenshot-origin.jpg",
+      "index": 5,
+      "image_relative_path": "catchDataTurnId5.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/end/temp_image-screenshot-origin.jpg",
       "planning_output": {
         "parsed_action": {
           "action_type": "finished",
@@ -87,6 +102,6 @@
       }
     }
   ],
-  "_image_base_dir": "/data/gui-agent-evaluation/data/reorg_output/056798cc-e614-4f41-b4e6-68bebca2e420",
+  "_image_base_dir": "/data/gui-agent-evaluation/data/test_data/476c401c-d843-4581-ab13-49f97cd33711",
   "_image_mode": "path"
 }
