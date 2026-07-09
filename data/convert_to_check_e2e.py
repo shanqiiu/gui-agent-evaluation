@@ -128,6 +128,7 @@ def _dedupe_descriptions(descs: list[str]) -> list[str]:
 _ACTION_NORMALIZE: dict[str, str] = {
     "edit": "type",
     "preCheckDone": "do-nothing",
+    "do_nothing()": "do-nothing",
     "scroll custom": "scroll",
 }
 

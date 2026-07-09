@@ -588,7 +588,7 @@ class HarmonyAppTest:
                 align_result['已覆盖Plan'].append(
                     {'Plan步骤名': info['step'], "覆盖Plan步骤的执行步骤序号": info['page_id'], '整体通过情况': '通过',
                      "结果分类": "存在功能bug",
-                     '存在bug的执行步骤': info['wrong_steps']})
+                     '存在bug的执行步骤': info.get('wrong_steps', {})})
 
         return align_result
 
