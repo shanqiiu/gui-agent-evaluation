@@ -885,10 +885,10 @@ def _save_result(result: dict, result_path: str):
 
 
 def _send_payload(payload: dict, base_url: str, timeout: int = 300) -> dict:
-    """向 /check_e2e 发送请求。自动将 path-based payload 转为 base64。"""
+    """向 /check_e2e 发送请求。自动将 path-based payload 转为 base64。
+    失败时返回 {"_error": "..."} 而非退出进程。"""
     import requests
 
-    # 如果是 path-based，先转换为 base64
     payload = hydrate_payload(payload)
 
     url = f"{base_url.rstrip('/')}/check_e2e"
@@ -897,21 +897,19 @@ def _send_payload(payload: dict, base_url: str, timeout: int = 300) -> dict:
     try:
         resp = requests.post(url, json=payload, timeout=timeout)
     except requests.ConnectionError:
-        print(f"    [ERROR] 无法连接 {base_url}，请确认服务已启动")
-        sys.exit(1)
+        return {"_error": f"无法连接 {base_url}"}
+    except requests.Timeout:
+        return {"_error": f"请求超时 (>{timeout}s)"}
 
     if resp.status_code != 200:
-        print(f"    [ERROR] HTTP {resp.status_code}: {resp.text[:500]}")
-        sys.exit(1)
+        return {"_error": f"HTTP {resp.status_code}: {resp.text[:200]}"}
 
     result = resp.json().get("check_result", {})
 
     ra = result.get("重复动作判定结果", "-")
     pf = result.get("规划失效判定结果", "-")
-
     repeated = result.get("repeated_action_result", {})
     repeated_ranges = len(repeated.get("ranges", []))
-
     planning = result.get("planning_failure_result", {})
     planning_events = len(planning.get("events", []))
 
@@ -983,11 +981,11 @@ def main():
         for i, td in enumerate(task_dirs):
             uuid = td.name
             print(f"[{i+1}/{len(task_dirs)}] {uuid}", end="")
+            payload_path = payload_dir / f"{uuid}.json"
+            result_path = result_dir / f"{uuid}_result.json"
             try:
                 # 断点续跑：payload 和 result 都已存在则跳过
                 save_paths = not args.no_save
-                payload_path = payload_dir / f"{uuid}.json"
-                result_path = result_dir / f"{uuid}_result.json"
                 if not args.no_save and payload_path.exists():
                     if not args.send or result_path.exists():
                         print(" SKIP")
@@ -1006,13 +1004,22 @@ def main():
                 # 发送到判定服务
                 if args.send:
                     result = _send_payload(payload, args.send)
-                    if not args.no_save:
-                        _save_result(result, str(result_path))
-
-                success += 1
+                    if result.get("_error"):
+                        print(f" SEND_ERR: {result['_error']}")
+                        fail += 1
+                        if not args.no_save:
+                            _save_result(result, str(result_path))
+                    else:
+                        if not args.no_save:
+                            _save_result(result, str(result_path))
+                        success += 1
+                else:
+                    success += 1
             except Exception as e:
                 fail += 1
                 print(f" FAIL: {e}")
+                if not args.no_save and args.send:
+                    _save_result({"_error": str(e)}, str(result_path))
 
         print(f"\n完成: 成功 {success}, 失败 {fail}, 跳过 {skipped}")
         if not args.no_save:
