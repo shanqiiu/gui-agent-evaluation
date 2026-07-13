@@ -34,6 +34,14 @@ import sys
 from pathlib import Path
 from typing import Any, Optional
 
+# ── RAG 分解器（可选）───────────────────────────────────────────
+try:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+    from decomposer import Decomposer
+    _DECOMPOSER_AVAILABLE = True
+except ImportError:
+    _DECOMPOSER_AVAILABLE = False
+
 # ── 正则 ────────────────────────────────────────────────────────
 _TURN_RE = re.compile(r"catchDataTurnId(\d+)")
 _ACTION_CLICK = re.compile(r"click\(\[(\d+),\s*(\d+)\]\)")
@@ -123,6 +131,23 @@ def _dedupe_descriptions(descs: list[str]) -> list[str]:
     if len(descs) > 10:
         result.append("...")
     return result
+
+
+def _build_step_plan(checkpoints: list[dict[str, Any]]) -> str:
+    """从 RAG 分解的检查点列表生成 step_level_instruction。"""
+    names = [cp.get("name", "") for cp in checkpoints if cp.get("required", True)]
+    return "->".join(names) if names else ""
+
+
+def _default_decomposer() -> Any:
+    """获取默认分解器实例（按需初始化）。"""
+    if not _DECOMPOSER_AVAILABLE:
+        raise RuntimeError("chromadb/sentence-transformers 未安装，无法使用 RAG 分解")
+    # 从环境变量读取 LLM 配置
+    model_url = os.environ.get("LLM_MODEL_URL", "http://localhost:8000/v1/chat/completions")
+    model_name = os.environ.get("LLM_MODEL_NAME", "qwen3-8b")
+    api_key = os.environ.get("LLM_API_KEY", "")
+    return Decomposer(model_url=model_url, model_name=model_name, api_key=api_key)
 
 
 _ACTION_NORMALIZE: dict[str, str] = {
@@ -955,6 +980,8 @@ def main():
                         help="使用预处理模式（从 _processed.json + 扁平截图转换）")
     parser.add_argument("--no-save", action="store_true",
                         help="不保存 payload 和结果文件（仅当 --send 时有效）")
+    parser.add_argument("--decompose", action="store_true",
+                        help="使用 LLM+RAG 分解任务生成 step_level_instruction（替代从动作序列拼接）")
     args = parser.parse_args()
 
     if args.batch:
@@ -996,6 +1023,13 @@ def main():
                     payload = convert_processed_to_check_e2e(td, save_paths=save_paths)
                 else:
                     payload = convert_utg_to_check_e2e(td, save_paths=save_paths)
+
+                # RAG 分解覆盖 step_level_instruction
+                if args.decompose and payload.get("instruction"):
+                    decomposer = _default_decomposer()
+                    checkpoints = decomposer.decompose(payload["instruction"])
+                    if checkpoints:
+                        payload["step_level_instruction"] = _build_step_plan(checkpoints)
 
                 # 保存 payload（除非 --no-save）
                 if not args.no_save:
@@ -1039,6 +1073,12 @@ def main():
             payload = convert_processed_to_check_e2e(task_dir, save_paths=save_paths)
         else:
             payload = convert_utg_to_check_e2e(task_dir, save_paths=save_paths)
+
+        if args.decompose and payload.get("instruction"):
+            decomposer = _default_decomposer()
+            checkpoints = decomposer.decompose(payload["instruction"])
+            if checkpoints:
+                payload["step_level_instruction"] = _build_step_plan(checkpoints)
 
         if args.send:
             # 发送模式：自动保存 payload + result
