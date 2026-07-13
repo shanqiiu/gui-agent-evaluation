@@ -574,7 +574,9 @@ def build_edge_to_index(utg: dict) -> dict[str, list[dict]]:
     return index
 
 
-def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dict:
+def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False,
+                              step_plan: Optional[str] = None,
+                              checkpoints: Optional[list[dict]] = None) -> dict:
     """
     将单个任务目录的 utg.json 转换为 /check_e2e payload。
 
@@ -718,13 +720,16 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
         })
 
     display_descs = _dedupe_descriptions(descriptions)
-    step_level_instruction = "->".join(display_descs) if descriptions else ""
+    step_level_instruction = step_plan or ("->".join(display_descs) if descriptions else "")
 
     payload: dict = {
         "instruction": instruction,
         "step_level_instruction": step_level_instruction,
         "seq_info": seq_info,
     }
+
+    if checkpoints:
+        payload["_checkpoints"] = checkpoints
 
     if save_paths:
         payload["_image_base_dir"] = str(task_dir.resolve()).replace("\\", "/")
@@ -737,7 +742,9 @@ def convert_utg_to_check_e2e(task_dir: Path, *, save_paths: bool = False) -> dic
 # 预处理模式：从 process_gui_end_to_end.py 输出转换
 # ═══════════════════════════════════════════════════════════════════
 
-def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = False) -> dict:
+def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = False,
+                                     step_plan: Optional[str] = None,
+                                     checkpoints: Optional[list[dict]] = None) -> dict:
     """
     从 process_gui_end_to_end.py 预处理后的目录转换。
 
@@ -873,13 +880,16 @@ def convert_processed_to_check_e2e(processed_dir: Path, *, save_paths: bool = Fa
 
 
     display_descs = _dedupe_descriptions(descriptions)
-    step_level_instruction = "->".join(display_descs) if descriptions else ""
+    step_level_instruction = step_plan or ("->".join(display_descs) if descriptions else "")
 
     payload: dict = {
         "instruction": instruction,
         "step_level_instruction": step_level_instruction,
         "seq_info": seq_info,
     }
+
+    if checkpoints:
+        payload["_checkpoints"] = checkpoints
 
     if save_paths:
         payload["_image_base_dir"] = str(processed_dir.resolve()).replace("\\", "/")
@@ -1019,18 +1029,35 @@ def main():
                         skipped += 1
                         continue
 
+                # RAG 分解（在 convert 之前，以便直接传入）
+                step_plan = None
+                checkpoints = None
+                instruction = ""
+                if args.decompose and not args.no_save:
+                    # 从 utg.json 读取 instruction（避免转换两次）
+                    utg_path = td / "utg.json"
+                    if utg_path.is_file():
+                        with open(utg_path, "r", encoding="utf-8") as f:
+                            utg = json.load(f)
+                        instruction = utg.get("nodes", [{}])[0].get("title", "")
+                        try:
+                            instruction = json.loads(instruction).get("instruction", "")
+                        except (json.JSONDecodeError, TypeError):
+                            pass
+                    if not instruction:
+                        instruction = ""
+                    if instruction:
+                        decomposer = _default_decomposer()
+                        checkpoints = decomposer.decompose(instruction)
+                        if checkpoints:
+                            step_plan = _build_step_plan(checkpoints)
+
                 if args.processed:
-                    payload = convert_processed_to_check_e2e(td, save_paths=save_paths)
+                    payload = convert_processed_to_check_e2e(td, save_paths=save_paths,
+                        step_plan=step_plan, checkpoints=checkpoints)
                 else:
-                    payload = convert_utg_to_check_e2e(td, save_paths=save_paths)
-
-                # RAG 分解覆盖 step_level_instruction
-                if args.decompose and payload.get("instruction"):
-                    decomposer = _default_decomposer()
-                    checkpoints = decomposer.decompose(payload["instruction"])
-                    if checkpoints:
-                        payload["step_level_instruction"] = _build_step_plan(checkpoints)
-
+                    payload = convert_utg_to_check_e2e(td, save_paths=save_paths,
+                        step_plan=step_plan, checkpoints=checkpoints)
                 # 保存 payload（除非 --no-save）
                 if not args.no_save:
                     _output_payload(payload, str(payload_path))
@@ -1069,16 +1096,38 @@ def main():
 
         # 单任务：发送时不做路径保存（性能优先），存文件时用路径
         save_paths = bool(args.output) and not args.send
-        if args.processed:
-            payload = convert_processed_to_check_e2e(task_dir, save_paths=save_paths)
-        else:
-            payload = convert_utg_to_check_e2e(task_dir, save_paths=save_paths)
 
-        if args.decompose and payload.get("instruction"):
-            decomposer = _default_decomposer()
-            checkpoints = decomposer.decompose(payload["instruction"])
-            if checkpoints:
-                payload["step_level_instruction"] = _build_step_plan(checkpoints)
+        # RAG 分解
+        step_plan = None
+        checkpoints = None
+        if args.decompose:
+            utg_path = task_dir / "utg.json"
+            instruction = ""
+            if utg_path.is_file():
+                with open(utg_path, "r", encoding="utf-8") as f:
+                    utg = json.load(f)
+                for node in utg.get("nodes", []):
+                    title_str = node.get("title", "")
+                    if title_str:
+                        try:
+                            title = json.loads(title_str) if isinstance(title_str, str) else title_str
+                            instruction = title.get("instruction", "")
+                            if instruction:
+                                break
+                        except (json.JSONDecodeError, TypeError):
+                            pass
+            if instruction:
+                decomposer = _default_decomposer()
+                checkpoints = decomposer.decompose(instruction)
+                if checkpoints:
+                    step_plan = _build_step_plan(checkpoints)
+
+        if args.processed:
+            payload = convert_processed_to_check_e2e(task_dir, save_paths=save_paths,
+                step_plan=step_plan, checkpoints=checkpoints)
+        else:
+            payload = convert_utg_to_check_e2e(task_dir, save_paths=save_paths,
+                step_plan=step_plan, checkpoints=checkpoints)
 
         if args.send:
             # 发送模式：自动保存 payload + result
