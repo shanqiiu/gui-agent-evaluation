@@ -431,168 +431,16 @@ def process_all(base_dir: str, output_dir: Optional[str] = None) -> str:
 
     return str(output_path)
 
-# ═══════════════════════════════════════════════════════════════════
-# Phase 3: UTG 去冗（委托 extract_utg 模块）
-# ═══════════════════════════════════════════════════════════════════
-
-try:
-    from .extract_utg import deduplicate_utg as _extract_deduplicate
-except ImportError:
-    from extract_utg import deduplicate_utg as _extract_deduplicate
-
-
-def _dedup_single_utg(task_dir: Path, output_dir: Optional[Path] = None) -> Dict[str, Any]:
-    """
-    对单个任务的 utg.json 执行去冗。
-
-    输出路径:
-        - 如果指定 output_dir: 输出到 <output_dir>/<task_uuid>/_deduped.json
-        - 否则: 输出到 <task_dir>/_deduped.json
-
-    Returns:
-        {uuid, status, original_size, output_size, compression_ratio,
-         node_count, edge_count, step_count}
-    """
-    task_uuid = task_dir.name
-    utg_path = task_dir / "utg.json"
-
-    if not utg_path.is_file():
-        return {"uuid": task_uuid, "status": "no_utg_json"}
-
-    try:
-        with open(utg_path, "r", encoding="utf-8") as f:
-            utg_data = json.load(f)
-    except Exception as e:
-        return {"uuid": task_uuid, "status": "utg_parse_error", "error": str(e)}
-
-    deduped = _extract_deduplicate(utg_data)
-
-    # 确定输出路径
-    if output_dir is not None:
-        output_task_dir = output_dir / task_uuid
-        output_task_dir.mkdir(parents=True, exist_ok=True)
-        deduped_path = output_task_dir / "_deduped.json"
-    else:
-        deduped_path = task_dir / "_deduped.json"
-
-    with open(deduped_path, "w", encoding="utf-8") as f:
-        json.dump(deduped, f, ensure_ascii=False, indent=4)
-
-    meta = deduped.get("_meta", {})
-    return {
-        "uuid": task_uuid,
-        "status": "ok",
-        "original_size": meta.get("original_size_bytes", 0),
-        "output_size": meta.get("output_size_bytes", 0),
-        "compression_ratio": meta.get("compression_ratio", "0%"),
-        "node_count": meta.get("node_count", 0),
-        "edge_count": meta.get("edge_count", 0),
-        "step_count": meta.get("step_count", 0),
-    }
-
-
-def batch_dedup_utg(base_dir: str, output_dir: Optional[str] = None, task_uuids: Optional[list[str]] = None) -> None:
-    """
-    批量 UTG 去冗。
-
-    输入目录结构:
-        base_dir/
-        ├── <uuid-1>/
-        │   ├── utg.json
-        │   └── ...
-        ├── <uuid-2>/
-        │   ├── utg.json
-        │   └── ...
-        └── ...
-
-    输出:
-        - 如果指定 output_dir: <output_dir>/<uuid>/_deduped.json
-        - 否则: base_dir 同级目录下 <uuid>/_deduped.json
-
-    Args:
-        base_dir: 包含各 uuid 子目录的路径
-        output_dir: 输出目录（可选，默认: base_dir/reorg_output/<uuid>/_deduped.json）
-        task_uuids: 可选，指定要处理的 uuid 列表（默认处理所有）
-    """
-    base = Path(base_dir)
-    if not base.is_dir():
-        log.error("目录不存在: %s", base_dir)
-        sys.exit(1)
-
-    # 默认输出到 base_dir/reorg_output
-    if output_dir is None:
-        output_dir = str(base / "reorg_output")
-
-    output_path = Path(output_dir)
-
-    # 收集 uuid 子目录（注意：base.iterdir() 返回相对路径，必须用 .name 拼接）
-    task_dirs = sorted(
-        [base / d.name for d in base.iterdir() if d.is_dir()
-         and not d.name.startswith('.')
-         and d.name not in ('__pycache__', 'reorg_output', 'dedup_output')],
-        key=lambda d: d.name,
-    )
-
-    if task_uuids:
-        task_dirs = [d for d in task_dirs if d.name in task_uuids]
-
-    if not task_dirs:
-        log.warning("未找到任何待处理的 uuid 子目录")
-        return
-
-    log.info("=" * 60)
-    log.info("UTG 批量去冗")
-    log.info("=" * 60)
-    log.info("输入目录: %s", base_dir)
-    log.info("输出目录: %s", output_dir)
-    log.info("待处理任务数: %d", len(task_dirs))
-    log.info("")
-
-    ok_count = 0
-    err_count = 0
-    total_orig = 0
-    total_out = 0
-    errors: list[Dict[str, Any]] = []
-
-    for i, task_dir in enumerate(task_dirs, 1):
-        result = _dedup_single_utg(task_dir, output_path)
-        status = result["status"]
-
-        if result["status"] == "ok":
-            ok_count += 1
-            total_orig += result.get("original_size", 0)
-            total_out += result.get("output_size", 0)
-            if i % 50 == 0:
-                log.info("  进度: %d/%d | 成功: %d | 失败: %d", i, len(task_dirs), ok_count, err_count)
-        else:
-            err_count += 1
-            errors.append({"uuid": result["uuid"], "status": result["status"]})
-
-    total_reduction = total_orig - total_out
-    save_pct = f"{total_out / total_orig * 100:.1%}" if total_orig > 0 else "N/A"
-
-    log.info("")
-    log.info("=" * 60)
-    log.info("===== UTG 去冗完成 =====")
-    log.info("总任务数: %d", len(task_dirs))
-    log.info("成功: %d | 失败: %d", ok_count, err_count)
-    log.info("原始总大小: %s B", f"{total_orig:,}")
-    log.info("输出总大小: %s B", f"{total_out:,}")
-    log.info("节省空间: %s B (%s)", f"{total_reduction:,}", save_pct)
-    if errors:
-        log.info("失败日志: %d 个任务失败", err_count)
-    log.info("=" * 60)
-
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="GUI Agent 数据端到端处理 + UTG 去冗（默认串联执行）",
+        description="GUI Agent 截图重组工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "示例:\n"
-            "  python process_gui_end_to_end.py data/tasks/                  # 处理 + 去冗\n"
+            "  python process_gui_end_to_end.py data/tasks/                  # 截图重组\n"
             "  python process_gui_end_to_end.py data/tasks/ my_output/        # 指定输出目录\n"
         ),
     )
@@ -609,6 +457,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     output_dir = args.output_dir or os.path.join(args.base_dir, "reorg_output")
-
     process_all(args.base_dir, output_dir)
-    batch_dedup_utg(output_dir, output_dir=output_dir)
