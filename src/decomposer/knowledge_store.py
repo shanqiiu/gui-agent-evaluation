@@ -82,10 +82,14 @@ def ingest_documents(docs_dir: str):
 
 
 def query_knowledge(query: str, app_name: Optional[str] = None, top_k: int = 5) -> list[str]:
-    """检索相关 App 知识。若 ChromaDB 未建库，返回空列表不触发模型下载。"""
-    if not _DB_DIR.is_dir():
+    """检索相关 App 知识。若 ChromaDB 未建库或无数据，返回空列表不触发模型下载。"""
+    # 检查 ChromaDB 是否已初始化（不触发 embedding 模型加载）
+    db_file = _DB_DIR / "chroma.sqlite3"
+    if not db_file.is_file():
         return []
     collection = get_store()
+    if collection.count() == 0:
+        return []
     where = {"app": app_name} if app_name else None
     results = collection.query(query_texts=[query], n_results=top_k, where=where)
     docs = results.get("documents", [[]])[0]
