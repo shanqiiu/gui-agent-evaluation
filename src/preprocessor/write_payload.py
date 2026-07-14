@@ -37,7 +37,6 @@ def write_payload(
     output_path = Path(output_path)
 
     seq_info: list[dict] = []
-    descriptions: list[str] = []
 
     for step in task.steps:
         idx = step.step_index
@@ -47,14 +46,8 @@ def write_payload(
         if img_ref and not save_paths:
             img_ref = _encode_image(img_ref, Path(image_base_dir) if image_base_dir else None)
 
-        # Action text: resolved control name or purpose-based fallback
+        # Action text for parsed_action.text
         text = _make_action_text(step)
-
-        # step_level_instruction: skip do-nothing, dedupe
-        if step.action_type not in ("do-nothing",):
-            short_desc = text if text else step.action_type
-            if short_desc not in descriptions:
-                descriptions.append(short_desc)
 
         seq_info.append({
             "index": idx,
@@ -90,12 +83,15 @@ def write_payload(
         },
     })
 
-    # step_level_instruction from actionPurpose (prioritized) or action descriptions
-    step_plan = _build_step_plan(task, descriptions)
+    # step_level_instruction: LLM+RAG decomposed sub-goals (if available)
+    step_plan = _build_step_level_instruction(task)
+    # agent_purposes: Agent's self-reported step-by-step intentions
+    agent_purposes = _build_agent_purposes(task)
 
     payload = {
         "instruction": task.instruction,
         "step_level_instruction": step_plan,
+        "agent_purposes": agent_purposes,
         "seq_info": seq_info,
         "_image_base_dir": str(image_base_dir) if image_base_dir else "",
         "_image_mode": "path" if save_paths else "base64",
@@ -146,28 +142,18 @@ def _make_action_text(step) -> str:
     return at
 
 
-def _build_step_plan(task: NormalizedTask, descriptions: list[str]) -> str:
-    """Build step_level_instruction, preferring actionPurpose over descriptions."""
-    # Use actionPurpose if available and non-empty
+def _build_step_level_instruction(task: NormalizedTask) -> str:
+    """Build step_level_instruction from LLM+RAG decomposed checkpoints."""
+    if task.checkpoints:
+        names = [c["name"] for c in task.checkpoints if c.get("name")]
+        return "->".join(names)
+    return ""
+
+
+def _build_agent_purposes(task: NormalizedTask) -> str:
+    """Build agent_purposes from Agent's self-reported actionPurpose log."""
     purposes = [s.action_purpose for s in task.steps if s.action_purpose]
-    if purposes:
-        return "->".join(purposes)
-    # Fallback to deduped action descriptions
-    deduped = _dedupe_descriptions(descriptions)
-    return "->".join(deduped)
-
-
-def _dedupe_descriptions(descs: list[str]) -> list[str]:
-    seen: dict[str, int] = {}
-    result = []
-    for d in descs[:10]:
-        if d in seen:
-            seen[d] += 1
-            result.append(f"{d}{seen[d]}")
-        else:
-            seen[d] = 1
-            result.append(d)
-    return result
+    return "->".join(purposes)
 
 
 def _encode_image(rel_path: str, base_dir: Optional[Path]) -> str:

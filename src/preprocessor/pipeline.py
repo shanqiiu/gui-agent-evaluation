@@ -1,5 +1,11 @@
 """
-Pipeline orchestrator: preprocess → copy screenshots → write payload, dedup, stategraph.
+Pipeline orchestrator: preprocess → decompose → copy screenshots → write payload, dedup, stategraph.
+
+环境变量（decomposer 可选）:
+    LLM_MODEL_URL   - LLM API 地址（不设置则跳过分解）
+    LLM_MODEL_NAME  - 模型名称
+    LLM_API_KEY     - API Key（可选）
+    RAG_PERSIST_DIR - ChromaDB 持久化目录（默认 src/decomposer/chroma_db/）
 
 Usage:
     # 单任务
@@ -28,10 +34,19 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import shutil
 import sys
 from pathlib import Path
 from typing import Any, Optional
+
+# Auto-load .env from project root (if available)
+try:
+    from dotenv import load_dotenv
+    _PROJECT_ROOT = Path(__file__).resolve().parents[2]
+    load_dotenv(_PROJECT_ROOT / ".env")
+except ImportError:
+    pass
 
 from .preprocessor import preprocess
 from .write_payload import write_payload
@@ -40,6 +55,40 @@ from .write_stategraph import write_stategraph
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
+
+
+def _run_decomposer(task: Any) -> int:
+    """Run LLM+RAG decomposition on task instruction. Populates task.checkpoints.
+    
+    Requires environment variables:
+        LLM_MODEL_URL  - OpenAI-compatible API endpoint
+        LLM_MODEL_NAME - model name
+        LLM_API_KEY    - optional API key
+    Returns number of checkpoints generated (0 if decomposer unavailable).
+    """
+    model_url = os.environ.get("LLM_MODEL_URL", "")
+    model_name = os.environ.get("LLM_MODEL_NAME", "")
+    if not model_url or not model_name:
+        log.info("  decomposer: skipped (LLM_MODEL_URL/LLM_MODEL_NAME not set)")
+        return 0
+
+    try:
+        from src.decomposer.decomposer import Decomposer
+    except ImportError:
+        log.warning("  decomposer: unavailable (src.decomposer not importable)")
+        return 0
+
+    api_key = os.environ.get("LLM_API_KEY", "")
+    d = Decomposer(model_url=model_url, model_name=model_name, api_key=api_key)
+    try:
+        checkpoints = d.decompose(task.instruction, app_name="settings", top_k=5)
+    except Exception as e:
+        log.warning("  decomposer: LLM call failed (%s)", e)
+        return 0
+
+    task.checkpoints = checkpoints
+    log.info("  decomposer: %d checkpoints generated", len(checkpoints))
+    return len(checkpoints)
 
 
 def _copy_screenshots(
@@ -92,33 +141,37 @@ def run_pipeline(
     log.info("Preprocessing pipeline: %s", task_uuid)
 
     # ── Step 1: Preprocess ──────────────────────────────
-    log.info("[1/5] Parsing utg.json + clearRes ...")
+    log.info("[1/6] Parsing utg.json + clearRes ...")
     task = preprocess(task_dir)
     log.info("  instruction: %s", task.instruction[:60])
     log.info("  action steps: %d (raw: %d)", task.total_action_steps, task.total_raw_steps)
     log.info("  OCR pages: %d, actionPurposes: %d",
              len(task.ocr_pages), len(task.action_purposes))
 
-    # ── Step 2: Copy screenshots ─────────────────────────
-    log.info("[2/5] Copying screenshots to output ...")
+    # ── Step 2: Decompose (optional) ─────────────────────
+    log.info("[2/6] Decomposing instruction (LLM+RAG) ...")
+    _run_decomposer(task)
+
+    # ── Step 3: Copy screenshots ─────────────────────────
+    log.info("[3/6] Copying screenshots to output ...")
     screenshot_dir = output_dir / task_uuid
     n_copied = _copy_screenshots(task, task_dir, screenshot_dir)
     log.info("  copied: %d screenshots", n_copied)
 
-    # ── Step 3: Write payload ───────────────────────────
-    log.info("[3/5] Writing payload.json ...")
+    # ── Step 4: Write payload ───────────────────────────
+    log.info("[4/6] Writing payload.json ...")
     payload_path = _task_out(output_dir, task_uuid, "payload.json")
     write_payload(task, payload_path, image_base_dir=str(screenshot_dir))
     log.info("  -> %s", payload_path)
 
-    # ── Step 4: Write dedup ─────────────────────────────
-    log.info("[4/5] Writing _deduped.json ...")
+    # ── Step 5: Write dedup ─────────────────────────────
+    log.info("[5/6] Writing _deduped.json ...")
     dedup_path = _task_out(output_dir, task_uuid, "_deduped.json")
     write_dedup(task, dedup_path)
     log.info("  -> %s", dedup_path)
 
-    # ── Step 5: Write stategraph ────────────────────────
-    log.info("[5/5] Writing _stategraph.json ...")
+    # ── Step 6: Write stategraph ────────────────────────
+    log.info("[6/6] Writing _stategraph.json ...")
     sg_path = _task_out(output_dir, task_uuid, "_stategraph.json")
     write_stategraph(task, sg_path)
     log.info("  -> %s", sg_path)
