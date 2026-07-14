@@ -48,8 +48,8 @@ output/<uuid>/
 ├── payload.json          ← /check_e2e 判定接口输入（_image_base_dir 已指向本目录）
 ├── _deduped.json         ← 去冗摘要（人类可读）
 ├── _stategraph.json      ← 状态图（语义层，供模块 B/C/D 消费）
-├── 0.jpg                 ← step 0 截图
-├── 1.jpg                 ← step 1 截图
+├── catchDataTurnId0.jpg  ← 截图（以原始目录 catchDataTurnIdN 命名）
+├── catchDataTurnId1.jpg
 └── ...
 ```
 

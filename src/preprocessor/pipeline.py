@@ -18,8 +18,8 @@ Usage:
     ├── payload.json          ← /check_e2e 判定接口输入（_image_base_dir 已指向本目录）
     ├── _deduped.json         ← 去冗摘要（人类可读）
     ├── _stategraph.json      ← 状态图（语义层）
-    ├── 0.jpg                 ← step 0 截图
-    ├── 1.jpg                 ← step 1 截图
+    ├── catchDataTurnId0.jpg  ← 截图（以原始目录 catchDataTurnIdN 命名）
+    ├── catchDataTurnId1.jpg
     └── ...
 """
 
@@ -45,7 +45,7 @@ log = logging.getLogger(__name__)
 def _copy_screenshots(
     task: Any, task_dir: Path, screenshot_dir: Path
 ) -> int:
-    """Copy screenshots from catchDataTurnIdN/ to output dir as {step_index}.jpg."""
+    """Copy screenshots from catchDataTurnIdN/ to output dir, named by parent dir."""
     screenshot_dir.mkdir(parents=True, exist_ok=True)
     copied = 0
     for step in task.steps:
@@ -54,9 +54,12 @@ def _copy_screenshots(
         src = task_dir / step.screenshot_path
         if not src.is_file():
             continue
-        dst = screenshot_dir / f"{step.step_index}.jpg"
+        parent_name = Path(step.screenshot_path).parent.name
+        if not parent_name or parent_name == ".":
+            parent_name = Path(step.screenshot_path).stem
+        dst = screenshot_dir / f"{parent_name}.jpg"
         shutil.copy2(src, dst)
-        step.screenshot_path = f"{step.step_index}.jpg"
+        step.screenshot_path = dst.name
         copied += 1
     return copied
 
