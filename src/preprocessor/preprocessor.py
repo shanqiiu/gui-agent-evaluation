@@ -249,6 +249,34 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
     # ── 6. Parse action steps (filter thinking/reflection) ──
     action_purposes = clearres_data.get("action_purposes", [])
     ocr_pages = clearres_data.get("ocr_pages", [])
+
+    # Pre-align: insert empty strings at positions corresponding to non-image steps
+    raw_purposes = list(action_purposes)
+    aligned_purposes: list[str] = []
+    p_idx = 0
+    for sd in utg.get("stepData", []):
+        sid = str(sd.get("stepId", ""))
+        if sid in ("home", "end"):
+            continue
+        node = node_by_id.get(sid)
+        if sid.isdigit() and node is None:
+            node = node_by_id.get(int(sid))
+        # Replicate filtering logic to determine which steps survive
+        raw_item = (node or {}).get("raw_item") or {}
+        dir_info = _parse_directives(raw_item.get("directives", ""))
+        at = sd.get("action_type", "")
+        parsed_at = _parse_action_type(at)
+        act_type = dir_info.get("action_type") or parsed_at.get("action_type") or "unknown"
+        start = dir_info.get("start_box") or parsed_at.get("start_box", [])
+        if act_type in ("unknown", "noop") and not start:
+            continue
+        node_shape = (node or {}).get("shape", "")
+        if node_shape == "image":
+            aligned_purposes.append(raw_purposes[p_idx] if p_idx < len(raw_purposes) else "")
+            p_idx += 1
+        else:
+            aligned_purposes.append("")
+    action_purposes = aligned_purposes
     purpose_idx = 0
 
     steps: list[NormalizedStep] = []
@@ -284,13 +312,9 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
         if action_type in ("unknown", "noop") and not start_box:
             continue
 
-        # Action purpose: only consume for steps with screenshot (shape="image" in UTG)
-        node_shape = (node or {}).get("shape", "")
-        if node_shape == "image":
-            purpose = action_purposes[purpose_idx] if purpose_idx < len(action_purposes) else ""
-            purpose_idx += 1
-        else:
-            purpose = ""
+        # Action purpose: sequential from pre-aligned list
+        purpose = action_purposes[purpose_idx] if purpose_idx < len(action_purposes) else ""
+        purpose_idx += 1
 
         # Screenshot
         node_img = (node or {}).get("image", "")

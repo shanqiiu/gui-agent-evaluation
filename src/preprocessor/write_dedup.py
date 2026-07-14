@@ -76,8 +76,7 @@ def _build_steps(task: NormalizedTask) -> list[dict]:
             entry["cost_time"] = str(step.cost_time_ms)
         if step.step_type:
             entry["type"] = step.step_type
-        if step.action_purpose:
-            entry["purpose"] = step.action_purpose
+        entry["purpose"] = step.action_purpose
         out.append(entry)
     return out
 
