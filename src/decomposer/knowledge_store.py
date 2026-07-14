@@ -82,7 +82,9 @@ def ingest_documents(docs_dir: str):
 
 
 def query_knowledge(query: str, app_name: Optional[str] = None, top_k: int = 5) -> list[str]:
-    """检索相关 App 知识。"""
+    """检索相关 App 知识。若 ChromaDB 未建库，返回空列表不触发模型下载。"""
+    if not _DB_DIR.is_dir():
+        return []
     collection = get_store()
     where = {"app": app_name} if app_name else None
     results = collection.query(query_texts=[query], n_results=top_k, where=where)
