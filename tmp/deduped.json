@@ -1,0 +1,1233 @@
+{
+    "instruction": "帮我用华为商城找一下价格最低的手机，内存128GB",
+    "steps": [
+        {
+            "stepId": "1",
+            "action_type": "用户回复(帮我用华为商城找一下价格最低的手机，内存128GB)",
+            "cost_time": "14067",
+            "purpose": "打开华为商城"
+        },
+        {
+            "stepId": "2",
+            "action_type": "用户回复(帮我用华为商城找一下价格最低的手机，内存128GB)",
+            "cost_time": "14084",
+            "purpose": "在首页搜索框输入“手机 128GB”进行搜索"
+        },
+        {
+            "stepId": "3",
+            "action_type": "用户回复(帮我用华为商城找一下价格最低的手机，内存128GB)",
+            "cost_time": "14090",
+            "purpose": "点击“价格”按钮，进行第一次价格排序切换"
+        },
+        {
+            "stepId": "4",
+            "action_type": "open_app",
+            "cost_time": "14094",
+            "type": "AAS",
+            "purpose": "再次点击价格按钮，将排序切换为价格从低到高"
+        },
+        {
+            "stepId": "5",
+            "action_type": "open_app",
+            "cost_time": "219",
+            "purpose": "点击“机身内存（ROM）”筛选按钮，准备筛选出内存为128 GB的手机"
+        },
+        {
+            "stepId": "6",
+            "action_type": "type",
+            "start_box": [
+                111,
+                392
+            ],
+            "cost_time": "11974",
+            "type": "AAS",
+            "purpose": "进入价格最低的手机“Hi畅享 80”详情页，查看其 128 GB 规格及库存情况"
+        },
+        {
+            "stepId": "7",
+            "action_type": "click",
+            "start_box": [
+                849,
+                352
+            ],
+            "target": "价格",
+            "cost_time": "9603",
+            "type": "AAS",
+            "purpose": "返回搜索结果页"
+        },
+        {
+            "stepId": "8",
+            "action_type": "click",
+            "start_box": [
+                852,
+                354
+            ],
+            "target": "价格",
+            "cost_time": "10205",
+            "type": "AAS",
+            "purpose": "点击“Hi畅享 80”商品卡片区域，进入商品详情页查看 128 GB 规格和库存情况"
+        },
+        {
+            "stepId": "9",
+            "action_type": "click",
+            "start_box": [
+                541,
+                475
+            ],
+            "target": "机身内存（ROM)",
+            "cost_time": "10922",
+            "type": "AAS",
+            "purpose": "返回搜索结果页，继续查找价格次低且有货的128GB手机"
+        },
+        {
+            "stepId": "10",
+            "action_type": "click",
+            "start_box": [
+                1067,
+                1042
+            ],
+            "target": "进店",
+            "cost_time": "10691",
+            "type": "AAS",
+            "purpose": "点击 Hi畅享 60s 5G 商品卡片，进入详情页查看 128GB 规格及库存情况"
+        },
+        {
+            "stepId": "11",
+            "action_type": "back",
+            "cost_time": "9349",
+            "type": "AAS",
+            "purpose": "返回搜索结果页，继续查找价格最低且可购买的 128GB 手机"
+        },
+        {
+            "stepId": "12",
+            "action_type": "click",
+            "start_box": [
+                286,
+                798
+            ],
+            "cost_time": "10768",
+            "type": "AAS",
+            "purpose": "向下滚动搜索结果页，继续查找价格最低且有货的 128 GB 手机"
+        },
+        {
+            "stepId": "13",
+            "action_type": "back",
+            "cost_time": "9768",
+            "type": "AAS",
+            "purpose": "点击“华为畅享 90”商品卡片，进入详情页查看其 128 GB 规格及库存情况"
+        },
+        {
+            "stepId": "14",
+            "action_type": "click",
+            "start_box": [
+                290,
+                1346
+            ],
+            "cost_time": "10750",
+            "type": "AAS",
+            "purpose": "向下滚动华为畅享 90 详情页，查找 128 GB 规格选择入口或相关版本信息"
+        },
+        {
+            "stepId": "15",
+            "action_type": "back",
+            "cost_time": "10137",
+            "type": "AAS",
+            "purpose": "点击“已选 星海蓝·256GB×1”区域，进入规格选择页面查看是否有 128 GB 版本。"
+        },
+        {
+            "stepId": "16",
+            "action_type": "scroll",
+            "start_box": [
+                608,
+                2150
+            ],
+            "end_box": [
+                608,
+                358
+            ],
+            "target": "购买方式",
+            "direction": "down",
+            "cost_time": "10702",
+            "type": "AAS",
+            "purpose": "点击 128GB 选项，确认华为畅享 90 是否存在 128 GB 可选版本及其价格"
+        },
+        {
+            "stepId": "17",
+            "action_type": "click",
+            "start_box": [
+                608,
+                739
+            ],
+            "target": "赠品",
+            "cost_time": "10705",
+            "type": "AAS",
+            "purpose": "返回上一页"
+        },
+        {
+            "stepId": "18",
+            "action_type": "scroll",
+            "start_box": [
+                608,
+                2150
+            ],
+            "end_box": [
+                608,
+                358
+            ],
+            "direction": "down",
+            "cost_time": "10417",
+            "type": "AAS",
+            "purpose": "返回上一页，回到搜索结果列表继续查找价格最低且有货的 128 GB 手机"
+        },
+        {
+            "stepId": "19",
+            "action_type": "click",
+            "start_box": [
+                1083,
+                905
+            ],
+            "cost_time": "11236",
+            "type": "AAS",
+            "purpose": "点击 WIKO X70 商品卡片，进入详情页查看其 128 GB 规格及库存情况"
+        },
+        {
+            "stepId": "20",
+            "action_type": "click",
+            "start_box": [
+                137,
+                1231
+            ],
+            "target": "128GB",
+            "cost_time": "9674",
+            "type": "AAS",
+            "purpose": "点击“已选 8GB+256GB·曜金黑×1”区域，打开规格选择弹窗，查看是否有 128 GB 版本"
+        },
+        {
+            "stepId": "21",
+            "action_type": "back",
+            "cost_time": "9884",
+            "type": "AAS",
+            "purpose": "返回上一页"
+        },
+        {
+            "stepId": "22",
+            "action_type": "back",
+            "cost_time": "9758",
+            "type": "AAS",
+            "purpose": "返回上一页，回到搜索结果列表继续查找价格最低且有货的 128 GB 手机"
+        },
+        {
+            "stepId": "23",
+            "action_type": "click",
+            "start_box": [
+                643,
+                1128
+            ],
+            "target": "WIKO X70",
+            "cost_time": "11531",
+            "type": "AAS",
+            "purpose": "点击华为畅享90 Plus商品卡片，进入详情页查看其是否有128 GB规格及库存情况"
+        },
+        {
+            "stepId": "24",
+            "action_type": "click",
+            "start_box": [
+                601,
+                1658
+            ],
+            "target": "8GB+256GB．曜金黑x1",
+            "cost_time": "9992",
+            "type": "AAS",
+            "purpose": "向下滚动华为畅享 90 Plus 详情页，查找“已选”规格区域或规格选择入口"
+        },
+        {
+            "stepId": "25",
+            "action_type": "back",
+            "cost_time": "11530",
+            "type": "AAS",
+            "purpose": "点击“已选 星海蓝·256GB×1”区域，打开规格选择弹窗，查看华为畅享 90 Plus 是否有 128 GB 版本及价格"
+        },
+        {
+            "stepId": "26",
+            "action_type": "back",
+            "cost_time": "9911",
+            "type": "AAS"
+        },
+        {
+            "stepId": "27",
+            "action_type": "click",
+            "start_box": [
+                693,
+                2300
+            ],
+            "target": "华为畅享 90 Plus",
+            "cost_time": "10655",
+            "type": "AAS"
+        },
+        {
+            "stepId": "28",
+            "action_type": "scroll",
+            "start_box": [
+                608,
+                2150
+            ],
+            "end_box": [
+                608,
+                358
+            ],
+            "direction": "down",
+            "cost_time": "10361",
+            "type": "AAS"
+        },
+        {
+            "stepId": "29",
+            "action_type": "click",
+            "start_box": [
+                1102,
+                806
+            ],
+            "cost_time": "11346",
+            "type": "AAS"
+        }
+    ],
+    "nodes": [
+        {
+            "id": 1,
+            "label": "Step1\n<FIRST>",
+            "shape": "dot",
+            "actions": [
+                {
+                    "type": "用户回复(帮我用华为商城找一下价格最低的手机，内存128GB)",
+                    "target": ""
+                }
+            ],
+            "purpose": "打开华为商城"
+        },
+        {
+            "id": 2,
+            "label": "Step2",
+            "shape": "star",
+            "actions": [
+                {
+                    "type": "用户回复(帮我用华为商城找一下价格最低的手机，内存128GB)",
+                    "target": ""
+                }
+            ],
+            "purpose": "在首页搜索框输入“手机 128GB”进行搜索"
+        },
+        {
+            "id": 3,
+            "label": "Step3",
+            "shape": "star",
+            "actions": [
+                {
+                    "type": "用户回复(帮我用华为商城找一下价格最低的手机，内存128GB)",
+                    "target": ""
+                }
+            ],
+            "purpose": "点击“价格”按钮，进行第一次价格排序切换"
+        },
+        {
+            "id": 4,
+            "label": "Step4",
+            "shape": "star",
+            "actions": [
+                {
+                    "type": "open_app",
+                    "target": ""
+                }
+            ],
+            "purpose": "再次点击价格按钮，将排序切换为价格从低到高"
+        },
+        {
+            "id": 5,
+            "label": "Step5",
+            "shape": "star",
+            "actions": [
+                {
+                    "type": "open_app",
+                    "target": ""
+                }
+            ],
+            "purpose": "点击“机身内存（ROM）”筛选按钮，准备筛选出内存为128 GB的手机"
+        },
+        {
+            "id": 6,
+            "label": "Step6",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "type",
+                    "target": "",
+                    "start_box": [
+                        111,
+                        392
+                    ]
+                }
+            ],
+            "purpose": "进入价格最低的手机“Hi畅享 80”详情页，查看其 128 GB 规格及库存情况"
+        },
+        {
+            "id": 7,
+            "label": "Step7",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "价格",
+                    "start_box": [
+                        849,
+                        352
+                    ]
+                }
+            ],
+            "purpose": "返回搜索结果页"
+        },
+        {
+            "id": 8,
+            "label": "Step8",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "价格",
+                    "start_box": [
+                        852,
+                        354
+                    ]
+                }
+            ],
+            "purpose": "点击“Hi畅享 80”商品卡片区域，进入商品详情页查看 128 GB 规格和库存情况"
+        },
+        {
+            "id": 9,
+            "label": "Step9",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "机身内存（ROM)",
+                    "start_box": [
+                        541,
+                        475
+                    ]
+                }
+            ],
+            "purpose": "返回搜索结果页，继续查找价格次低且有货的128GB手机"
+        },
+        {
+            "id": 10,
+            "label": "Step10",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "进店",
+                    "start_box": [
+                        1067,
+                        1042
+                    ]
+                }
+            ],
+            "purpose": "点击 Hi畅享 60s 5G 商品卡片，进入详情页查看 128GB 规格及库存情况"
+        },
+        {
+            "id": 11,
+            "label": "Step11",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "back",
+                    "target": ""
+                }
+            ],
+            "purpose": "返回搜索结果页，继续查找价格最低且可购买的 128GB 手机"
+        },
+        {
+            "id": 12,
+            "label": "Step12",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "",
+                    "start_box": [
+                        286,
+                        798
+                    ]
+                }
+            ],
+            "purpose": "向下滚动搜索结果页，继续查找价格最低且有货的 128 GB 手机"
+        },
+        {
+            "id": 13,
+            "label": "Step13",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "back",
+                    "target": ""
+                }
+            ],
+            "purpose": "点击“华为畅享 90”商品卡片，进入详情页查看其 128 GB 规格及库存情况"
+        },
+        {
+            "id": 14,
+            "label": "Step14",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "",
+                    "start_box": [
+                        290,
+                        1346
+                    ]
+                }
+            ],
+            "purpose": "向下滚动华为畅享 90 详情页，查找 128 GB 规格选择入口或相关版本信息"
+        },
+        {
+            "id": 15,
+            "label": "Step15",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "back",
+                    "target": ""
+                }
+            ],
+            "purpose": "点击“已选 星海蓝·256GB×1”区域，进入规格选择页面查看是否有 128 GB 版本。"
+        },
+        {
+            "id": 16,
+            "label": "Step16",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "scroll",
+                    "target": "购买方式",
+                    "start_box": [
+                        608,
+                        2150
+                    ],
+                    "end_box": [
+                        608,
+                        358
+                    ]
+                }
+            ],
+            "purpose": "点击 128GB 选项，确认华为畅享 90 是否存在 128 GB 可选版本及其价格"
+        },
+        {
+            "id": 17,
+            "label": "Step17",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "赠品",
+                    "start_box": [
+                        608,
+                        739
+                    ]
+                }
+            ],
+            "purpose": "返回上一页"
+        },
+        {
+            "id": 18,
+            "label": "Step18",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "scroll",
+                    "target": "",
+                    "start_box": [
+                        608,
+                        2150
+                    ],
+                    "end_box": [
+                        608,
+                        358
+                    ]
+                }
+            ],
+            "purpose": "返回上一页，回到搜索结果列表继续查找价格最低且有货的 128 GB 手机"
+        },
+        {
+            "id": 19,
+            "label": "Step19",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "",
+                    "start_box": [
+                        1083,
+                        905
+                    ]
+                }
+            ],
+            "purpose": "点击 WIKO X70 商品卡片，进入详情页查看其 128 GB 规格及库存情况"
+        },
+        {
+            "id": 20,
+            "label": "Step20",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "128GB",
+                    "start_box": [
+                        137,
+                        1231
+                    ]
+                }
+            ],
+            "purpose": "点击“已选 8GB+256GB·曜金黑×1”区域，打开规格选择弹窗，查看是否有 128 GB 版本"
+        },
+        {
+            "id": 21,
+            "label": "Step21",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "back",
+                    "target": ""
+                }
+            ],
+            "purpose": "返回上一页"
+        },
+        {
+            "id": 22,
+            "label": "Step22",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "back",
+                    "target": ""
+                }
+            ],
+            "purpose": "返回上一页，回到搜索结果列表继续查找价格最低且有货的 128 GB 手机"
+        },
+        {
+            "id": 23,
+            "label": "Step23",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "WIKO X70",
+                    "start_box": [
+                        643,
+                        1128
+                    ]
+                }
+            ],
+            "purpose": "点击华为畅享90 Plus商品卡片，进入详情页查看其是否有128 GB规格及库存情况"
+        },
+        {
+            "id": 24,
+            "label": "Step24",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "8GB+256GB．曜金黑x1",
+                    "start_box": [
+                        601,
+                        1658
+                    ]
+                }
+            ],
+            "purpose": "向下滚动华为畅享 90 Plus 详情页，查找“已选”规格区域或规格选择入口"
+        },
+        {
+            "id": 25,
+            "label": "Step25",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "back",
+                    "target": ""
+                }
+            ],
+            "purpose": "点击“已选 星海蓝·256GB×1”区域，打开规格选择弹窗，查看华为畅享 90 Plus 是否有 128 GB 版本及价格"
+        },
+        {
+            "id": 26,
+            "label": "Step26",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "back",
+                    "target": ""
+                }
+            ]
+        },
+        {
+            "id": 27,
+            "label": "Step27",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "华为畅享 90 Plus",
+                    "start_box": [
+                        693,
+                        2300
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 28,
+            "label": "Step28",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "scroll",
+                    "target": "",
+                    "start_box": [
+                        608,
+                        2150
+                    ],
+                    "end_box": [
+                        608,
+                        358
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 29,
+            "label": "Step29",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "",
+                    "start_box": [
+                        1102,
+                        806
+                    ]
+                }
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "from": "home",
+            "to": "1",
+            "costTime": "14067ms",
+            "events": [
+                {
+                    "event_str": "{}"
+                }
+            ],
+            "view_images": [
+                "home/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 1,
+            "to": "2",
+            "costTime": "14084ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ]
+        },
+        {
+            "from": 2,
+            "to": "3",
+            "costTime": "14090ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ]
+        },
+        {
+            "from": 3,
+            "to": "4",
+            "costTime": "14094ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ]
+        },
+        {
+            "from": 4,
+            "to": "5",
+            "costTime": "219ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ]
+        },
+        {
+            "from": 5,
+            "to": "6",
+            "costTime": "11974ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ]
+        },
+        {
+            "from": 6,
+            "to": "7",
+            "costTime": "9603ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId1/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 7,
+            "to": "8",
+            "costTime": "10205ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "价格",
+                        "start_box": [
+                            826,
+                            353
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId2/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 8,
+            "to": "9",
+            "costTime": "10922ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "价格",
+                        "start_box": [
+                            826,
+                            353
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId3/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 9,
+            "to": "10",
+            "costTime": "10691ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "机身内存（ROM)",
+                        "start_box": [
+                            501,
+                            477
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId4/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 10,
+            "to": "11",
+            "costTime": "9349ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "进店",
+                        "start_box": [
+                            1061,
+                            1045
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId5/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 11,
+            "to": "12",
+            "costTime": "10768ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId6/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 12,
+            "to": "13",
+            "costTime": "9768ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "",
+                        "start_box": [
+                            283,
+                            840
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId7/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 13,
+            "to": "14",
+            "costTime": "10750ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId8/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 14,
+            "to": "15",
+            "costTime": "10137ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "",
+                        "start_box": [
+                            345,
+                            1408
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId9/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 15,
+            "to": "16",
+            "costTime": "10702ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId10/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 16,
+            "to": "17",
+            "costTime": "10705ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "scroll",
+                        "direction": "custom",
+                        "points": [
+                            607.0,
+                            1979.5
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId11/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 17,
+            "to": "18",
+            "costTime": "10417ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "赠品",
+                        "start_box": [
+                            578,
+                            729
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId12/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 18,
+            "to": "19",
+            "costTime": "11236ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "scroll",
+                        "direction": "custom",
+                        "points": [
+                            607.0,
+                            2097.0
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId13/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 19,
+            "to": "20",
+            "costTime": "9674ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "",
+                        "start_box": [
+                            606,
+                            917
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId14/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 20,
+            "to": "21",
+            "costTime": "9884ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "128GB",
+                        "start_box": [
+                            138,
+                            1238
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId15/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 21,
+            "to": "22",
+            "costTime": "9758ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId16/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 22,
+            "to": "23",
+            "costTime": "11531ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId17/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 23,
+            "to": "24",
+            "costTime": "9992ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "WIKO X70",
+                        "start_box": [
+                            637,
+                            1126
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId18/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 24,
+            "to": "25",
+            "costTime": "11530ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "8GB+256GB．曜金黑x1",
+                        "start_box": [
+                            428,
+                            1664
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId19/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 25,
+            "to": "26",
+            "costTime": "9911ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId20/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 26,
+            "to": "27",
+            "costTime": "10655ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId21/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 27,
+            "to": "28",
+            "costTime": "10361ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "click",
+                        "target": "华为畅享 90 Plus",
+                        "start_box": [
+                            697,
+                            2308
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId22/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 28,
+            "to": "29",
+            "costTime": "11346ms",
+            "events": [
+                {
+                    "event_str": "帮我用华为商城找一下价格最低的手机，内存128GB",
+                    "action": {
+                        "type": "scroll",
+                        "direction": "custom",
+                        "points": [
+                            607.0,
+                            2133.0
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId23/temp_image-screenshot-origin.jpg"
+            ]
+        }
+    ],
+    "_meta": {
+        "output_size_bytes": 15274,
+        "node_count": 29,
+        "edge_count": 29,
+        "step_count": 29
+    }
+}
