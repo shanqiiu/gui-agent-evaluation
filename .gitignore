@@ -3,5 +3,4 @@ __pycache__/
 .omo/
 .workbuddy/
 FuncOracleCheck/
-.env
 chroma_db/
