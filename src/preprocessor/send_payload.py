@@ -7,16 +7,16 @@ payload 中的 _image_base_dir 指向原始截图目录。
 
 用法:
     # 单文件发送
-    python data/send_payload.py payloads/0072df9f-xxx.json --send http://localhost:20025
+    python src/preprocessor/send_payload.py payloads/0072df9f-xxx.json --send http://localhost:20025
 
     # 批量发送 + 保存结果到 results/
-    python data/send_payload.py payloads/ --send http://localhost:20025 -o results/
+    python src/preprocessor/send_payload.py payloads/ --send http://localhost:20025 -o results/
 
     # 将路径 payload 转为 base64 payload（不发送）
-    python data/send_payload.py payloads/0072df9f-xxx.json --hydrate -o hydrated.json
+    python src/preprocessor/send_payload.py payloads/0072df9f-xxx.json --hydrate -o hydrated.json
 
 前提:
-    payload JSON 由 convert_to_check_e2e.py 生成（含 _image_base_dir 字段）
+    payload JSON 由 write_payload.py 生成（含 _image_base_dir 字段）
 """
 
 import argparse

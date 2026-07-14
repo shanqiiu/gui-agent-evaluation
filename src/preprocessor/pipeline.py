@@ -6,7 +6,7 @@ Usage:
     python -m src.preprocessor.pipeline <task_dir> --output <output_dir>
     
     # 批量模式
-    python -m data.pipeline --batch <base_dir> --output <output_dir>
+    python -m src.preprocessor.pipeline --batch <base_dir> --output <output_dir>
     
     base_dir:  包含 uuid 子目录的根目录（每个子目录含 utg.json + clearRes.gzip）
     output_dir: 输出目录（默认: base_dir/reorg_output）
@@ -194,9 +194,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "Examples:\n"
-            "  python -m data.pipeline <task_dir>                        # single task\n"
-            "  python -m data.pipeline --batch <base_dir>                # batch all tasks\n"
-            "  python -m data.pipeline --batch <base_dir> -o my_output/  # batch + custom output\n"
+            "  python -m src.preprocessor.pipeline <task_dir>                        # single task\n"
+            "  python -m src.preprocessor.pipeline --batch <base_dir>                # batch all tasks\n"
+            "  python -m src.preprocessor.pipeline --batch <base_dir> -o my_output/  # batch + custom output\n"
         ),
     )
     parser.add_argument(

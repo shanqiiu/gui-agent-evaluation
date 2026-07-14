@@ -54,11 +54,11 @@ output/<uuid>/
 
 ```bash
 # 方式1: 直接发送（需先 hydrate 转 base64）
-python data/send_payload.py output/<uuid>/payload.json --hydrate -o hydrated.json
+python src/preprocessor/send_payload.py output/<uuid>/payload.json --hydrate -o hydrated.json
 curl -X POST http://localhost:20025/check_e2e -H "Content-Type: application/json" -d @hydrated.json
 
 # 方式2: send_payload 批量发送
-python data/send_payload.py output/ --send http://localhost:20025
+python src/preprocessor/send_payload.py output/ --send http://localhost:20025
 ```
 
 ## 数据管线
@@ -66,8 +66,8 @@ python data/send_payload.py output/ --send http://localhost:20025
 ```
 Agent 原始数据                    预处理（统一解析）              判定服务
 ┌──────────────────┐    ┌─────────────────────────┐    ┌──────────────┐
-│ utg.json         │    │  data/pipeline.py        │    │ POST         │
-│ nodes → stepData │    │                          │    │ /check_e2e   │
+│ utg.json         │    │  src/preprocessor/        │    │ POST         │
+│ nodes → stepData │    │  pipeline.py              │    │ /check_e2e   │
 │   → directives   │    │  preprocessor (一次解析)  │    │              │
 │                  │───▶│    ↓                     │───▶│ Darwin VLM   │
 │ clearRes.gzip    │    │  write_payload ── payload │    │   AB判定     │
