@@ -18,8 +18,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.state_extractor.mock_data import make_mock_utg, make_mock_clearres
-from data.models import NormalizedTask
-from data.preprocessor import preprocess, _resolve_from_rawpage
+from src.preprocessor.models import NormalizedTask
+from src.preprocessor.preprocessor import preprocess, _resolve_from_rawpage
 
 
 def test_preprocessor_with_mock():
@@ -71,7 +71,7 @@ def test_rawpage_resolution():
 
 def test_payload_writer():
     """Test write_payload produces valid JSON."""
-    from data.write_payload import write_payload
+    from .write_payload import write_payload
 
     utg = make_mock_utg()
     with tempfile.TemporaryDirectory() as td:
@@ -95,7 +95,7 @@ def test_payload_writer():
 
 def test_dedup_writer():
     """Test write_dedup produces valid JSON."""
-    from data.write_dedup import write_dedup
+    from .write_dedup import write_dedup
 
     utg = make_mock_utg()
     with tempfile.TemporaryDirectory() as td:

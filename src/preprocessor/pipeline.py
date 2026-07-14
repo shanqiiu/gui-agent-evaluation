@@ -3,7 +3,7 @@ Pipeline orchestrator: preprocess → write payload, dedup, stategraph.
 
 Usage:
     # 单任务
-    python -m data.pipeline <task_dir> --output <output_dir>
+    python -m src.preprocessor.pipeline <task_dir> --output <output_dir>
     
     # 批量模式
     python -m data.pipeline --batch <base_dir> --output <output_dir>

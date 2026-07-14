@@ -25,10 +25,10 @@ uvicorn main:app --host 0.0.0.0 --port 20025
 
 ```bash
 # 单任务
-python -m data.pipeline <task_uuid_dir> -o output/
+python -m src.preprocessor.pipeline <task_uuid_dir> -o output/
 
 # 批量（遍历 base_dir 下所有 uuid 子目录）
-python -m data.pipeline --batch <base_dir> -o output/
+python -m src.preprocessor.pipeline --batch <base_dir> -o output/
 ```
 
 输入目录结构：
@@ -172,35 +172,30 @@ gui-agent-evaluation/
 │   ├── 重复动作异常判定技术方案.md
 │   ├── 规划失效异常判定技术方案.md
 │   └── 进展汇总.md
-├── data/                              # ✅ 数据预处理管线（统一架构）
-│   ├── pipeline.py                    # 编排入口: preprocess → 3× write
-│   ├── preprocessor.py                # 统一解析器: utg + clearRes → NormalizedTask
-│   ├── models.py                      # NormalizedTask / NormalizedStep 数据模型
-│   ├── clearres_parser.py             # clearRes.gzip 解析 (rawPage + actionPurpose)
-│   ├── write_payload.py               # → payload.json（含 rawPage 控件名补全）
-│   ├── write_dedup.py                 # → _deduped.json（含 scroll end_box）
-│   ├── write_stategraph.py            # → _stategraph.json（状态图）
-│   ├── data.md                        # utg.json 数据格式说明
-│   ├── test_pipeline.py               # 集成测试
-│   ├── reorg_screenshots.py      # 截图重组（保留）
-│   ├── convert_to_check_e2e.py        # 遗留转换器（逐步废弃）
-│   ├── send_payload.py                # payload 重发工具
-│   └── extract_utg.py                 # 遗留去冗脚本（逐步废弃）
-├── src/                               # 独立评估模块
-│   ├── decomposer/                    # ✅ 模块A: 任务分解引擎 (LLM + ChromaDB RAG)
-│   ├── state_extractor/               # ✅ 模块: 轨迹状态提取 v2.0 MVP
+├── data/                              # 数据文件
+│   └── data.md                        # utg.json 格式说明
+├── src/                               # 源码模块
+│   ├── preprocessor/               # ✅ 数据预处理管线（统一架构）
+│   │   ├── pipeline.py              # 编排入口: preprocess → 3× write
+│   │   ├── preprocessor.py          # 统一解析器: utg + clearRes → NormalizedTask
+│   │   ├── models.py                # NormalizedTask / NormalizedStep 数据模型
+│   │   ├── clearres_parser.py       # clearRes.gzip 解析 (rawPage + actionPurpose)
+│   │   ├── write_payload.py         # → payload.json（含 rawPage 控件名补全）
+│   │   ├── write_dedup.py           # → _deduped.json（含 scroll end_box）
+│   │   ├── write_stategraph.py      # → _stategraph.json（状态图）
+│   │   ├── test_pipeline.py         # 集成测试
+│   │   ├── reorg_screenshots.py     # 截图重组工具（独立）
+│   │   └── send_payload.py          # payload 重发工具（独立）
+│   ├── decomposer/                  # ✅ 模块A: 任务分解引擎 (LLM + ChromaDB RAG)
+│   ├── state_extractor/             # ✅ 模块: 轨迹状态提取 v2.0 MVP
+│   ├── oracle/                      # ✅ 达尔文判定服务 (ex FuncOracleCheck)
 │   ├── verifier/                      # ❌ 模块B: 检查点验证器（待实现）
 │   ├── efficiency/                    # ❌ 模块C: 效率分析器（待实现）
 │   ├── trajectory/                    # ❌ 模块D: 轨迹差分判定器（待实现）
 │   └── evaluator/                     # ❌ 模块E: 综合评估器（待实现）
-├── FuncOracleCheck/                   # ✅ 集成达尔文判定服务
-│   ├── main.py                        # FastAPI 服务入口 (port 20025)
-│   ├── oracle_service.py              # 判定统一封装 + 检测器挂载
-│   ├── repeated_action_detector.py    # 重复动作检测器（规则）
-│   ├── planning_failure_detector.py   # 规划失效检测器（规则）
-│   ├── tests/                         # 单元测试
-│   ├── GUI_TestFramework_v1/          # MLLM/VLM 判定框架
-│   └── examples/                      # /check_e2e 调用示例
+│   ├── oracle/                      # ✅ 达尔文判定服务 (ex FuncOracleCheck)
+│   │   ├── main.py                        # FastAPI 服务入口 (port 20025)
+│   │   └── ...
 ├── scripts/                           # 命令行脚本（待创建）
 ├── configs/                           # 配置文件（待创建）
 └── outputs/                           # 评估报告输出（待创建）
