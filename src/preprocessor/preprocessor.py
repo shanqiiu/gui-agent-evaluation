@@ -250,6 +250,7 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
     action_purposes = clearres_data.get("action_purposes", [])
     ocr_pages = clearres_data.get("ocr_pages", [])
     purpose_idx = 0
+    last_star_action = ""  # merge consecutive same-action non-image nodes (e.g. open_app)
 
     steps: list[NormalizedStep] = []
     last_screenshot = ""
@@ -284,11 +285,16 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
         if action_type in ("unknown", "noop") and not start_box:
             continue
 
-        # Action purpose: consume only for shape="image" steps
+        # Action purpose: image always consumes; open_app (star) consumes with merge
         node_shape = (node or {}).get("shape", "")
         if node_shape == "image":
             purpose = action_purposes[purpose_idx] if purpose_idx < len(action_purposes) else ""
             purpose_idx += 1
+            last_star_action = ""
+        elif action_type == "open_app" and action_type != last_star_action:
+            purpose = action_purposes[purpose_idx] if purpose_idx < len(action_purposes) else ""
+            purpose_idx += 1
+            last_star_action = action_type
         else:
             purpose = ""
 
