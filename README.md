@@ -182,7 +182,7 @@ gui-agent-evaluation/
 │   ├── write_stategraph.py            # → _stategraph.json（状态图）
 │   ├── data.md                        # utg.json 数据格式说明
 │   ├── test_pipeline.py               # 集成测试
-│   ├── process_gui_end_to_end.py      # 截图重组（保留）
+│   ├── reorg_screenshots.py      # 截图重组（保留）
 │   ├── convert_to_check_e2e.py        # 遗留转换器（逐步废弃）
 │   ├── send_payload.py                # payload 重发工具
 │   └── extract_utg.py                 # 遗留去冗脚本（逐步废弃）

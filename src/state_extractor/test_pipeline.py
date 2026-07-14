@@ -9,7 +9,7 @@ Runs the full state extraction pipeline with mock data and validates:
 5. KeyState fields are populated
 
 Usage:
-    python src/state_extractor/run_pipeline_test.py
+    python src/state_extractor/test_pipeline.py
 """
 
 from __future__ import annotations

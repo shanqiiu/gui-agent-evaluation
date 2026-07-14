@@ -47,7 +47,7 @@ gui-agent-evaluation/
 │   ├── GUI_TestFramework_v1/     # MLLM/VLM 判定框架
 │   └── examples/                 # /check_e2e 调用示例
 ├── data/                         # ✅ 数据处理管线
-│   ├── process_gui_end_to_end.py # 原始数据预处理
+│   ├── reorg_screenshots.py # 原始数据预处理
 │   ├── convert_to_check_e2e.py   # utg.json → payload 转换器
 │   ├── send_payload.py           # 已保存 payload 重发工具
 │   └── test_convert_to_check_e2e.py  # 10 项核心逻辑测试

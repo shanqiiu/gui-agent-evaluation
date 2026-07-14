@@ -32,7 +32,7 @@ GUI Agent 手机端测试数据端到端处理脚本。
     └── ...
 
 用法:
-    python process_gui_end_to_end.py <base_dir> [output_dir]
+    python reorg_screenshots.py <base_dir> [output_dir]
 
     base_dir:   原始数据目录（包含各 task_uuid/ 子目录）
     output_dir: 输出目录（可选，默认为 base_dir/reorg_output）
@@ -40,7 +40,7 @@ GUI Agent 手机端测试数据端到端处理脚本。
     默认串联执行: 端到端处理（截图重组） → UTG 去冗（_deduped.json）
 
 作者操作方式:
-    python process_gui_end_to_end.py D:\\Projects\\data\\...\\e63dd288-af51-4147-9ac8-67cf73042651
+    python reorg_screenshots.py D:\\Projects\\data\\...\\e63dd288-af51-4147-9ac8-67cf73042651
 """
 
 import json
@@ -440,8 +440,8 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=(
             "示例:\n"
-            "  python process_gui_end_to_end.py data/tasks/                  # 截图重组\n"
-            "  python process_gui_end_to_end.py data/tasks/ my_output/        # 指定输出目录\n"
+            "  python reorg_screenshots.py data/tasks/                  # 截图重组\n"
+            "  python reorg_screenshots.py data/tasks/ my_output/        # 指定输出目录\n"
         ),
     )
     parser.add_argument(
