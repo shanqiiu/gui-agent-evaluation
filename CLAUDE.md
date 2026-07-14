@@ -44,7 +44,6 @@ gui-agent-evaluation/
 │   └── common/                  # ❌ 公共工具（待实现）
 ├── data/                        # 数据文件
 │   └── data.md                   # utg.json 数据格式说明
-│   ├── reorg_screenshots.py # 原始数据预处理
 │   ├── convert_to_check_e2e.py   # utg.json → payload 转换器
 │   ├── send_payload.py           # 已保存 payload 重发工具
 │   └── test_convert_to_check_e2e.py  # 10 项核心逻辑测试

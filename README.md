@@ -42,23 +42,25 @@ base_dir/
 └── ...
 ```
 
-输出（每任务三份文件）：
+输出（每任务四份产出 + 截图）：
 ```
 output/<uuid>/
-├── payload.json          ← /check_e2e 判定接口输入
+├── payload.json          ← /check_e2e 判定接口输入（_image_base_dir 已指向本目录）
 ├── _deduped.json         ← 去冗摘要（人类可读）
-└── _stategraph.json      ← 状态图（语义层，供模块 B/C/D 消费）
+├── _stategraph.json      ← 状态图（语义层，供模块 B/C/D 消费）
+├── 0.jpg                 ← step 0 截图
+├── 1.jpg                 ← step 1 截图
+└── ...
 ```
 
 ### 3. 发送判定
 
 ```bash
-# 方式1: 直接发送（需先 hydrate 转 base64）
-python src/preprocessor/send_payload.py output/<uuid>/payload.json --hydrate -o hydrated.json
-curl -X POST http://localhost:20025/check_e2e -H "Content-Type: application/json" -d @hydrated.json
+# pipeline 输出的 payload 已自带 _image_base_dir，直发送即可
+python src/preprocessor/send_payload.py output/<uuid>/payload.json --hydrate --send http://localhost:20025
 
-# 方式2: send_payload 批量发送
-python src/preprocessor/send_payload.py output/ --send http://localhost:20025
+# 批量发送全部 payload
+python src/preprocessor/send_payload.py output/ --send http://localhost:20025 -o results/
 ```
 
 ## 数据管线
@@ -184,7 +186,6 @@ gui-agent-evaluation/
 │   │   ├── write_dedup.py           # → _deduped.json（含 scroll end_box）
 │   │   ├── write_stategraph.py      # → _stategraph.json（状态图）
 │   │   ├── test_pipeline.py         # 集成测试
-│   │   ├── reorg_screenshots.py     # 截图重组工具（独立）
 │   │   └── send_payload.py          # payload 重发工具（独立）
 │   ├── decomposer/                  # ✅ 模块A: 任务分解引擎 (LLM + ChromaDB RAG)
 │   ├── state_extractor/             # ✅ 模块: 轨迹状态提取 v2.0 MVP
