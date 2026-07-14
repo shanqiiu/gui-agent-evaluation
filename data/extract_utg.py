@@ -343,10 +343,33 @@ def dedup_edges(edges: list[dict]) -> list[dict]:
     return out
 
 
-def dedup_stepData(step_data: list[dict]) -> list[dict]:
+def dedup_stepData(step_data: list[dict], nodes: list[dict] | None = None) -> list[dict]:
     """从 stepData 提取操作序列
     home/end 跳过；空 action_type 保留为 noop（表示无 UI 操作的步骤）。
+    
+    nodes 参数用于从 directives.params.points 中提取 scroll/swipe 的
+    结束坐标（stepData.action_type 只含起始区域，不含终点）。
     """
+    # 构建 stepId → directives points 映射（补充 scroll end_box）
+    node_points: dict = {}
+    if nodes:
+        for node in nodes:
+            nid = node.get("id")
+            if nid is None:
+                continue
+            raw = node.get("raw_item", {})
+            directives_str = raw.get("directives", "{}")
+            if not directives_str or directives_str in ("{}", '""', ''):
+                continue
+            actions = extract_action_from_directives(directives_str)
+            if actions:
+                # 取第一个 action 的 start_box / end_box
+                act = actions[0]
+                node_points[str(nid)] = {
+                    "start_box": act.get("start_box", []),
+                    "end_box": act.get("end_box", []),
+                }
+
     out = []
     for step in step_data:
         step_id = step.get("stepId", "")
@@ -369,6 +392,16 @@ def dedup_stepData(step_data: list[dict]) -> list[dict]:
         stype = step.get("type", "")
         if stype:
             entry["type"] = stype
+
+        # 补充 scroll/swipe 的 end_box（来自 directives.params.points）
+        at = parsed.get("action_type", "")
+        if at in ("scroll", "swipe") and str(step_id) in node_points:
+            dp = node_points[str(step_id)]
+            # 用 directives 的 points 覆盖 start_box（更精确），补充 end_box
+            if dp.get("start_box"):
+                entry["start_box"] = dp["start_box"]
+            if dp.get("end_box"):
+                entry["end_box"] = dp["end_box"]
 
         out.append(entry)
 
@@ -402,7 +435,7 @@ def deduplicate_utg(data: dict) -> dict:
     instruction = extract_instruction(nodes, edges)
 
     # 去冗各部分
-    steps = dedup_stepData(step_data)
+    steps = dedup_stepData(step_data, nodes)
     deduped_nodes = dedup_nodes(nodes)
     deduped_edges = dedup_edges(edges)
 

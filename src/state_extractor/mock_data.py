@@ -63,7 +63,7 @@ def make_mock_utg() -> dict:
         }),
         ("6", "Step6", "scroll([500, 800], down)", 3309, "catchDataTurnId2", {
             "action": "scroll",
-            "params": {"points": [640, 2265]},
+            "params": {"points": [500, 2000, 500, 800]},
             "direction": "down",
         }),
         ("7", "Step7", "click([403, 2579])", 3619, "catchDataTurnId3", {
@@ -173,7 +173,7 @@ def _build_raw_directives(data: dict | None) -> str:
     
     action_type = data.get("action", "click")
     params = data.get("params", {})
-    points = data.get("points", [])
+    points = params.get("points", data.get("points", []))  # nested or top-level
 
     directives = [{
         "header": {"namespace": "SimulatingOperation", "name": "ExecuteCommand"},
