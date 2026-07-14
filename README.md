@@ -53,7 +53,33 @@ output/<uuid>/
 └── ...
 ```
 
-### 3. 发送判定
+### 3. 任务分解（LLM + RAG，可选）
+
+启用 decomposer 后，管线会自动将用户指令分解为子目标，填入 `step_level_instruction` 字段。需在 `.env` 中配置 LLM 地址：
+
+```env
+LLM_MODEL_URL=http://localhost:8000/v1/chat/completions
+LLM_MODEL_NAME=qwen3-8b
+```
+
+**纯 LLM 模式**（无需 RAG）：不配 LLM 环境变量时自动跳过，`step_level_instruction` 为空。
+
+**RAG 知识库**（可选，提升分解精度）：
+
+首次摄入 App 知识文档：
+
+```bash
+python src/decomposer/knowledge_store.py --ingest src/decomposer/app_knowledge/
+```
+
+后续新增或修改 App 知识：
+
+1. 在 `app_knowledge/` 下新建或编辑 `<AppName>.md`
+2. 重新运行摄入命令（增量更新，覆盖旧数据）
+
+参见 [模块 A 详细文档](./src/decomposer/README.md)。
+
+### 4. 发送判定
 
 ```bash
 # pipeline 输出的 payload 已自带 _image_base_dir，直发送即可
