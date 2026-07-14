@@ -14,6 +14,14 @@ import os
 from pathlib import Path
 from typing import Optional
 
+# Auto-load .env from project root
+try:
+    from dotenv import load_dotenv
+    _PROJECT_ROOT = Path(__file__).resolve().parents[2]
+    load_dotenv(_PROJECT_ROOT / ".env")
+except ImportError:
+    pass
+
 import chromadb
 from chromadb.utils import embedding_functions
 
