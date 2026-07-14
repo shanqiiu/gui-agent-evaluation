@@ -397,6 +397,7 @@ def _try_load_clearres(task_dir: Path) -> dict[str, Any]:
         task_dir / "clearRes.gz",
         task_dir / "clearRes.json",
         task_dir / "clearRes.zip",
+        task_dir / "clearRes",          # no extension (plain JSON)
     ]
     for p in candidates:
         if p.is_file():

@@ -36,11 +36,11 @@ def _build_full_graph(task: NormalizedTask) -> dict:
     """Build full StateGraph using state_extractor pipeline."""
     # Guard: these imports may fail if state_extractor is not installed
     try:
-        from state_extractor.models import AlignedStep, OCRNode
-        from state_extractor.resolver import classify_all_purposes, resolve_all_targets
-        from state_extractor.boundary import compute_ocr_fingerprint, detect_boundaries
-        from state_extractor.aggregator import aggregate_states
-        from state_extractor.graph import build_graph
+        from src.state_extractor.models import AlignedStep, OCRNode
+        from src.state_extractor.resolver import classify_all_purposes, resolve_all_targets
+        from src.state_extractor.boundary import compute_ocr_fingerprint, detect_boundaries
+        from src.state_extractor.aggregator import aggregate_states
+        from src.state_extractor.graph import build_graph
     except ImportError:
         return _build_minimal_graph(task)
 
