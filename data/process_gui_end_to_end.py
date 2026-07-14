@@ -34,8 +34,10 @@ GUI Agent 手机端测试数据端到端处理脚本。
 用法:
     python process_gui_end_to_end.py <base_dir> [output_dir]
 
-    base_dir:  原始数据目录（包含各 task_uuid/ 子目录）
+    base_dir:   原始数据目录（包含各 task_uuid/ 子目录）
     output_dir: 输出目录（可选，默认为 base_dir/reorg_output）
+    
+    默认串联执行: 端到端处理（截图重组） → UTG 去冗（_deduped.json）
 
 作者操作方式:
     python process_gui_end_to_end.py D:\\Projects\\data\\...\\e63dd288-af51-4147-9ac8-67cf73042651
@@ -362,8 +364,8 @@ def process_single_task(task_dir: Path, output_dir: Path) -> Dict[str, Any]:
 # 批量处理入口
 # ═══════════════════════════════════════════════════════════════════
 
-def process_all(base_dir: str, output_dir: Optional[str] = None) -> None:
-    """批量处理所有任务目录。"""
+def process_all(base_dir: str, output_dir: Optional[str] = None) -> str:
+    """批量处理所有任务目录，返回最终的 output_dir 路径。"""
     base = Path(base_dir)
     if not base.is_dir():
         log.error("目录不存在: %s", base_dir)
@@ -430,6 +432,8 @@ def process_all(base_dir: str, output_dir: Optional[str] = None) -> None:
         f.write(f"\n共 {err_count} 个失败任务（纯 UUID 列表，一行一个）\n")
 
     log.info("失败任务日志已输出: %s", error_log_path)
+
+    return str(output_path)
 
 # ═══════════════════════════════════════════════════════════════════
 # Phase 3: UTG 去冗（structured deduplication）
@@ -890,19 +894,30 @@ def batch_dedup_utg(base_dir: str, output_dir: Optional[str] = None, task_uuids:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print(__doc__)
-        print("\n用法:")
-        print("  python process_gui_end_to_end.py <base_dir> [output_dir]         # 端到端处理(截图+步骤)")
-        print("  python process_gui_end_to_end.py <base_dir> dedup                # 仅 UTG 去冗")
-        print("\n去冗模式会将 deduped 数据写入每个 uuid 子目录下的 _deduped.json")
-        sys.exit(1)
+    import argparse
 
-    base_dir = sys.argv[1]
-    mode = sys.argv[2] if len(sys.argv) > 2 else None
+    parser = argparse.ArgumentParser(
+        description="GUI Agent 数据端到端处理 + UTG 去冗（默认串联执行）",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "示例:\n"
+            "  python process_gui_end_to_end.py data/tasks/                  # 处理 + 去冗\n"
+            "  python process_gui_end_to_end.py data/tasks/ my_output/        # 指定输出目录\n"
+        ),
+    )
+    parser.add_argument(
+        "base_dir",
+        help="原始数据目录（包含各 task_uuid/ 子目录）",
+    )
+    parser.add_argument(
+        "output_dir",
+        nargs="?",
+        default=None,
+        help="输出目录（可选，默认为 base_dir/reorg_output）",
+    )
+    args = parser.parse_args()
 
-    if mode == "dedup":
-        batch_dedup_utg(base_dir)
-    else:
-        output_dir = mode if mode else None
-        process_all(base_dir, output_dir)
+    output_dir = args.output_dir or os.path.join(args.base_dir, "reorg_output")
+
+    process_all(args.base_dir, output_dir)
+    batch_dedup_utg(output_dir, output_dir=output_dir)

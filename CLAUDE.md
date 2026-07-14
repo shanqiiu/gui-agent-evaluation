@@ -6,31 +6,54 @@
 
 ## 项目状态
 
-当前处于设计/文档阶段，尚未开始代码实现。核心设计文档位于 `docs/` 目录。
+**当前处于活跃开发阶段**。判定服务管线（Darwin VLM + 数据转换）已完整跑通，模块 A（RAG 任务分解引擎）已完成并集成到数据管线中。模块 B/C/D/E 尚未启动。
+
+- 核心判定能力通过集成达尔文实验室的 `FuncOracleCheck/` 实现
+- 数据管线（utg.json → payload → 判定）完整，含 10 项核心逻辑测试
+- `src/decomposer/` 模块 A 已完成（LLM + ChromaDB RAG）
 
 ## 目录结构
 
 ```
 gui-agent-evaluation/
 ├── README.md                     # 项目概览与文档索引
-├── CLAUDE.md                     # Claude Code 项目指令
-├── docs/
+├── CLAUDE.md                     # Sisyphus 项目指令
+├── docs/                         # 设计文档
 │   ├── 01-技术方案.md             # 核心技术设计：四层架构、差分偏差三分类、检查点体系
 │   ├── 02-论文调研.md             # 相关学术论文：VeriGUI、TrajAD、GUI-SHEPHERD 等
 │   ├── 03-相关资源.md             # GitHub 项目、数据集、工具链
-│   └── 04-架构设计.md             # 系统架构图、数据流、模块交互
-├── src/                          # 源码（待实现）
-│   ├── decomposer/              # 模块A：任务分解引擎（LLM+RAG）
-│   ├── verifier/                # 模块B：检查点验证器（VLM 语义对齐）
-│   ├── efficiency/              # 模块C：效率分析器（语义相似度）
-│   ├── trajectory/              # 模块D：轨迹差分判定器（三分类）
-│   ├── evaluator/               # 模块E：综合评估器
-│   └── common/                  # 公共工具（配置、日志、数据模型）
-├── tests/                        # 测试
-├── scripts/                      # 命令行脚本
-├── data/                         # 测试数据（截图对、轨迹样本）
-├── configs/                      # 配置文件
-└── outputs/                      # 评估报告输出
+│   ├── 04-架构设计.md             # 系统架构图、数据流、模块交互
+│   ├── 重复动作异常判定技术方案.md  # 动作等效/目标等效/无进展三条件模型
+│   ├── 规划失效异常判定技术方案.md  # 五类规划失效 + 首错归因
+│   └── 进展汇总.md                # 工作进展与当前状态
+├── src/                          # 独立评估模块（逐步实现中）
+│   └── decomposer/               # ✅ 模块A：任务分解引擎（LLM + ChromaDB RAG）
+│       ├── README.md              # RAG 分解器调用说明
+│       ├── decomposer.py          # Decomposer 类 + decompose()
+│       ├── knowledge_store.py     # ChromaDB 向量存储 + 文档摄入
+│       ├── test_decomposer.py     # 集成测试脚本（5 条指令）
+│       └── app_knowledge/         # App 操作路径知识（.md）
+│   ├── verifier/                 # ❌ 模块B：检查点验证器（待实现）
+│   ├── efficiency/               # ❌ 模块C：效率分析器（待实现）
+│   ├── trajectory/               # ❌ 模块D：轨迹差分判定器（待实现）
+│   ├── evaluator/                # ❌ 模块E：综合评估器（待实现）
+│   └── common/                   # ❌ 公共工具（待实现）
+├── FuncOracleCheck/              # ✅ 集成达尔文判定服务
+│   ├── main.py                   # FastAPI 服务入口 (port 20025)
+│   ├── oracle_service.py         # 判定统一封装 + 检测器挂载
+│   ├── repeated_action_detector.py   # 重复动作检测器（规则）
+│   ├── planning_failure_detector.py  # 规划失效检测器（规则）
+│   ├── tests/                    # 检测器单元测试
+│   ├── GUI_TestFramework_v1/     # MLLM/VLM 判定框架
+│   └── examples/                 # /check_e2e 调用示例
+├── data/                         # ✅ 数据处理管线
+│   ├── process_gui_end_to_end.py # 原始数据预处理
+│   ├── convert_to_check_e2e.py   # utg.json → payload 转换器
+│   ├── send_payload.py           # 已保存 payload 重发工具
+│   └── test_convert_to_check_e2e.py  # 10 项核心逻辑测试
+├── scripts/                      # 命令行脚本（待创建）
+├── configs/                      # 配置文件（待创建）
+└── outputs/                      # 评估报告输出（待创建）
 ```
 
 ## 技术栈（规划）
