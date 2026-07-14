@@ -19,53 +19,64 @@ pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 20025
 ```
 
-### 2. 预处理 Agent 原始数据
+### 2. 数据预处理（统一管线）
+
+一次解析，三份产出（payload / dedup / stategraph）：
 
 ```bash
-# 从 utg.json + catchDataTurnId*/ 截图重组为扁平目录（文件按 catchDataTurnId 命名）
-python data/process_gui_end_to_end.py <原始数据目录> reorg_output/
+# 单任务
+python -m data.pipeline <task_uuid_dir> -o output/
+
+# 批量（遍历 base_dir 下所有 uuid 子目录）
+python -m data.pipeline --batch <base_dir> -o output/
 ```
 
-### 3. 转换为判定格式并发送
-
-```bash
-# 批量转换 → 保存 payload + 发送判定 + 保存结果
-# 支持断点续跑：已存在的 payload 自动跳过
-python data/convert_to_check_e2e.py --batch reorg_output/ \
-    --processed --send http://localhost:20025
-
-# 输出目录:
-#   payloads/{uuid}.json              ← 可复用的请求体（存路径而非 base64）
-#   payloads/results/{uuid}_result.json  ← 判定结果
+输入目录结构：
+```
+base_dir/
+├── <uuid-1>/
+│   ├── utg.json              # UI 任务图
+│   ├── clearRes.gzip          # Agent 推理 + OCR 控件树（.gz / .zip / .json 均支持）
+│   └── catchDataTurnIdN/      # 截图
+├── <uuid-2>/
+└── ...
 ```
 
-### 4. 复用已保存的 payload
+输出（每任务三份文件）：
+```
+output/<uuid>/
+├── payload.json          ← /check_e2e 判定接口输入
+├── _deduped.json         ← 去冗摘要（人类可读）
+└── _stategraph.json      ← 状态图（语义层，供模块 B/C/D 消费）
+```
+
+### 3. 发送判定
 
 ```bash
-# 方式1: curl 直接发（需先用 send_payload.py 的 --hydrate 转换）
-python data/send_payload.py payloads/<uuid>.json --hydrate -o hydrated.json
+# 方式1: 直接发送（需先 hydrate 转 base64）
+python data/send_payload.py output/<uuid>/payload.json --hydrate -o hydrated.json
 curl -X POST http://localhost:20025/check_e2e -H "Content-Type: application/json" -d @hydrated.json
 
-# 方式2: send_payload 直接发
-python data/send_payload.py payloads/ --send http://localhost:20025
+# 方式2: send_payload 批量发送
+python data/send_payload.py output/ --send http://localhost:20025
 ```
 
 ## 数据管线
 
 ```
-Agent 原始数据                     预处理                      转换                       判定服务
-┌──────────────────┐    ┌─────────────────────┐    ┌─────────────────────┐    ┌──────────────┐
-│ utg.json         │    │ process_gui_        │    │ convert_to_         │    │ POST         │
-│ nodes → stepData │    │ end_to_end.py       │    │ check_e2e.py        │    │ /check_e2e   │
-│   → directives   │    │                     │    │                     │    │              │
-│                  │───▶│ catchDataTurnIdN.jpg │───▶│ parse_node_         │───▶│ Darwin VLM   │
-│ catchDataTurnId*/│    │ (按 turn ID 命名)    │    │ directives()        │    │   AB判定     │
-│   *.jpg          │    │                     │    │ step_action_to_     │    │   意图判定    │
-│                  │    │                     │    │ text()              │    │   Plan覆盖   │
-│ 节点截图      │    │                     │    │ resolve_image_      │    │              │
-│ 元素文本      │    │                     │    │ from_url()          │    │ 重复动作判定  │
-│ 操作坐标      │    │                     │    │                     │    │ 规划失效判定  │
-└──────────────────┘    └─────────────────────┘    └─────────────────────┘    └──────────────┘
+Agent 原始数据                    预处理（统一解析）              判定服务
+┌──────────────────┐    ┌─────────────────────────┐    ┌──────────────┐
+│ utg.json         │    │  data/pipeline.py        │    │ POST         │
+│ nodes → stepData │    │                          │    │ /check_e2e   │
+│   → directives   │    │  preprocessor (一次解析)  │    │              │
+│                  │───▶│    ↓                     │───▶│ Darwin VLM   │
+│ clearRes.gzip    │    │  write_payload ── payload │    │   AB判定     │
+│   rawPage        │    │  write_dedup   ── dedup   │    │   意图判定    │
+│   actionPurpose  │    │  write_stategraph ── sg   │    │   Plan覆盖   │
+│                  │    │                          │    │              │
+│ catchDataTurnId*/ │    │  产出: 3 文件/任务        │    │ 重复动作判定  │
+│   *.jpg          │    │                          │    │ 规划失效判定  │
+└──────────────────┘    └─────────────────────────┘    └──────────────┘
 ```
 
 ### 转换映射
@@ -153,36 +164,44 @@ Darwin E2E 判定（VLM+LLM）
 gui-agent-evaluation/
 ├── README.md
 ├── docs/                              # 设计文档
-│   ├── 01-技术方案.md
-│   ├── 02-论文调研.md
-│   ├── 03-相关资源.md
-│   ├── 04-架构设计.md
+│   ├── 01-技术方案.md                  # 四层架构、差分偏差三分类、检查点体系
+│   ├── 02-论文调研.md                  # 17 篇相关论文
+│   ├── 03-相关资源.md                  # GitHub 项目、数据集、工具链
+│   ├── 04-架构设计.md                  # 架构图、数据流、模块交互
+│   ├── 新增方案2.0.md                  # 轨迹状态提取 v2.0（含信号验证策略）
 │   ├── 重复动作异常判定技术方案.md
 │   ├── 规划失效异常判定技术方案.md
 │   └── 进展汇总.md
-├── data/                              # 数据处理管线
+├── data/                              # ✅ 数据预处理管线（统一架构）
+│   ├── pipeline.py                    # 编排入口: preprocess → 3× write
+│   ├── preprocessor.py                # 统一解析器: utg + clearRes → NormalizedTask
+│   ├── models.py                      # NormalizedTask / NormalizedStep 数据模型
+│   ├── clearres_parser.py             # clearRes.gzip 解析 (rawPage + actionPurpose)
+│   ├── write_payload.py               # → payload.json（含 rawPage 控件名补全）
+│   ├── write_dedup.py                 # → _deduped.json（含 scroll end_box）
+│   ├── write_stategraph.py            # → _stategraph.json（状态图）
 │   ├── data.md                        # utg.json 数据格式说明
-│   ├── process_gui_end_to_end.py      # 原始数据预处理（截图重组 + turn ID 命名）
-│   ├── convert_to_check_e2e.py        # utg.json → /check_e2e payload 转换器
-│   ├── send_payload.py                # 已保存 payload 重发工具
-│   └── test_convert_to_check_e2e.py   # 核心逻辑测试（10 项）
-└── FuncOracleCheck/                   # 判定服务
-    ├── main.py                        # FastAPI 服务入口 (port 20025)
-    ├── oracle_service.py              # 判定统一封装 + 检测器挂载
-    ├── repeated_action_detector.py    # 重复动作检测器（规则）
-    ├── planning_failure_detector.py   # 规划失效检测器（规则）
-    ├── framework.py                   # 单样本 CLI 调试
-    ├── framework_batch_eval.py        # 批量 benchmark
-    ├── quick_test.py                  # API 快速测试脚本
-    ├── examples/                      # 调用示例与文档
-    │   ├── README.md
-    │   ├── run_e2e.py
-    │   └── sample_payload_base.json
-    ├── tests/                         # 单元测试
-    ├── app/models.py                  # Pydantic 数据模型（含 content 字段）
-    ├── oracle/                        # 功能 oracle 核心
-    ├── GUI_TestFramework_v1/          # MLLM/VLM 判定框架
-    ├── utils/                         # 图像/JSON/布局工具 + visual_prompt_debug
-    ├── library/logger.py              # 日志配置（logs/info.log 按天滚动）
-    └── conf/                          # 运行配置
+│   ├── test_pipeline.py               # 集成测试
+│   ├── process_gui_end_to_end.py      # 截图重组（保留）
+│   ├── convert_to_check_e2e.py        # 遗留转换器（逐步废弃）
+│   ├── send_payload.py                # payload 重发工具
+│   └── extract_utg.py                 # 遗留去冗脚本（逐步废弃）
+├── src/                               # 独立评估模块
+│   ├── decomposer/                    # ✅ 模块A: 任务分解引擎 (LLM + ChromaDB RAG)
+│   ├── state_extractor/               # ✅ 模块: 轨迹状态提取 v2.0 MVP
+│   ├── verifier/                      # ❌ 模块B: 检查点验证器（待实现）
+│   ├── efficiency/                    # ❌ 模块C: 效率分析器（待实现）
+│   ├── trajectory/                    # ❌ 模块D: 轨迹差分判定器（待实现）
+│   └── evaluator/                     # ❌ 模块E: 综合评估器（待实现）
+├── FuncOracleCheck/                   # ✅ 集成达尔文判定服务
+│   ├── main.py                        # FastAPI 服务入口 (port 20025)
+│   ├── oracle_service.py              # 判定统一封装 + 检测器挂载
+│   ├── repeated_action_detector.py    # 重复动作检测器（规则）
+│   ├── planning_failure_detector.py   # 规划失效检测器（规则）
+│   ├── tests/                         # 单元测试
+│   ├── GUI_TestFramework_v1/          # MLLM/VLM 判定框架
+│   └── examples/                      # /check_e2e 调用示例
+├── scripts/                           # 命令行脚本（待创建）
+├── configs/                           # 配置文件（待创建）
+└── outputs/                           # 评估报告输出（待创建）
 ```

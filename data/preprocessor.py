@@ -391,13 +391,19 @@ def _image_to_local_path(image_url: str) -> str:
 
 
 def _try_load_clearres(task_dir: Path) -> dict[str, Any]:
-    for ext in (".gzip", ".json"):
-        p = task_dir / f"clearRes{ext}"
+    # Try common naming conventions in priority order
+    candidates = [
+        task_dir / "clearRes.gzip",
+        task_dir / "clearRes.gz",
+        task_dir / "clearRes.json",
+        task_dir / "clearRes.zip",
+    ]
+    for p in candidates:
         if p.is_file():
             return parse_clearres_light(p)
     # Also try parent directory (for reorg_output layout)
-    for ext in (".gzip", ".json"):
-        p = task_dir.parent / "clearRes" / f"{task_dir.name}{ext}"
+    for suffix in (".gzip", ".gz", ".json", ".zip"):
+        p = task_dir.parent / "clearRes" / f"{task_dir.name}{suffix}"
         if p.is_file():
             return parse_clearres_light(p)
     return {"ocr_pages": [], "action_purposes": []}

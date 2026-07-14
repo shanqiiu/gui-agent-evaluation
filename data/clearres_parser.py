@@ -18,9 +18,18 @@ from pathlib import Path
 from typing import Any
 
 
+def _load_auto(path: Path) -> dict:
+    """Auto-detect format and load JSON data."""
+    if path.suffix in ('.gzip', '.gz'):
+        return _load_gzip(path)
+    if path.suffix == '.zip':
+        return _load_zip(path)
+    return _load_json(path)
+
+
 def parse_clearres(path: str | Path) -> dict[str, Any]:
     """
-    Parse a clearRes file (json or gzip) and extract key fields.
+    Parse a clearRes file (json, gzip, or zip) and extract key fields.
     
     Returns:
         {
@@ -33,11 +42,7 @@ def parse_clearres(path: str | Path) -> dict[str, Any]:
         }
     """
     path = Path(path)
-    
-    if path.suffix == '.gzip':
-        data = _load_gzip(path)
-    else:
-        data = _load_json(path)
+    data = _load_auto(path)
 
     responses = data.get("responses", [])
     
@@ -108,11 +113,7 @@ def parse_clearres_light(path: str | Path) -> dict[str, Any]:
     For use when modelOutput/difficulty are not needed.
     """
     path = Path(path)
-    
-    if path.suffix == '.gzip':
-        data = _load_gzip(path)
-    else:
-        data = _load_json(path)
+    data = _load_auto(path)
 
     responses = data.get("responses", [])
     
@@ -147,6 +148,17 @@ def parse_clearres_light(path: str | Path) -> dict[str, Any]:
 def _load_gzip(path: Path) -> dict:
     with gzip.open(path, "rt", encoding="utf-8") as f:
         return json.load(f)
+
+
+def _load_zip(path: Path) -> dict:
+    import zipfile
+    with zipfile.ZipFile(path, "r") as zf:
+        names = zf.namelist()
+        target = next((n for n in names if "clearRes" in n), names[0] if names else "")
+        if not target:
+            raise FileNotFoundError("No JSON file found in zip")
+        with zf.open(target) as f:
+            return json.load(f)
 
 
 def _load_json(path: Path) -> dict:
