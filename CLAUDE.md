@@ -114,12 +114,10 @@ pyright src/
 创建 `.env` 文件（已包含在 `.gitignore` 中）：
 
 ```env
-# Darwin 判定服务
-DASHSCOPE_API_KEY=your_key_here
-OPENAI_API_KEY=your_key_here       # 可选，用于 GPT-4o
-
 # Decomposer — LLM+RAG 任务分解
 LLM_MODEL_URL=http://localhost:8000/v1/chat/completions
 LLM_MODEL_NAME=qwen3-8b
 LLM_API_KEY=                        # 可选
 ```
+
+Darwin 判定服务的模型配置在 `src/oracle/conf/run_benchmark_config.conf`，API Key 通过 `MLOPS_API_KEY` 环境变量传入。
