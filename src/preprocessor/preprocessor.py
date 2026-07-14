@@ -37,10 +37,6 @@ _ACTION_NORMALIZE: dict[str, str] = {
     "scroll custom": "scroll",
 }
 
-# Action types that correspond to real UI operations (consume an actionPurpose)
-_REAL_ACTIONS = frozenset({"click", "scroll", "type", "swipe", "drag",
-                            "back", "open_app", "long_press", "finished"})
-
 
 # ── Action type parsing ──────────────────────────────────────────
 
@@ -288,8 +284,9 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
         if action_type in ("unknown", "noop") and not start_box:
             continue
 
-        # Action purpose: only consume for real UI actions (skip clarify/context steps)
-        if action_type in _REAL_ACTIONS:
+        # Action purpose: only consume for steps with screenshot (shape="image" in UTG)
+        node_shape = (node or {}).get("shape", "")
+        if node_shape == "image":
             purpose = action_purposes[purpose_idx] if purpose_idx < len(action_purposes) else ""
             purpose_idx += 1
         else:
