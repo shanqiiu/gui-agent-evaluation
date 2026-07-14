@@ -1,108 +1,70 @@
-python -m src.preprocessor.pipeline --batch D:\Projects\workspace\projects\activate\gui-agent-evaluation\data\test_data --output D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output
-2026-07-14 19:18:07,514 [INFO] ============================================================
-2026-07-14 19:18:07,514 [INFO] Batch Preprocessing Pipeline
-2026-07-14 19:18:07,514 [INFO] ============================================================
-2026-07-14 19:18:07,515 [INFO] Input dir:  D:\Projects\workspace\projects\activate\gui-agent-evaluation\data\test_data
-2026-07-14 19:18:07,515 [INFO] Output dir: D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output
-2026-07-14 19:18:07,515 [INFO] Tasks found: 8
-2026-07-14 19:18:07,515 [INFO] 
-2026-07-14 19:18:07,515 [INFO] ============================================================
-2026-07-14 19:18:07,515 [INFO] Preprocessing pipeline: 1b0b7bac-b3d5-4726-a2e0-b84aa18458cc
-2026-07-14 19:18:07,515 [INFO] [1/6] Parsing utg.json + clearRes ...
-2026-07-14 19:18:07,516 [INFO]   instruction: 打开京东帮我找一下骆驼品牌T恤，销量最高的
-2026-07-14 19:18:07,516 [INFO]   action steps: 2 (raw: 4)
-2026-07-14 19:18:07,517 [INFO]   OCR pages: 0, actionPurposes: 0
-2026-07-14 19:18:07,517 [INFO] [2/6] Decomposing instruction (LLM+RAG) ...
-2026-07-14 19:18:17,692 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:17,782 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/modules.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:18,105 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:18,194 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config_sentence_transformers.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:18,201 [INFO] Loading SentenceTransformer model from sentence-transformers/all-MiniLM-L6-v2.
-2026-07-14 19:18:18,518 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config_sentence_transformers.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:18,607 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config_sentence_transformers.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:18,932 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/README.md "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:19,022 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/README.md "HTTP/1.1 200 OK"
-2026-07-14 19:18:19,364 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/modules.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:19,455 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/modules.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:19,776 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/sentence_bert_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:19,867 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/sentence_bert_config.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:20,200 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/adapter_config.json "HTTP/1.1 404 Not Found"
-2026-07-14 19:18:20,536 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:20,622 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json "HTTP/1.1 200 OK"
-Loading weights: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 103/103 [00:00<00:00, 6763.63it/s]
-2026-07-14 19:18:21,083 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/processor_config.json "HTTP/1.1 404 Not Found"
-2026-07-14 19:18:21,425 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
-2026-07-14 19:18:21,738 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/video_preprocessor_config.json "HTTP/1.1 404 Not Found"
-2026-07-14 19:18:22,057 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/preprocessor_config.json "HTTP/1.1 404 Not Found"
-2026-07-14 19:18:22,372 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:22,462 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/tokenizer_config.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:22,799 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:22,889 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:23,215 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:23,305 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/config.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:23,699 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/tokenizer_config.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:23,790 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/tokenizer_config.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:24,122 [INFO] HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main/additional_chat_templates?recursive=false&expand=false "HTTP/1.1 404 Not Found"
-2026-07-14 19:18:24,443 [INFO] HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2/tree/main?recursive=true&expand=false "HTTP/1.1 200 OK"
-2026-07-14 19:18:24,811 [INFO] HTTP Request: HEAD https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2/resolve/main/1_Pooling/config.json "HTTP/1.1 307 Temporary Redirect"
-2026-07-14 19:18:24,902 [INFO] HTTP Request: HEAD https://huggingface.co/api/resolve-cache/models/sentence-transformers/all-MiniLM-L6-v2/1110a243fdf4706b3f48f1d95db1a4f5529b4d41/1_Pooling%2Fconfig.json "HTTP/1.1 200 OK"
-2026-07-14 19:18:25,240 [INFO] HTTP Request: GET https://huggingface.co/api/models/sentence-transformers/all-MiniLM-L6-v2 "HTTP/1.1 200 OK"
-Batches: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 35.62it/s]
-2026-07-14 19:18:33,175 [INFO]   decomposer: 6 checkpoints generated
-2026-07-14 19:18:33,176 [INFO] [3/6] Copying screenshots to output ...
-2026-07-14 19:18:33,178 [INFO]   copied: 0 screenshots
-2026-07-14 19:18:33,179 [INFO] [4/6] Writing payload.json ...
-2026-07-14 19:18:33,182 [INFO]   -> D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output\1b0b7bac-b3d5-4726-a2e0-b84aa18458cc\payload.json       
-2026-07-14 19:18:33,182 [INFO] [5/6] Writing _deduped.json ...
-2026-07-14 19:18:33,186 [INFO]   -> D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output\1b0b7bac-b3d5-4726-a2e0-b84aa18458cc\_deduped.json      
-2026-07-14 19:18:33,186 [INFO] [6/6] Writing _stategraph.json ...
-2026-07-14 19:18:33,218 [INFO]   -> D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output\1b0b7bac-b3d5-4726-a2e0-b84aa18458cc\_stategraph.json
-2026-07-14 19:18:33,219 [INFO] Done: 3 output files generated
-2026-07-14 19:18:33,220 [INFO] ============================================================
-2026-07-14 19:18:33,220 [INFO] Preprocessing pipeline: 30fd35d8-204e-40ec-b603-05ab75002af8
-2026-07-14 19:18:33,221 [INFO] [1/6] Parsing utg.json + clearRes ...
-2026-07-14 19:18:33,337 [INFO]   instruction: 帮我用华为商城找一下价格最低的手机，内存128GB
-2026-07-14 19:18:33,337 [INFO]   action steps: 29 (raw: 32)
-2026-07-14 19:18:33,337 [INFO]   OCR pages: 24, actionPurposes: 25
-2026-07-14 19:18:33,337 [INFO] [2/6] Decomposing instruction (LLM+RAG) ...
-Batches: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 117.61it/s]
-2026-07-14 19:18:43,972 [INFO]   decomposer: 8 checkpoints generated
-2026-07-14 19:18:43,973 [INFO] [3/6] Copying screenshots to output ...
-2026-07-14 19:18:44,061 [INFO]   copied: 24 screenshots
-2026-07-14 19:18:44,061 [INFO] [4/6] Writing payload.json ...
-2026-07-14 19:18:44,064 [INFO]   -> D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output\30fd35d8-204e-40ec-b603-05ab75002af8\payload.json       
-2026-07-14 19:18:44,064 [INFO] [5/6] Writing _deduped.json ...
-2026-07-14 19:18:44,068 [INFO]   -> D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output\30fd35d8-204e-40ec-b603-05ab75002af8\_deduped.json      
-2026-07-14 19:18:44,068 [INFO] [6/6] Writing _stategraph.json ...
-2026-07-14 19:18:44,073 [INFO]   -> D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output\30fd35d8-204e-40ec-b603-05ab75002af8\_stategraph.json   
-2026-07-14 19:18:44,073 [INFO] Done: 3 output files generated
-2026-07-14 19:18:44,074 [INFO] ============================================================
-2026-07-14 19:18:44,074 [INFO] Preprocessing pipeline: 32a5a6c9-3caa-431d-ab62-54178a8fd434
-2026-07-14 19:18:44,074 [INFO] [1/6] Parsing utg.json + clearRes ...
-2026-07-14 19:18:44,075 [INFO]   instruction: 到淘宝买件销量第一的冲锋衣
-2026-07-14 19:18:44,076 [INFO]   action steps: 2 (raw: 4)
-2026-07-14 19:18:44,076 [INFO]   OCR pages: 0, actionPurposes: 0
-2026-07-14 19:18:44,076 [INFO] [2/6] Decomposing instruction (LLM+RAG) ...
-Batches: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 166.63it/s] 
-2026-07-14 19:18:52,830 [INFO]   decomposer: 7 checkpoints generated
-2026-07-14 19:18:52,830 [INFO] [3/6] Copying screenshots to output ...
-2026-07-14 19:18:52,832 [INFO]   copied: 0 screenshots
-2026-07-14 19:18:52,833 [INFO] [4/6] Writing payload.json ...
-2026-07-14 19:18:52,837 [INFO]   -> D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output\32a5a6c9-3caa-431d-ab62-54178a8fd434\payload.json       
-2026-07-14 19:18:52,838 [INFO] [5/6] Writing _deduped.json ...
-2026-07-14 19:18:52,842 [INFO]   -> D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output\32a5a6c9-3caa-431d-ab62-54178a8fd434\_deduped.json      
-2026-07-14 19:18:52,842 [INFO] [6/6] Writing _stategraph.json ...
-2026-07-14 19:18:52,845 [INFO]   -> D:\Projects\workspace\projects\activate\gui-agent-evaluation\output\test_output\32a5a6c9-3caa-431d-ab62-54178a8fd434\_stategraph.json   
-2026-07-14 19:18:52,845 [INFO] Done: 3 output files generated
-2026-07-14 19:18:52,845 [INFO] ============================================================
-2026-07-14 19:18:52,845 [INFO] Preprocessing pipeline: 33bb204c-0b6c-4b87-8222-01cee6a856d5
-2026-07-14 19:18:52,845 [INFO] [1/6] Parsing utg.json + clearRes ...
-2026-07-14 19:18:52,922 [INFO]   instruction: 拼多多上下单一款适合夏季的全棉四件套，在百亿补贴范围内
-2026-07-14 19:18:52,922 [INFO]   action steps: 84 (raw: 86)
-2026-07-14 19:18:52,922 [INFO]   OCR pages: 77, actionPurposes: 78
-2026-07-14 19:18:52,922 [INFO] [2/6] Decomposing instruction (LLM+RAG) ...
-Batches: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 181.75it/s] 
-2026-07-14 19:19:01,186 [INFO]   decomposer: 6 checkpoints generated
-2026-07-14 19:19:01,187 [INFO] [3/6] Copying screenshots to output ...
-2026-07-14 19:19:01,376 [INFO]   copied: 78 screenshots
-2026-07-14 19:19:01,376 [INFO] [4/6] Writing payload.json ...
+python src/decomposer/knowledge_store.py --ingest src/decomposer/app_knowledge/           
+Traceback (most recent call last):
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpcore\_sync\http_proxy.py", line 297, in handle_request
+    raise ProxyError(msg)
+httpcore.ProxyError: 407 Proxy Authentication Required
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "D:\Projects\workspace\projects\activate\gui-agent-evaluation\src\decomposer\knowledge_store.py", line 110, in <module>
+    ingest_documents(args.ingest)
+  File "D:\Projects\workspace\projects\activate\gui-agent-evaluation\src\decomposer\knowledge_store.py", line 46, in ingest_documents
+    collection = get_store()
+  File "D:\Projects\workspace\projects\activate\gui-agent-evaluation\src\decomposer\knowledge_store.py", line 35, in get_store
+    ef = embedding_functions.SentenceTransformerEmbeddingFunction(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\chromadb\utils\embedding_functions\sentence_transformer_embedding_function.py", line 44, in __init__
+    self.models[model_name] = SentenceTransformer(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\util\decorators.py", line 41, in wrapper
+    return func(*args, **kwargs)
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\sentence_transformer\model.py", line 188, in __init__
+    super().__init__(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\base\model.py", line 216, in __init__
+    modules, self.module_kwargs = self._load_modules(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\base\model.py", line 981, in _load_modules
+    modules_json_path = load_file_path(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\util\file_io.py", line 116, in load_file_path
+    return hf_hub_download(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\file_download.py", line 1013, in hf_hub_download
+    return _hf_hub_download_to_cache_dir(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\file_download.py", line 1088, in _hf_hub_download_to_cache_dir
+    (url_to_download, etag, commit_hash, expected_size, xet_file_data, head_call_error) = _get_metadata_or_catch_error(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\file_download.py", line 1707, in _get_metadata_or_catch_error
+    metadata = get_hf_file_metadata(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_validators.py", line 88, in _inner_fn
+    return fn(*args, **kwargs)
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\file_download.py", line 1615, in get_hf_file_metadata
+    response = _httpx_follow_relative_redirects_with_backoff(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_http.py", line 719, in _httpx_follow_relative_redirects_with_backoff
+    response = http_backoff(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_http.py", line 596, in http_backoff
+    return next(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_http.py", line 504, in _http_backoff_base
+    response = client.request(method=method, url=url, **kwargs)
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 914, in send
+    response = self._send_handling_auth(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\contextlib.py", line 153, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ProxyError: 407 Proxy Authentication Required
