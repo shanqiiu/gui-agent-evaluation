@@ -477,16 +477,37 @@ def _extract_action_from_directives(raw_directives_str: str) -> list[dict]:
                     })
                 else:
                     params = action_item.get("params", {})
-                    node = params.get("node", {})
-                    coord = action_item.get("id", "")
+                    node = params.get("node", {}) if isinstance(params, dict) else {}
                     target_text = node.get("text", "") if node else ""
-                    bounds = node.get("bounds", []) if node else []
-                    actions.append({
+
+                    # 坐标: params.points 优先（真正触点），node.bounds 中心兜底
+                    start_box: list[int] = []
+                    end_box: list[int] = []
+                    points = params.get("points") if isinstance(params, dict) else None
+                    if isinstance(points, list) and len(points) >= 2:
+                        start_box = [int(points[0]), int(points[1])]
+                        if len(points) >= 4:
+                            end_box = [int(points[2]), int(points[3])]
+                    else:
+                        node_bounds = node.get("bounds") if node else None
+                        if isinstance(node_bounds, list) and len(node_bounds) >= 4:
+                            cx = int((node_bounds[0] + node_bounds[2]) / 2)
+                            cy = int((node_bounds[1] + node_bounds[3]) / 2)
+                            start_box = [cx, cy]
+
+                    entry: dict = {
                         "type": action_type,
-                        "coords": coord,
                         "target": target_text,
-                        "bounds": bounds if bounds else None,
-                    })
+                    }
+                    if start_box:
+                        entry["start_box"] = start_box
+                    if end_box:
+                        entry["end_box"] = end_box
+                    # bounds: 控件边界框（与触点坐标不同，独立保留）
+                    node_bounds = node.get("bounds") if node else None
+                    if isinstance(node_bounds, list) and node_bounds:
+                        entry["bounds"] = node_bounds
+                    actions.append(entry)
 
     return actions
 
@@ -542,13 +563,27 @@ def _extract_action_from_event_type(event_type_str: str) -> dict:
         return {}
 
     if event_type == "click":
-        return {
+        # 坐标: points 优先（真正触点），bounds 中心兜底
+        start_box: list[int] = []
+        points = evt.get("points")
+        if isinstance(points, list) and len(points) >= 2:
+            start_box = [int(points[0]), int(points[1])]
+        else:
+            bounds = evt.get("bounds")
+            if isinstance(bounds, list) and len(bounds) >= 4:
+                cx = int((bounds[0] + bounds[2]) / 2)
+                cy = int((bounds[1] + bounds[3]) / 2)
+                start_box = [cx, cy]
+        result: dict = {
             "type": "click",
-            "coords": evt.get("id", ""),
             "target": evt.get("nodeText", ""),
-            "bounds": evt.get("bounds"),
-            "points": evt.get("points"),
         }
+        if start_box:
+            result["start_box"] = start_box
+        bounds = evt.get("bounds")
+        if isinstance(bounds, list) and bounds:
+            result["bounds"] = bounds
+        return result
     elif event_type == "scroll custom":
         return {
             "type": "scroll",
