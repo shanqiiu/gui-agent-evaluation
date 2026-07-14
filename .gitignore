@@ -4,3 +4,4 @@ __pycache__/
 .workbuddy/
 FuncOracleCheck/
 .env
+chroma_db/
