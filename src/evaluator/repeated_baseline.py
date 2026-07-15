@@ -104,6 +104,62 @@ def run_repeated_baseline(
     return result
 
 
+def run_repeated_baseline_batch(
+    payload_root: str | Path,
+    output_dir: str | Path | None = None,
+    *,
+    config: RepeatedBaselineConfig | None = None,
+) -> dict[str, Any]:
+    """Run repeated baseline for every payload.json under a directory."""
+    config = config or RepeatedBaselineConfig()
+    payload_root = Path(payload_root)
+    output_root = Path(output_dir) if output_dir else payload_root / "repeated_baseline_batch"
+    output_root.mkdir(parents=True, exist_ok=True)
+
+    payloads = sorted(
+        p for p in payload_root.rglob("payload.json")
+        if "repeated_baseline" not in p.parts
+    )
+    results: list[dict[str, Any]] = []
+    errors: list[dict[str, str]] = []
+
+    for payload_path in payloads:
+        task_uuid = payload_path.parent.name
+        task_output = output_root / task_uuid
+        try:
+            result = run_repeated_baseline(
+                payload_path,
+                task_output,
+                config=config,
+            )
+            results.append({
+                "task_uuid": result["task_uuid"],
+                "payload_path": str(payload_path),
+                "output_dir": str(task_output),
+                "label": result["repeated_prediction"]["label"],
+                "confidence": result["repeated_prediction"].get("confidence", 0.0),
+            })
+        except Exception as exc:
+            errors.append({
+                "task_uuid": task_uuid,
+                "payload_path": str(payload_path),
+                "error": str(exc),
+            })
+
+    summary = {
+        "schema_version": "repeated_baseline_batch.v1",
+        "payload_root": str(payload_root),
+        "output_dir": str(output_root),
+        "total": len(payloads),
+        "ok": len(results),
+        "error": len(errors),
+        "results": results,
+        "errors": errors,
+    }
+    _write_json(output_root / "batch_result.json", summary)
+    return summary
+
+
 def _load_checkpoints(payload: dict[str, Any]) -> list[Checkpoint]:
     raw = payload.get("_checkpoints") or []
     checkpoints: list[Checkpoint] = []
@@ -171,7 +227,8 @@ def _config_from_env(args: argparse.Namespace) -> RepeatedBaselineConfig:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run independent repeated baseline")
-    parser.add_argument("payload_path")
+    parser.add_argument("payload_path", nargs="?", help="payload.json path for single-task mode")
+    parser.add_argument("--batch", metavar="PAYLOAD_ROOT", help="Batch mode: recursively run all payload.json files under this directory")
     parser.add_argument("--output-dir", default="")
     parser.add_argument("--vlm-model-url", default="")
     parser.add_argument("--vlm-model-name", default="")
@@ -179,13 +236,33 @@ def main() -> None:
     parser.add_argument("--mock", action="store_true")
     parser.add_argument("--skip-checkpoint-verify", action="store_true")
     args = parser.parse_args()
+    config = _config_from_env(args)
+
+    if args.batch:
+        result = run_repeated_baseline_batch(
+            args.batch,
+            args.output_dir or None,
+            config=config,
+        )
+        print(json.dumps({
+            "mode": "batch",
+            "total": result["total"],
+            "ok": result["ok"],
+            "error": result["error"],
+            "output_dir": result["output_dir"],
+        }, ensure_ascii=False))
+        return
+
+    if not args.payload_path:
+        parser.error("payload_path is required unless --batch is used")
 
     result = run_repeated_baseline(
         args.payload_path,
         args.output_dir or None,
-        config=_config_from_env(args),
+        config=config,
     )
     print(json.dumps({
+        "mode": "single",
         "task_uuid": result["task_uuid"],
         "label": result["repeated_prediction"]["label"],
         "output_dir": str(Path(args.output_dir) if args.output_dir else Path(args.payload_path).parent / "repeated_baseline"),

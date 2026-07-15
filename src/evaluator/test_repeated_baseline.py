@@ -6,7 +6,11 @@ import base64
 import json
 
 from src.common import ABValidationReport, StepABResult, hydrate_payload_images
-from src.evaluator.repeated_baseline import RepeatedBaselineConfig, run_repeated_baseline
+from src.evaluator.repeated_baseline import (
+    RepeatedBaselineConfig,
+    run_repeated_baseline,
+    run_repeated_baseline_batch,
+)
 from src.verifier import Checkpoint, align_checkpoints_to_steps
 
 
@@ -124,3 +128,49 @@ def test_repeated_baseline_mock_end_to_end(tmp_path):
     assert result["task_uuid"] == "case-001"
     assert result["repeated_prediction"]["task_uuid"] == "case-001"
     assert (payload_path.parent / "repeated_baseline" / "baseline_result.json").is_file()
+
+def test_repeated_baseline_batch(tmp_path):
+    for case_id in ("case-001", "case-002"):
+        payload = {
+            "instruction": "打开设置",
+            "seq_info": [
+                {
+                    "index": 0,
+                    "image_relative_path": "",
+                    "planning_output": {
+                        "parsed_action": {
+                            "action_type": "click",
+                            "text": "点击设置",
+                        }
+                    },
+                },
+                {
+                    "index": 1,
+                    "image_relative_path": "",
+                    "planning_output": {
+                        "parsed_action": {
+                            "action_type": "finished",
+                            "text": "任务完成",
+                        }
+                    },
+                },
+            ],
+        }
+        case_dir = tmp_path / "preprocess_out" / case_id
+        case_dir.mkdir(parents=True)
+        (case_dir / "payload.json").write_text(
+            json.dumps(payload, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+    result = run_repeated_baseline_batch(
+        tmp_path / "preprocess_out",
+        tmp_path / "baseline_out",
+        config=RepeatedBaselineConfig(mock_mode=True),
+    )
+
+    assert result["total"] == 2
+    assert result["ok"] == 2
+    assert result["error"] == 0
+    assert (tmp_path / "baseline_out" / "batch_result.json").is_file()
+    assert (tmp_path / "baseline_out" / "case-001" / "baseline_result.json").is_file()
