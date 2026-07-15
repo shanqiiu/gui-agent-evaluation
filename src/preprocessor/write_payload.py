@@ -100,6 +100,9 @@ def write_payload(
     # Optional: attach enriched metadata (ignored by /check_e2e, useful for downstream)
     if task.action_purposes:
         payload["_action_purposes"] = task.action_purposes
+    decomposer_status = getattr(task, "decomposer_status", None)
+    if decomposer_status:
+        payload["_decomposer"] = decomposer_status
     if task.checkpoints:
         payload["_checkpoints"] = task.checkpoints
 

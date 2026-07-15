@@ -68,28 +68,53 @@ def _run_decomposer(task: Any) -> int:
     """
     model_url = os.environ.get("LLM_MODEL_URL") or os.environ.get("VLM_MODEL_URL", "")
     model_name = os.environ.get("LLM_MODEL_NAME") or os.environ.get("VLM_MODEL_NAME", "")
+    api_key = os.environ.get("LLM_API_KEY") or os.environ.get("VLM_API_KEY", "")
+    status = {
+        "attempted": False,
+        "status": "not_started",
+        "model_name": model_name,
+        "model_url_set": bool(model_url),
+        "api_key_set": bool(api_key),
+        "used_vlm_url_fallback": not bool(os.environ.get("LLM_MODEL_URL")) and bool(os.environ.get("VLM_MODEL_URL")),
+        "used_vlm_name_fallback": not bool(os.environ.get("LLM_MODEL_NAME")) and bool(os.environ.get("VLM_MODEL_NAME")),
+        "used_vlm_key_fallback": not bool(os.environ.get("LLM_API_KEY")) and bool(os.environ.get("VLM_API_KEY")),
+        "checkpoint_count": 0,
+        "error": "",
+    }
+    task.decomposer_status = status
     if not model_url or not model_name:
-        log.info("  decomposer: skipped (LLM_MODEL_URL/LLM_MODEL_NAME or VLM fallback not set)")
+        status["status"] = "skipped_missing_config"
+        status["error"] = "LLM_MODEL_URL/LLM_MODEL_NAME or VLM fallback not set"
+        log.info("  decomposer: skipped (%s)", status["error"])
         return 0
 
     try:
         from src.decomposer.decomposer import Decomposer
     except ImportError:
-        log.warning("  decomposer: unavailable (src.decomposer not importable)")
+        status["status"] = "import_failed"
+        status["error"] = "src.decomposer not importable"
+        log.warning("  decomposer: unavailable (%s)", status["error"])
         return 0
 
-    api_key = os.environ.get("LLM_API_KEY") or os.environ.get("VLM_API_KEY", "")
     d = Decomposer(model_url=model_url, model_name=model_name, api_key=api_key)
+    status["attempted"] = True
     try:
         checkpoints = d.decompose(task.instruction, app_name="settings", top_k=5)
     except Exception as e:
+        status["status"] = "exception"
+        status["error"] = str(e)
         log.warning("  decomposer: LLM call failed (%s)", e)
         return 0
 
     if not checkpoints and getattr(d, "last_error", ""):
+        status["status"] = "empty"
+        status["error"] = d.last_error
         log.warning("  decomposer: no checkpoints generated (%s)", d.last_error)
+    else:
+        status["status"] = "ok"
 
     task.checkpoints = checkpoints
+    status["checkpoint_count"] = len(checkpoints)
     log.info("  decomposer: %d checkpoints generated", len(checkpoints))
     return len(checkpoints)
 
