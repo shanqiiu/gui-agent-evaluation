@@ -1,4 +1,4 @@
-﻿"""Run the independent repeated-operation baseline on preprocessed payloads."""
+"""Run the independent repeated-operation baseline on preprocessed payloads."""
 
 from __future__ import annotations
 
@@ -125,7 +125,41 @@ def _write_json(path: Path, data: Any) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def _load_dotenv() -> None:
+    """Load .env before reading os.environ.
+
+    Uses python-dotenv when available; otherwise supports simple KEY=value lines.
+    Existing environment variables are preserved.
+    """
+    candidates = [
+        Path.cwd() / ".env",
+        Path(__file__).resolve().parents[2] / ".env",
+    ]
+    env_path = next((path for path in candidates if path.is_file()), None)
+    if env_path is None:
+        return
+
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(env_path, override=False)
+        return
+    except ImportError:
+        pass
+
+    for line in env_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip("\"'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+
 def _config_from_env(args: argparse.Namespace) -> RepeatedBaselineConfig:
+    _load_dotenv()
     return RepeatedBaselineConfig(
         vlm_model_url=args.vlm_model_url or os.getenv("VLM_MODEL_URL", ""),
         vlm_model_name=args.vlm_model_name or os.getenv("VLM_MODEL_NAME", "qwen3-vl-8b"),
