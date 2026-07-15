@@ -1,70 +1,12 @@
-python src/decomposer/knowledge_store.py --ingest src/decomposer/app_knowledge/           
-Traceback (most recent call last):
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_transports\default.py", line 101, in map_httpcore_exceptions
-    yield
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_transports\default.py", line 250, in handle_request
-    resp = self._pool.handle_request(req)
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpcore\_sync\connection_pool.py", line 256, in handle_request
-    raise exc from None
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpcore\_sync\connection_pool.py", line 236, in handle_request
-    response = connection.handle_request(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpcore\_sync\http_proxy.py", line 297, in handle_request
-    raise ProxyError(msg)
-httpcore.ProxyError: 407 Proxy Authentication Required
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "D:\Projects\workspace\projects\activate\gui-agent-evaluation\src\decomposer\knowledge_store.py", line 110, in <module>
-    ingest_documents(args.ingest)
-  File "D:\Projects\workspace\projects\activate\gui-agent-evaluation\src\decomposer\knowledge_store.py", line 46, in ingest_documents
-    collection = get_store()
-  File "D:\Projects\workspace\projects\activate\gui-agent-evaluation\src\decomposer\knowledge_store.py", line 35, in get_store
-    ef = embedding_functions.SentenceTransformerEmbeddingFunction(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\chromadb\utils\embedding_functions\sentence_transformer_embedding_function.py", line 44, in __init__
-    self.models[model_name] = SentenceTransformer(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\util\decorators.py", line 41, in wrapper
-    return func(*args, **kwargs)
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\sentence_transformer\model.py", line 188, in __init__
-    super().__init__(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\base\model.py", line 216, in __init__
-    modules, self.module_kwargs = self._load_modules(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\base\model.py", line 981, in _load_modules
-    modules_json_path = load_file_path(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\sentence_transformers\util\file_io.py", line 116, in load_file_path
-    return hf_hub_download(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_validators.py", line 88, in _inner_fn
-    return fn(*args, **kwargs)
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\file_download.py", line 1013, in hf_hub_download
-    return _hf_hub_download_to_cache_dir(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\file_download.py", line 1088, in _hf_hub_download_to_cache_dir
-    (url_to_download, etag, commit_hash, expected_size, xet_file_data, head_call_error) = _get_metadata_or_catch_error(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\file_download.py", line 1707, in _get_metadata_or_catch_error
-    metadata = get_hf_file_metadata(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_validators.py", line 88, in _inner_fn
-    return fn(*args, **kwargs)
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\file_download.py", line 1615, in get_hf_file_metadata
-    response = _httpx_follow_relative_redirects_with_backoff(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_http.py", line 719, in _httpx_follow_relative_redirects_with_backoff
-    response = http_backoff(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_http.py", line 596, in http_backoff
-    return next(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\huggingface_hub\utils\_http.py", line 504, in _http_backoff_base
-    response = client.request(method=method, url=url, **kwargs)
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 825, in request
-    return self.send(request, auth=auth, follow_redirects=follow_redirects)
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 914, in send
-    response = self._send_handling_auth(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 942, in _send_handling_auth
-    response = self._send_handling_redirects(
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 979, in _send_handling_redirects
-    response = self._send_single_request(request)
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_client.py", line 1014, in _send_single_request
-    response = transport.handle_request(request)
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_transports\default.py", line 249, in handle_request
-    with map_httpcore_exceptions():
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\contextlib.py", line 153, in __exit__
-    self.gen.throw(typ, value, traceback)
-  File "D:\anaconda3\envs\FuncOracleCheck\lib\site-packages\httpx\_transports\default.py", line 118, in map_httpcore_exceptions
-    raise mapped_exc(message) from exc
-httpx.ProxyError: 407 Proxy Authentication Required
+  "_decomposer": {
+    "attempted": true,
+    "status": "ok",
+    "model_name": "qwen36-27b-vl",
+    "model_url_set": true,
+    "api_key_set": true,
+    "used_vlm_url_fallback": false,
+    "used_vlm_name_fallback": false,
+    "used_vlm_key_fallback": false,
+    "checkpoint_count": 0,
+    "error": ""
+  }
