@@ -6,11 +6,13 @@
 
 ## 项目状态
 
-**当前处于活跃开发阶段**。判定服务管线（Darwin VLM + 数据转换）已完整跑通，模块 A（RAG 任务分解引擎）已完成并集成到数据管线中。模块 B/C/D/E 尚未启动。
+**当前处于原型收敛阶段**。Darwin 判定服务和统一预处理管线已跑通，任务分解、状态提取、检查点验证、规则、效率和轨迹模块均已有原型；但新判定链尚未统一接入服务，综合评估器和标注评测闭环尚未完成。
 
 - 核心判定能力通过集成达尔文实验室的 `src/oracle/` 实现
-- 数据管线（utg.json → payload → 判定）完整，含 10 项核心逻辑测试
-- `src/decomposer/` 模块 A 已完成（LLM + ChromaDB RAG）
+- 数据管线（utg.json + clearRes → payload/dedup/stategraph）已完成
+- `src/decomposer/` 已有 LLM + ChromaDB RAG 原型
+- `src/common/`、`src/verifier/`、`src/efficiency/`、`src/trajectory/` 已有独立原型和测试
+- 当前优先级以 `docs/01-技术方案.md` 的 Phase 0-3 为准
 
 ## 目录结构
 
@@ -19,13 +21,12 @@ gui-agent-evaluation/
 ├── README.md                     # 项目概览与文档索引
 ├── CLAUDE.md                     # Sisyphus 项目指令
 ├── docs/                         # 设计文档
-│   ├── 01-技术方案.md             # 核心技术设计：四层架构、差分偏差三分类、检查点体系
+│   ├── 01-技术方案.md             # 当前唯一规范性技术方案
 │   ├── 02-论文调研.md             # 相关学术论文：VeriGUI、TrajAD、GUI-SHEPHERD 等
 │   ├── 03-相关资源.md             # GitHub 项目、数据集、工具链
-│   ├── 04-架构设计.md             # 系统架构图、数据流、模块交互
+│   ├── GUI_Agent_异常Case_技术洞察.md
 │   ├── 重复动作异常判定技术方案.md  # 动作等效/目标等效/无进展三条件模型
-│   ├── 规划失效异常判定技术方案.md  # 五类规划失效 + 首错归因
-│   └── 进展汇总.md                # 工作进展与当前状态
+│   └── 规划失效异常判定技术方案.md  # 五类规划失效 + 首错归因
 ├── src/                          # 源码模块
 │   ├── preprocessor/            # ✅ 数据预处理管线
 │   │   ├── pipeline.py           # 编排入口
@@ -35,18 +36,15 @@ gui-agent-evaluation/
 │   │   ├── write_stategraph.py   # → _stategraph.json
 │   │   └── ...
 │   ├── oracle/                  # ✅ 达尔文判定服务 (ex FuncOracleCheck)
-│   ├── decomposer/              # ✅ 模块A: 任务分解引擎
-│   ├── state_extractor/         # ✅ 轨迹状态提取
-│   ├── verifier/                # ❌ 模块B: 检查点验证器（待实现）
-│   ├── efficiency/              # ❌ 模块C: 效率分析器（待实现）
-│   ├── trajectory/              # ❌ 模块D: 轨迹差分判定器（待实现）
+│   ├── decomposer/              # 原型: 任务分解引擎
+│   ├── state_extractor/         # 原型: 需替换模拟视觉信号
+│   ├── verifier/                # 原型: 需重构检查点对齐
+│   ├── efficiency/              # 原型: 效率证据分析
+│   ├── trajectory/              # 原型: 偏差证据聚合
 │   ├── evaluator/               # ❌ 模块E: 综合评估器（待实现）
-│   └── common/                  # ❌ 公共工具（待实现）
+│   └── common/                  # 原型: 目标唯一规则实现
 ├── data/                        # 数据文件
 │   └── data.md                   # utg.json 数据格式说明
-│   ├── convert_to_check_e2e.py   # utg.json → payload 转换器
-│   ├── send_payload.py           # 已保存 payload 重发工具
-│   └── test_convert_to_check_e2e.py  # 10 项核心逻辑测试
 ├── scripts/                      # 命令行脚本（待创建）
 ├── configs/                      # 配置文件（待创建）
 └── outputs/                      # 评估报告输出（待创建）

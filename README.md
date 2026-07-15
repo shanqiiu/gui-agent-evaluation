@@ -13,7 +13,7 @@
 ### 1. 启动判定服务
 
 ```bash
-cd FuncOracleCheck
+cd src/oracle
 pip install -r requirements.txt
 # 配置 conf/run_benchmark_config.conf 中的模型地址
 uvicorn main:app --host 0.0.0.0 --port 20025
@@ -160,7 +160,7 @@ Darwin E2E 判定（VLM+LLM）
 
 ## 达尔文判定集成
 
-`FuncOracleCheck/` 是集成的达尔文功能判定模块：
+`src/oracle/` 是集成的达尔文功能判定模块：
 
 | 端点 | 说明 |
 |------|------|
@@ -169,61 +169,43 @@ Darwin E2E 判定（VLM+LLM）
 | `POST /upload_funcheck_task` | 提交异步队列任务 |
 | `POST /get_check_result` | 查询异步任务结果 |
 
-详见 [E2E 调用示例](./FuncOracleCheck/examples/README.md)。
+详见 [E2E 调用示例](./src/oracle/examples/README.md)。
 
 ## 文档索引
 
 | 文档 | 内容 |
 |------|------|
-| [技术方案](./docs/01-技术方案.md) | 四层架构、差分偏差三分类、检查点体系 |
+| [最新技术方案](./docs/01-技术方案.md) | 唯一规范方案：证据分层、统一契约、规则框架、评测与迁移路线 |
 | [论文调研](./docs/02-论文调研.md) | VeriGUI、TrajAD、GUI-SHEPHERD 等 17 篇 |
 | [相关资源](./docs/03-相关资源.md) | GitHub 项目、数据集、工具链 |
-| [架构设计](./docs/04-架构设计.md) | 架构图、数据流、模块交互 |
+| [异常 Case 技术洞察](./docs/GUI_Agent_异常Case_技术洞察.md) | 错误 taxonomy、时序异常、环境和能力缺口 |
 | [重复动作判定方案](./docs/重复动作异常判定技术方案.md) | 动作等效、目标等效、无进展三条件模型 |
 | [规划失效判定方案](./docs/规划失效异常判定技术方案.md) | 五类规划失效 + 首错归因 |
-| [纯文本轻量判定方案](./docs/纯文本轻量判定方案.md) | 不依赖 VLM 的备选降级方案 |
 | [数据格式说明](./data/data.md) | utg.json 数据结构、字段速查 |
-| [进展汇总](./docs/进展汇总.md) | 工作进展与当前状态 |
-| [E2E 调用示例](./FuncOracleCheck/examples/README.md) | /check_e2e 接口说明、场景测试 |
+| [E2E 调用示例](./src/oracle/examples/README.md) | /check_e2e 接口说明、场景测试 |
 
 ## 项目结构
 
 ```text
 gui-agent-evaluation/
 ├── README.md
-├── docs/                              # 设计文档
-│   ├── 01-技术方案.md                  # 四层架构、差分偏差三分类、检查点体系
-│   ├── 02-论文调研.md                  # 17 篇相关论文
-│   ├── 03-相关资源.md                  # GitHub 项目、数据集、工具链
-│   ├── 04-架构设计.md                  # 架构图、数据流、模块交互
-│   ├── 新增方案2.0.md                  # 轨迹状态提取 v2.0（含信号验证策略）
-│   ├── 重复动作异常判定技术方案.md
-│   ├── 规划失效异常判定技术方案.md
-│   └── 进展汇总.md
-├── data/                              # 数据文件
-│   └── data.md                        # utg.json 格式说明
-├── src/                               # 源码模块
-│   ├── preprocessor/               # ✅ 数据预处理管线（统一架构）
-│   │   ├── pipeline.py              # 编排入口: preprocess → 3× write
-│   │   ├── preprocessor.py          # 统一解析器: utg + clearRes → NormalizedTask
-│   │   ├── models.py                # NormalizedTask / NormalizedStep 数据模型
-│   │   ├── clearres_parser.py       # clearRes.gzip 解析 (rawPage + actionPurpose)
-│   │   ├── write_payload.py         # → payload.json（含 rawPage 控件名补全）
-│   │   ├── write_dedup.py           # → _deduped.json（含 scroll end_box）
-│   │   ├── write_stategraph.py      # → _stategraph.json（状态图）
-│   │   ├── test_pipeline.py         # 集成测试
-│   │   └── send_payload.py          # payload 重发工具（独立）
-│   ├── decomposer/                  # ✅ 模块A: 任务分解引擎 (LLM + ChromaDB RAG)
-│   ├── state_extractor/             # ✅ 模块: 轨迹状态提取 v2.0 MVP
-│   ├── oracle/                      # ✅ 达尔文判定服务 (ex FuncOracleCheck)
-│   ├── verifier/                      # ❌ 模块B: 检查点验证器（待实现）
-│   ├── efficiency/                    # ❌ 模块C: 效率分析器（待实现）
-│   ├── trajectory/                    # ❌ 模块D: 轨迹差分判定器（待实现）
-│   └── evaluator/                     # ❌ 模块E: 综合评估器（待实现）
-│   ├── oracle/                      # ✅ 达尔文判定服务 (ex FuncOracleCheck)
-│   │   ├── main.py                        # FastAPI 服务入口 (port 20025)
-│   │   └── ...
-├── scripts/                           # 命令行脚本（待创建）
-├── configs/                           # 配置文件（待创建）
-└── outputs/                           # 评估报告输出（待创建）
+├── docs/
+│   ├── 01-技术方案.md                 # 当前唯一规范性方案
+│   ├── 02-论文调研.md
+│   ├── 03-相关资源.md
+│   ├── GUI_Agent_异常Case_技术洞察.md
+│   ├── 重复动作异常判定技术方案.md       # 专题参考
+│   └── 规划失效异常判定技术方案.md       # 专题参考
+├── data/
+│   └── data.md                       # 原始数据格式说明
+└── src/
+    ├── preprocessor/                 # 已接入：统一数据预处理
+    ├── decomposer/                   # 已接入：LLM + RAG 检查点原型
+    ├── oracle/                       # 已接入：Darwin 判定服务
+    ├── state_extractor/              # 原型：需替换模拟视觉信号
+    ├── verifier/                     # 原型：需重构检查点对齐和图片解析
+    ├── common/                       # 原型：目标唯一规则实现
+    ├── efficiency/                   # 原型：效率证据分析
+    ├── trajectory/                   # 原型：偏差证据聚合
+    └── evaluator/                    # 待实现：统一编排与最终报告
 ```

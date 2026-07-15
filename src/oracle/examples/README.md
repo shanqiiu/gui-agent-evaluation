@@ -137,8 +137,8 @@ Content-Type: application/json
 
 ```bash
 # 前提：模型服务已配好（conf/run_benchmark_config.conf）
-# 启动 FuncOracleCheck 服务
-cd FuncOracleCheck
+# 从仓库根目录启动 Darwin 判定服务
+cd src/oracle
 uvicorn main:app --host 0.0.0.0 --port 20025
 
 # 另一个终端：运行测试脚本

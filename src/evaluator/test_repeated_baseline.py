@@ -1,0 +1,126 @@
+"""Tests for the independent repeated baseline orchestration."""
+
+from __future__ import annotations
+
+import base64
+import json
+
+from src.common import ABValidationReport, StepABResult, hydrate_payload_images
+from src.evaluator.repeated_baseline import RepeatedBaselineConfig, run_repeated_baseline
+from src.verifier import Checkpoint, align_checkpoints_to_steps
+
+
+def test_hydrate_payload_images_resolves_relative_paths(tmp_path):
+    image = tmp_path / "catchDataTurnId0.jpg"
+    image.write_bytes(b"fake image bytes")
+    payload_path = tmp_path / "payload.json"
+    payload = {
+        "_image_base_dir": ".",
+        "seq_info": [
+            {"index": 10, "image_relative_path": "catchDataTurnId0.jpg"},
+            {"index": 11, "image_relative_path": ""},
+        ],
+    }
+    payload_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    hydrated, stats = hydrate_payload_images(payload, payload_path=payload_path)
+
+    assert hydrated["seq_info"][0]["image_relative_path"] == base64.b64encode(
+        b"fake image bytes"
+    ).decode("ascii")
+    assert hydrated["seq_info"][0]["_image_original_ref"] == "catchDataTurnId0.jpg"
+    assert stats.resolved == 1
+    assert stats.missing == 1
+
+
+def test_alignment_uses_source_step_indexes_and_monotonic_order():
+    payload = {
+        "seq_info": [
+            {
+                "index": 20,
+                "planning_output": {
+                    "parsed_action": {
+                        "action_type": "click",
+                        "text": "点击设置",
+                    }
+                },
+            },
+            {
+                "index": 30,
+                "planning_output": {
+                    "parsed_action": {
+                        "action_type": "click",
+                        "text": "点击隐私和安全",
+                    }
+                },
+            },
+        ]
+    }
+    checkpoints = [
+        Checkpoint(name="打开设置", expected_state="设置首页"),
+        Checkpoint(name="进入隐私和安全", expected_state="隐私和安全页面"),
+    ]
+    ab_report = ABValidationReport(results=[
+        StepABResult(step_index=20, pageb_description="设置首页"),
+        StepABResult(step_index=30, pageb_description="隐私和安全页面"),
+    ])
+
+    alignments = align_checkpoints_to_steps(checkpoints, payload, ab_report=ab_report)
+
+    assert [a.step_index for a in alignments] == [20, 30]
+    assert all(a.checkpoint_index == i for i, a in enumerate(alignments))
+
+
+def test_repeated_baseline_mock_end_to_end(tmp_path):
+    payload = {
+        "instruction": "打开设置",
+        "_checkpoints": [
+            {"name": "进入设置首页", "expected_state": "设置首页"},
+        ],
+        "seq_info": [
+            {
+                "index": 5,
+                "image_relative_path": "",
+                "planning_output": {
+                    "parsed_action": {
+                        "action_type": "click",
+                        "start_box": [100, 200],
+                        "text": "点击设置",
+                    }
+                },
+            },
+            {
+                "index": 6,
+                "image_relative_path": "",
+                "planning_output": {
+                    "parsed_action": {
+                        "action_type": "click",
+                        "start_box": [105, 205],
+                        "text": "点击设置",
+                    }
+                },
+            },
+            {
+                "index": 7,
+                "image_relative_path": "",
+                "planning_output": {
+                    "parsed_action": {
+                        "action_type": "finished",
+                        "text": "任务完成",
+                    }
+                },
+            },
+        ],
+    }
+    payload_path = tmp_path / "case-001" / "payload.json"
+    payload_path.parent.mkdir()
+    payload_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    result = run_repeated_baseline(
+        payload_path,
+        config=RepeatedBaselineConfig(mock_mode=True),
+    )
+
+    assert result["task_uuid"] == "case-001"
+    assert result["repeated_prediction"]["task_uuid"] == "case-001"
+    assert (payload_path.parent / "repeated_baseline" / "baseline_result.json").is_file()
