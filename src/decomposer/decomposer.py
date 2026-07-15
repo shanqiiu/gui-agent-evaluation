@@ -43,6 +43,7 @@ class Decomposer:
         self.model_name = model_name
         self.api_key = api_key
         self.timeout = timeout
+        self.last_error = ""
 
     def decompose(self, instruction: str,
                   app_name: str = "settings",
@@ -68,8 +69,11 @@ class Decomposer:
         )
 
         # 3. 调用 LLM
+        self.last_error = ""
         result = self._call_llm(prompt)
         if not result:
+            if not self.last_error:
+                self.last_error = "empty LLM response"
             return []
 
         # 4. 解析 JSON
@@ -77,15 +81,19 @@ class Decomposer:
             checkpoints = json.loads(result)
             if isinstance(checkpoints, list):
                 return checkpoints
-        except json.JSONDecodeError:
+        except json.JSONDecodeError as exc:
             # 尝试从文本中提取 JSON 数组
             import re
             match = re.search(r"\[.*\]", result, re.DOTALL)
             if match:
                 try:
                     return json.loads(match.group())
-                except json.JSONDecodeError:
-                    pass
+                except json.JSONDecodeError as nested_exc:
+                    self.last_error = f"invalid JSON array from LLM: {nested_exc}"
+                    return []
+            self.last_error = f"invalid JSON from LLM: {exc}; response_head={result[:200]!r}"
+            return []
+        self.last_error = "LLM response was not a JSON array"
         return []
 
     def _call_llm(self, prompt: str) -> str:
@@ -109,16 +117,23 @@ class Decomposer:
                 headers=headers,
                 timeout=self.timeout,
             )
-        except (requests.ConnectionError, requests.Timeout):
+        except (requests.ConnectionError, requests.Timeout) as exc:
+            self.last_error = f"LLM request failed: {type(exc).__name__}: {exc}"
             return ""
 
         if resp.status_code != 200:
+            self.last_error = f"LLM API returned {resp.status_code}: {resp.text[:200]}"
             return ""
 
-        data = resp.json()
+        try:
+            data = resp.json()
+        except ValueError as exc:
+            self.last_error = f"LLM API returned non-JSON response: {exc}; body={resp.text[:200]}"
+            return ""
         choices = data.get("choices", [])
         if choices:
             return choices[0].get("message", {}).get("content", "")
+        self.last_error = f"LLM API returned no choices: {str(data)[:200]}"
         return ""
 
 

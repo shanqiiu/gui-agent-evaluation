@@ -63,13 +63,13 @@ def _run_decomposer(task: Any) -> int:
     Requires environment variables:
         LLM_MODEL_URL  - OpenAI-compatible API endpoint
         LLM_MODEL_NAME - model name
-        LLM_API_KEY    - optional API key
+        LLM_API_KEY    - optional API key; falls back to VLM_API_KEY
     Returns number of checkpoints generated (0 if decomposer unavailable).
     """
-    model_url = os.environ.get("LLM_MODEL_URL", "")
-    model_name = os.environ.get("LLM_MODEL_NAME", "")
+    model_url = os.environ.get("LLM_MODEL_URL") or os.environ.get("VLM_MODEL_URL", "")
+    model_name = os.environ.get("LLM_MODEL_NAME") or os.environ.get("VLM_MODEL_NAME", "")
     if not model_url or not model_name:
-        log.info("  decomposer: skipped (LLM_MODEL_URL/LLM_MODEL_NAME not set)")
+        log.info("  decomposer: skipped (LLM_MODEL_URL/LLM_MODEL_NAME or VLM fallback not set)")
         return 0
 
     try:
@@ -78,13 +78,16 @@ def _run_decomposer(task: Any) -> int:
         log.warning("  decomposer: unavailable (src.decomposer not importable)")
         return 0
 
-    api_key = os.environ.get("LLM_API_KEY", "")
+    api_key = os.environ.get("LLM_API_KEY") or os.environ.get("VLM_API_KEY", "")
     d = Decomposer(model_url=model_url, model_name=model_name, api_key=api_key)
     try:
         checkpoints = d.decompose(task.instruction, app_name="settings", top_k=5)
     except Exception as e:
         log.warning("  decomposer: LLM call failed (%s)", e)
         return 0
+
+    if not checkpoints and getattr(d, "last_error", ""):
+        log.warning("  decomposer: no checkpoints generated (%s)", d.last_error)
 
     task.checkpoints = checkpoints
     log.info("  decomposer: %d checkpoints generated", len(checkpoints))
@@ -319,4 +322,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
