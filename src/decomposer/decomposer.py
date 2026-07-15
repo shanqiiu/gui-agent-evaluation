@@ -31,8 +31,26 @@ _DECOMPOSE_PROMPT = """你是一个鸿蒙手机操作助手的任务规划专家
 - "preconditions": 前置条件描述，如 "已进入设置首页"
 - "expected_state": 完成后页面应呈现的状态
 
-只输出 JSON 数组，不要任何额外文字。"""
+约束:
+- 必须输出 1 到 8 个检查点，禁止输出空数组 []。
+- 即使参考知识为空，也必须只根据用户指令生成最小可验证检查点。
+- expected_state 必须描述截图或页面中可观察到的完成条件。
+- 只输出 JSON 数组，不要任何额外文字。"""
 
+_RETRY_DECOMPOSE_PROMPT = """上一次你返回了空检查点列表，这是无效输出。
+请重新根据用户指令生成 1 到 8 个 GUI 任务检查点。
+
+## 用户指令
+{instruction}
+
+## 输出要求
+只输出 JSON 数组，且数组不能为空。字段固定为:
+- "name"
+- "required"
+- "preconditions"
+- "expected_state"
+
+如果无法确定详细路径，也要输出一个必需检查点，expected_state 描述任务目标已在页面上完成或目标设置项状态已生效。"""
 
 class Decomposer:
     """基于 LLM + RAG 的任务分解器。"""
@@ -70,6 +88,16 @@ class Decomposer:
         )
 
         # 3. 调用 LLM
+        checkpoints = self._call_and_parse(prompt)
+        if checkpoints:
+            return checkpoints
+        if self.last_error != "LLM returned an empty checkpoint list":
+            return []
+
+        retry_prompt = _RETRY_DECOMPOSE_PROMPT.format(instruction=instruction)
+        return self._call_and_parse(retry_prompt)
+
+    def _call_and_parse(self, prompt: str) -> list[dict[str, Any]]:
         self.last_error = ""
         self.last_response_head = ""
         result = self._call_llm(prompt)
@@ -78,8 +106,9 @@ class Decomposer:
             if not self.last_error:
                 self.last_error = "empty LLM response"
             return []
+        return self._parse_checkpoints(result)
 
-        # 4. 解析 JSON
+    def _parse_checkpoints(self, result: str) -> list[dict[str, Any]]:
         try:
             checkpoints = json.loads(result)
             if isinstance(checkpoints, list):
@@ -87,7 +116,6 @@ class Decomposer:
                     self.last_error = "LLM returned an empty checkpoint list"
                 return checkpoints
         except json.JSONDecodeError as exc:
-            # 尝试从文本中提取 JSON 数组
             import re
             match = re.search(r"\[.*\]", result, re.DOTALL)
             if match:
