@@ -80,6 +80,7 @@ def _run_decomposer(task: Any) -> int:
         "used_vlm_key_fallback": not bool(os.environ.get("LLM_API_KEY")) and bool(os.environ.get("VLM_API_KEY")),
         "checkpoint_count": 0,
         "error": "",
+        "response_head": "",
     }
     task.decomposer_status = status
     if not model_url or not model_name:
@@ -106,10 +107,11 @@ def _run_decomposer(task: Any) -> int:
         log.warning("  decomposer: LLM call failed (%s)", e)
         return 0
 
-    if not checkpoints and getattr(d, "last_error", ""):
+    status["response_head"] = getattr(d, "last_response_head", "")
+    if not checkpoints:
         status["status"] = "empty"
-        status["error"] = d.last_error
-        log.warning("  decomposer: no checkpoints generated (%s)", d.last_error)
+        status["error"] = getattr(d, "last_error", "") or "LLM returned no checkpoints"
+        log.warning("  decomposer: no checkpoints generated (%s)", status["error"])
     else:
         status["status"] = "ok"
 

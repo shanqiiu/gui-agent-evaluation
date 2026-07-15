@@ -44,6 +44,7 @@ class Decomposer:
         self.api_key = api_key
         self.timeout = timeout
         self.last_error = ""
+        self.last_response_head = ""
 
     def decompose(self, instruction: str,
                   app_name: str = "settings",
@@ -70,7 +71,9 @@ class Decomposer:
 
         # 3. 调用 LLM
         self.last_error = ""
+        self.last_response_head = ""
         result = self._call_llm(prompt)
+        self.last_response_head = result[:500] if result else ""
         if not result:
             if not self.last_error:
                 self.last_error = "empty LLM response"
@@ -80,6 +83,8 @@ class Decomposer:
         try:
             checkpoints = json.loads(result)
             if isinstance(checkpoints, list):
+                if not checkpoints:
+                    self.last_error = "LLM returned an empty checkpoint list"
                 return checkpoints
         except json.JSONDecodeError as exc:
             # 尝试从文本中提取 JSON 数组
@@ -87,7 +92,10 @@ class Decomposer:
             match = re.search(r"\[.*\]", result, re.DOTALL)
             if match:
                 try:
-                    return json.loads(match.group())
+                    checkpoints = json.loads(match.group())
+                    if isinstance(checkpoints, list) and not checkpoints:
+                        self.last_error = "LLM returned an empty checkpoint list"
+                    return checkpoints
                 except json.JSONDecodeError as nested_exc:
                     self.last_error = f"invalid JSON array from LLM: {nested_exc}"
                     return []
