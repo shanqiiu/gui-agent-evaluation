@@ -517,11 +517,11 @@ with open('utg.json', 'r', encoding='utf-8') as f:
 nodes = data['nodes']
 for node in nodes:
     print(f"Node {node['id']}: {node['label']} (shape={node['shape']})")
-    
+
     # 解析嵌套的 JSON 字符串
     title = json.loads(node['title'])
     print(f"  Instruction: {title.get('instruction', '')}")
-    
+
     # 解析 directives
     if node['raw_item']['directives'] != '{}':
         directives = json.loads(node['raw_item']['directives'])
@@ -563,7 +563,7 @@ def parse_action(action_type: str):
     open_match = re.match(r'open\("([^"]+)"', action_type)
     clarify_match = re.match(r'clarify\("([^"]+)"\)', action_type)
     edit_match = re.match(r'edit\((\[.*?\])', action_type)
-    
+
     if click_match:
         return {'type': 'click', 'coords': click_match.group(1)}
     if scroll_match:
@@ -626,10 +626,9 @@ def parse_action(action_type: str):
 所有 JSON 文件使用 **UTF-8** 编码。
 
 ---
+## 附录 D：当前预处理与基线流程
 
-## Appendix D: Current Preprocess and Baseline Flow
-
-The old `/check_e2e` conversion path is legacy. The current default flow is:
+旧 `/check_e2e` 转换路径仅作为 legacy 兼容参考。当前默认流程是：
 
 ```bash
 python -m src.preprocessor.pipeline <task_uuid_dir> --output <preprocess_out>
@@ -639,18 +638,18 @@ python -m src.evaluator.repeated_baseline <preprocess_out>/<task_uuid>/payload.j
 python -m src.evaluator.repeated_baseline --batch <preprocess_out> --output-dir <baseline_out>
 ```
 
-The preprocessor still maps `utg.json`, `clearRes`, rawPage/OCR, actionPurpose, and screenshots into `payload.json`, `_deduped.json`, `_stategraph.json`, and flattened screenshot files.
+预处理器仍负责将 `utg.json`、`clearRes`、rawPage/OCR、actionPurpose 和截图转换为 `payload.json`、`_deduped.json`、`_stategraph.json` 以及扁平化截图文件。
 
-Current baseline outputs:
+当前基线输出：
 
-| File | Meaning |
+| 文件 | 含义 |
 |---|---|
-| `ab_report.json` | AB page/action validation |
-| `intent_matches.json` | checkpoint intent recall |
-| `checkpoint_alignments.json` | execution candidate alignment |
-| `verification_report.json` | checkpoint screenshot/VLM verification |
-| `state_sequence.json` | state, OCR, and visual evidence |
-| `repeated_prediction.json` | repeated-action result |
-| `baseline_result.json` | full combined report |
+| `ab_report.json` | AB 页面/动作验证 |
+| `intent_matches.json` | checkpoint 意图召回 |
+| `checkpoint_alignments.json` | 执行候选对齐 |
+| `verification_report.json` | checkpoint 截图/VLM 验证 |
+| `state_sequence.json` | 状态、OCR 和视觉证据 |
+| `repeated_prediction.json` | 重复操作结果 |
+| `baseline_result.json` | 全量汇总报告 |
 
-`src/oracle` and `/check_e2e` remain legacy compatibility references and are not the default project baseline.
+`src/oracle` 和 `/check_e2e` 仅作为 legacy 兼容参考，不是当前项目默认基线。

@@ -1,16 +1,15 @@
-# GUI Agent Anomaly Case Insights
+# GUI Agent 异常 Case 技术洞察说明
 
-Status: taxonomy and research notes only. This document is not the implementation source of truth. The current implementation source of truth is `docs/01-*.md`.
+状态：异常 taxonomy 和研究洞察材料，不是实现规范。当前实现规范以 `docs/01-技术方案.md` 为准。
 
-Current mapping to implementation:
+与当前实现的对应关系：
 
-- repeated actions -> `src.common.repeated_action_detector`
-- state loops -> `src.evaluator.state_evidence` plus repeated detector
-- missing goals -> future planning-failure aggregation over `intent_matches` and `verification_report`
-- execution failure -> AB/VLM evidence in `ab_report` and `verification_report`
+- 重复动作 -> `src.common.repeated_action_detector`
+- 状态循环 -> `src.evaluator.state_evidence` + 重复检测器
+- 目标缺失 -> 后续基于 `intent_matches` 和 `verification_report` 的规划失效聚合
+- 执行失败 -> `ab_report` 和 `verification_report` 中的 AB/VLM 证据
 
 ---
-
 # GUI Agent 异常Case 技术洞察文档
 
 > **文档版本**: v1.0 · 2026-07-01

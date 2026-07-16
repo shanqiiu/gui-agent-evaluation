@@ -1,13 +1,13 @@
-# GUI Agent Evaluation
+# GUI Agent 执行轨迹评估
 
-This project evaluates GUI Agent execution traces with an independent baseline. The current default path no longer depends on `src/oracle`; the old Darwin service is kept as legacy reference only.
+本项目用于评估 GUI Agent 的真实执行轨迹。当前默认链路是独立新基线，不再依赖 `src/oracle`；旧 Darwin 服务仅作为 legacy 参考保留。
 
-## Current Pipeline
+## 当前主流程
 
 ```text
-raw task data
+原始任务数据
   -> src.preprocessor.pipeline
-  -> payload.json + screenshots + dedup/stategraph artifacts
+  -> payload.json + 截图 + dedup/stategraph 产物
   -> src.evaluator.repeated_baseline
   -> ab_report
   -> state_sequence
@@ -18,49 +18,49 @@ raw task data
   -> baseline_result
 ```
 
-The important design change is the two-stage checkpoint flow:
+核心设计是两阶段检查点判定：
 
-1. Intent recall: match `_checkpoints` against actual `agent_purpose`, action text, page descriptions, and aggregated state evidence.
-2. Execution verification: verify only recalled candidates with real screenshots and VLM evidence.
+1. 意图召回：用 `_checkpoints` 匹配实际 `agent_purpose`、动作文本、页面描述和聚合状态证据。
+2. 执行验证：只对召回命中的候选步骤/状态使用真实截图和 VLM 验证。
 
-If intent recall fails, the checkpoint is marked `unmatched_intent`; the verifier does not randomly bind it to a screenshot step.
+如果意图召回失败，检查点会标记为 `unmatched_intent`，不会随机绑定到某个截图步骤。
 
-## Quick Start
+## 快速开始
 
-### Preprocess one task
+### 单任务预处理
 
 ```bash
 python -m src.preprocessor.pipeline D:\path\to\raw_task_dir --output D:\path\to\preprocess_out
 ```
 
-### Preprocess a batch
+### 批量预处理
 
 ```bash
 python -m src.preprocessor.pipeline --batch D:\path\to\raw_task_base_dir --output D:\path\to\preprocess_out
 ```
 
-### Run one baseline
+### 单任务运行基线
 
 ```bash
 python -m src.evaluator.repeated_baseline D:\path\to\preprocess_out\task_uuid\payload.json --output-dir D:\path\to\baseline_out
 ```
 
-### Run batch baseline
+### 批量运行基线
 
 ```bash
 python -m src.evaluator.repeated_baseline --batch D:\path\to\preprocess_out --output-dir D:\path\to\baseline_out
 ```
 
-`start.sh` wraps the same commands and supports:
+`start.sh` 封装了同样流程：
 
 ```bash
 MODE=single bash start.sh
 MODE=batch bash start.sh
 ```
 
-## Environment
+## 环境配置
 
-`src.evaluator.repeated_baseline` auto-loads `.env` from the repo root.
+`src.evaluator.repeated_baseline` 会自动加载仓库根目录 `.env`。
 
 ```env
 VLM_MODEL_URL=http://host/v1/chat/completions
@@ -72,16 +72,16 @@ LLM_MODEL_NAME=qwen3-8b
 LLM_API_KEY=...
 ```
 
-Usage rules:
+规则：
 
-- `VLM_*` is used by AB validation and checkpoint screenshot verification.
-- `LLM_*` is used by decomposer and optional intent reranking.
-- If `LLM_*` is absent, the baseline falls back to `VLM_*` for intent reranking.
-- Do not commit `.env`.
+- `VLM_*` 用于 AB 判定和检查点截图验证。
+- `LLM_*` 用于 decomposer 和可选的意图重排。
+- 如果 `LLM_*` 未配置，基线会回退复用 `VLM_*` 做意图重排。
+- 不要提交 `.env`。
 
-## Preprocessor Output
+## 预处理输出
 
-For each task:
+每个任务目录输出：
 
 ```text
 output/<task_uuid>/
@@ -92,57 +92,57 @@ output/<task_uuid>/
 - ...
 ```
 
-`payload.json` contains:
+`payload.json` 关键字段：
 
-| Field | Meaning |
+| 字段 | 含义 |
 |---|---|
-| `instruction` | User task |
-| `step_level_instruction` | Human-readable checkpoint sequence |
-| `_checkpoints` | Structured checkpoint list |
-| `agent_purposes` / `_action_purposes` | Agent self-reported step intentions |
-| `_ocr_pages` / `_ocr_page_index` | rawPage/OCR evidence |
-| `seq_info` | Actual action and screenshot sequence |
-| `_image_base_dir` | Base directory for screenshot hydration |
+| `instruction` | 用户任务 |
+| `step_level_instruction` | 可读检查点序列 |
+| `_checkpoints` | 结构化检查点列表 |
+| `agent_purposes` / `_action_purposes` | Agent 每步自述意图 |
+| `_ocr_pages` / `_ocr_page_index` | rawPage/OCR 证据 |
+| `seq_info` | 实际动作和截图序列 |
+| `_image_base_dir` | 截图路径解析基准目录 |
 
-## Baseline Output
+## 基线输出
 
-| File | Meaning |
+| 文件 | 含义 |
 |---|---|
-| `ab_report.json` | AB page/action validation output |
-| `intent_matches.json` | Intent-level checkpoint recall candidates |
-| `checkpoint_alignments.json` | Candidate-to-step alignment result |
-| `verification_report.json` | VLM checkpoint achievement report |
-| `state_sequence.json` | Aggregated state, OCR, and visual evidence |
-| `repeated_prediction.json` | Repeated-action baseline result |
-| `baseline_result.json` | Full combined output |
+| `ab_report.json` | AB 页面/动作验证结果 |
+| `intent_matches.json` | 检查点意图召回候选 |
+| `checkpoint_alignments.json` | 候选到执行步骤的对齐结果 |
+| `verification_report.json` | 检查点截图/VLM 达成报告 |
+| `state_sequence.json` | 状态、OCR 和视觉证据 |
+| `repeated_prediction.json` | 重复操作基线结果 |
+| `baseline_result.json` | 全量汇总结果 |
 
-## Module Status
+## 模块状态
 
-| Module | Status |
+| 模块 | 定位 |
 |---|---|
-| `src/preprocessor` | Current data preprocessing path |
-| `src/decomposer` | LLM + RAG checkpoint generation |
-| `src/common` | Shared AB validation, image hydration, repeated detector |
-| `src/evaluator` | Current baseline orchestration |
-| `src/verifier` | Intent recall, alignment, checkpoint VLM verification |
-| `src/oracle` | Legacy Darwin service, not the default baseline path |
-| `src/state_extractor` | Legacy/prototype state extractor; new baseline uses `src/evaluator/state_evidence.py` |
+| `src/preprocessor` | 当前数据预处理入口 |
+| `src/decomposer` | LLM + RAG 检查点生成 |
+| `src/common` | 图片水合、ABValidator、重复检测器 |
+| `src/evaluator` | 当前基线编排入口 |
+| `src/verifier` | 意图召回、检查点对齐、VLM 验证 |
+| `src/oracle` | legacy Darwin 服务，不是默认基线路径 |
+| `src/state_extractor` | legacy/prototype 状态提取器；新基线使用 `src/evaluator/state_evidence.py` |
 
-## Tests
+## 测试
 
-Primary regression command:
+主要回归命令：
 
 ```bash
 python -m pytest src\verifier src\evaluator src\common\test_common.py
 ```
 
-## Documentation Index
+## 文档索引
 
-| Document | Purpose |
+| 文档 | 用途 |
 |---|---|
-| `docs/01-*.md` | Source-of-truth technical plan |
-| `docs/*repeated*.md` / repeated-action topic doc | Repeated-action design |
-| `docs/*planning*.md` / planning-failure topic doc | Planning-failure design |
-| `docs/02-*.md` | Literature notes, not implementation spec |
-| `docs/03-*.md` | Resource index, not implementation spec |
-| `docs/GUI_Agent_*.md` | Taxonomy and research insight |
+| `docs/01-技术方案.md` | 当前唯一规范性技术方案 |
+| `docs/重复动作异常判定技术方案.md` | 重复操作专题方案 |
+| `docs/规划失效异常判定技术方案.md` | 规划失效专题方案 |
+| `docs/02-论文调研.md` | 研究背景，不作为实现规范 |
+| `docs/03-相关资源.md` | 资源索引，不作为实现规范 |
+| `docs/GUI_Agent_异常Case_技术洞察.md` | 异常 taxonomy 和研究洞察 |
