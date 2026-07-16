@@ -627,53 +627,30 @@ def parse_action(action_type: str):
 
 ---
 
-## 附录 D：/check_e2e 格式转换
+## Appendix D: Current Preprocess and Baseline Flow
 
-`convert_to_check_e2e.py` 将 utg.json 数据转换为 FuncOracleCheck 的 `/check_e2e` 判定接口所需格式，打通"Agent 原始执行数据 → 异常判定"的完整链路。
-
-### 转换映射
-
-| utg.json 来源 | /check_e2e 字段 | 说明 |
-|---|---|---|
-| `nodes[].title.instruction` 或 `edges[].title.instruction` | `instruction` | 用户任务意图 |
-| 从 `node.raw_item.directives` 提取的动作描述，去重拼接 | `step_level_instruction` | 用 `->` 连接，do-nothing 不参与，同名步骤加序号 |
-| `node.raw_item.directives` JSON 解析 | `parsed_action.action_type` | `edit`→`type`, `preCheckDone`→`do-nothing`, `scroll custom`→`scroll` |
-| `params.points` / `node.bounds` 中心 | `parsed_action.start_box` / `end_box` | 优先取实际触点坐标 |
-| `params.node.text` / `params.node.content` | `parsed_action.text` / `content` | 元素文本和输入内容 |
-| `stepData.action_type` 正则解析 | `parsed_action.direction` | 仅提取方向（directives 中无此信息） |
-| `node.image` REST URL → 本地文件 | `image_relative_path` | 发送时 `hydrate_payload` 转为 base64 |
-| `node.image` REST URL | `_image_source` | 完整 URL，用于溯源 |
-
-### 使用方式
+The old `/check_e2e` conversion path is legacy. The current default flow is:
 
 ```bash
-# 单个原始任务目录 → payload JSON
-python data/convert_to_check_e2e.py <task_uuid_dir>/ -o payload.json
+python -m src.preprocessor.pipeline <task_uuid_dir> --output <preprocess_out>
+python -m src.preprocessor.pipeline --batch <raw_base_dir> --output <preprocess_out>
 
-# 直接发送到 /check_e2e 服务获取判定结果
-python data/convert_to_check_e2e.py <task_uuid_dir>/ --send http://localhost:20025
-
-# 批量转换（支持断点续跑：已存在的 payload 自动跳过）
-python data/convert_to_check_e2e.py --batch reorg_output/ --processed -o payloads/
-
-# 批量 + 发送 + 保存结果
-python data/convert_to_check_e2e.py --batch reorg_output/ --processed --send http://localhost:20025
-
-# 已保存的 payload 重发
-python data/send_payload.py payloads/ --send http://localhost:20025
-
-# 验证核心逻辑
-python data/test_convert_to_check_e2e.py
+python -m src.evaluator.repeated_baseline <preprocess_out>/<task_uuid>/payload.json --output-dir <baseline_out>
+python -m src.evaluator.repeated_baseline --batch <preprocess_out> --output-dir <baseline_out>
 ```
 
-### 过滤规则
+The preprocessor still maps `utg.json`, `clearRes`, rawPage/OCR, actionPurpose, and screenshots into `payload.json`, `_deduped.json`, `_stategraph.json`, and flattened screenshot files.
 
-- 只保留 `node.raw_item.directives` 非空的步骤（无 directives 的为思考/反射节点）
-- 不做过多的主观过滤——`open`、`clarify`、`do-nothing` 等均保留在轨迹中
-- 最后一步自动追加 `action_type: "finished"`（不参与 action_count 计数）
+Current baseline outputs:
 
-### 截图三级兜底
+| File | Meaning |
+|---|---|
+| `ab_report.json` | AB page/action validation |
+| `intent_matches.json` | checkpoint intent recall |
+| `checkpoint_alignments.json` | execution candidate alignment |
+| `verification_report.json` | checkpoint screenshot/VLM verification |
+| `state_sequence.json` | state, OCR, and visual evidence |
+| `repeated_prediction.json` | repeated-action result |
+| `baseline_result.json` | full combined report |
 
-1. 用当前步骤对应节点的 `node.image` URL → 解析本地文件
-2. 文件不存在 → 用前一步成功加载的截图（`last_loaded` 追踪）
-3. 仍为空 → `image_relative_path = ""`
+`src/oracle` and `/check_e2e` remain legacy compatibility references and are not the default project baseline.

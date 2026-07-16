@@ -1,3 +1,5 @@
+Legacy note: this document describes the old `src/oracle` Darwin-compatible service. The current default baseline is `src.evaluator.repeated_baseline`; see repo README and `docs/01-*.md`.
+
 # /check_e2e 示例与重复动作/规划失效判定
 
 本目录提供 `POST /check_e2e` 的完整调用示例，含重复动作判定和规划失效判定的输出说明。

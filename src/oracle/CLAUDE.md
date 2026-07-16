@@ -1,3 +1,5 @@
+Legacy note: this document describes the old `src/oracle` Darwin-compatible service. The current default baseline is `src.evaluator.repeated_baseline`; see repo README and `docs/01-*.md`.
+
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with this repository.

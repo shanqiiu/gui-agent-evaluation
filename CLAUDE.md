@@ -1,121 +1,98 @@
-# GUI Agent 执行轨迹自动判定系统
+# GUI Agent Evaluation Project Notes
 
-## 项目简介
+## Current Project State
 
-自动化评估系统，针对多模态 GUI Agent（如手机操作助手）的任务执行进行合理性、正确性、效率三维度自动判定。通过 VLM 截图语义对齐、LLM+RAG 检查点分解、操作意图向量化等技术，实现对 Agent 执行轨迹的系统化评估。
+The default evaluation path is the independent baseline, not `src/oracle`.
 
-## 项目状态
+Current chain:
 
-**当前处于原型收敛阶段**。Darwin 判定服务和统一预处理管线已跑通，任务分解、状态提取、检查点验证、规则、效率和轨迹模块均已有原型；但新判定链尚未统一接入服务，综合评估器和标注评测闭环尚未完成。
-
-- 核心判定能力通过集成达尔文实验室的 `src/oracle/` 实现
-- 数据管线（utg.json + clearRes → payload/dedup/stategraph）已完成
-- `src/decomposer/` 已有 LLM + ChromaDB RAG 原型
-- `src/common/`、`src/verifier/`、`src/efficiency/`、`src/trajectory/` 已有独立原型和测试
-- 当前优先级以 `docs/01-技术方案.md` 的 Phase 0-3 为准
-
-## 目录结构
-
-```
-gui-agent-evaluation/
-├── README.md                     # 项目概览与文档索引
-├── CLAUDE.md                     # Sisyphus 项目指令
-├── docs/                         # 设计文档
-│   ├── 01-技术方案.md             # 当前唯一规范性技术方案
-│   ├── 02-论文调研.md             # 相关学术论文：VeriGUI、TrajAD、GUI-SHEPHERD 等
-│   ├── 03-相关资源.md             # GitHub 项目、数据集、工具链
-│   ├── GUI_Agent_异常Case_技术洞察.md
-│   ├── 重复动作异常判定技术方案.md  # 动作等效/目标等效/无进展三条件模型
-│   └── 规划失效异常判定技术方案.md  # 五类规划失效 + 首错归因
-├── src/                          # 源码模块
-│   ├── preprocessor/            # ✅ 数据预处理管线
-│   │   ├── pipeline.py           # 编排入口
-│   │   ├── preprocessor.py       # 统一解析器
-│   │   ├── write_payload.py      # → payload.json
-│   │   ├── write_dedup.py        # → _deduped.json
-│   │   ├── write_stategraph.py   # → _stategraph.json
-│   │   └── ...
-│   ├── oracle/                  # ✅ 达尔文判定服务 (ex FuncOracleCheck)
-│   ├── decomposer/              # 原型: 任务分解引擎
-│   ├── state_extractor/         # 原型: 需替换模拟视觉信号
-│   ├── verifier/                # 原型: 需重构检查点对齐
-│   ├── efficiency/              # 原型: 效率证据分析
-│   ├── trajectory/              # 原型: 偏差证据聚合
-│   ├── evaluator/               # ❌ 模块E: 综合评估器（待实现）
-│   └── common/                  # 原型: 目标唯一规则实现
-├── data/                        # 数据文件
-│   └── data.md                   # utg.json 数据格式说明
-├── scripts/                      # 命令行脚本（待创建）
-├── configs/                      # 配置文件（待创建）
-└── outputs/                      # 评估报告输出（待创建）
+```text
+src.preprocessor.pipeline
+  -> payload.json
+  -> src.evaluator.repeated_baseline
+  -> ab_report
+  -> state_sequence
+  -> intent_matches
+  -> checkpoint_alignments
+  -> verification_report
+  -> repeated_prediction
+  -> baseline_result
 ```
 
-## 技术栈（规划）
+`src/oracle` is legacy Darwin reference only. Do not add new baseline logic under `src/oracle` unless the task explicitly asks for legacy compatibility.
 
-- **Python**: 3.10+
-- **VLM**: Qwen3.5-VL-7B（截图语义对齐）
-- **LLM**: Qwen3-8B / GPT-4o（任务分解、Judge）
-- **Embedding**: text-embedding-3-large / BGE-M3（操作意图向量化）
-- **RAG**: ChromaDB / LanceDB（App 私有知识）
-- **推理框架**: vLLM / SGLang
-- **包管理**: uv
+## Important Modules
 
-## 常用命令
+| Module | Role |
+|---|---|
+| `src/preprocessor` | Raw task parser and payload writer |
+| `src/decomposer` | LLM + RAG checkpoint generator |
+| `src/common` | Image hydration, ABValidator, repeated detector |
+| `src/evaluator/repeated_baseline.py` | Main baseline orchestration |
+| `src/evaluator/state_evidence.py` | Aggregated state and visual/OCR evidence |
+| `src/verifier/alignment.py` | Intent recall and checkpoint-to-step alignment |
+| `src/verifier/verifier.py` | Screenshot/VLM checkpoint verification |
+| `src/oracle` | Legacy Darwin service |
+
+## Design Rules
+
+- Keep generic modules app/domain agnostic.
+- Do not hardcode ecommerce/search/filter/product-style intents.
+- Do not evenly distribute checkpoints across steps.
+- Use real screenshot Base64 for VLM calls; do not pass file paths as image content.
+- `agent_purpose` is an intent signal, not ground truth.
+- Checkpoint judgment is two-stage: intent recall first, execution verification second.
+- Missing evidence should produce `uncertain` or `unmatched_intent`, not silent success.
+- Keep `.env` uncommitted.
+
+## Main Commands
+
+Preprocess one task:
 
 ```bash
-# 依赖安装
-uv sync
-
-# 运行测试
-pytest tests/ -v --tb=short
-
-# 代码检查与格式化
-ruff check src/ scripts/
-ruff format src/ scripts/
-
-# 类型检查
-pyright src/
+python -m src.preprocessor.pipeline <task_uuid_dir> --output <preprocess_out>
 ```
 
-## 开发规范
+Preprocess batch:
 
-- **类型注解**: 所有公开函数必须添加类型注解
-- **代码风格**: PEP 8，使用 Ruff 检查
-- **文档字符串**: Google 风格 docstring
-- **测试**: 新增功能须附带 Pytest 用例，目标覆盖率 80%+
-- **提交信息**: `[类型] 简要描述`，类型包括 `feat`, `fix`, `refactor`, `test`, `docs`
+```bash
+python -m src.preprocessor.pipeline --batch <raw_base_dir> --output <preprocess_out>
+```
 
-## 核心架构
+Run one baseline:
 
-### 四层架构
-1. **L1 任务输入 & 知识支撑** — 自然语言指令 + RAG 知识库
-2. **L2 任务子状态 & 约束分解** — 目标/属性/操作/状态流转约束
-3. **L3 关键检查点判定** — 阶段级检查 + 单步级检查 + 效率判定
-4. **L4 综合评估** — 加权聚合输出结构化报告
+```bash
+python -m src.evaluator.repeated_baseline <payload.json> --output-dir <baseline_out>
+```
 
-### 五大功能模块
-- **模块A 任务分解引擎**: 自然语言 → LLM+RAG → 结构化检查点列表
-- **模块B 检查点验证器**: 截图对 + 检查点描述 → VLM → 达成/未达成/不确定
-- **模块C 效率分析器**: 操作序列 → 向量化 → 重复/无效/循环检测
-- **模块D 轨迹差分判定器**: 完整轨迹 → 三分类（无影响/补救性/级联偏差）
-- **模块E 综合评估器**: 聚合 B/C/D → 加权总分 + 结构化报告
+Run batch baseline:
 
-### 差分偏差三分类
-| 类型 | 定义 | 处理 |
-|------|------|------|
-| 无影响偏差 | 不同路径但结果一致 | 不扣分 |
-| 补救性偏差 | 早期次优但后续纠正 | 降分但接受 |
-| 级联偏差 | 小错误被持续放大 | 判定失败，标记首错步骤 |
+```bash
+python -m src.evaluator.repeated_baseline --batch <preprocess_out> --output-dir <baseline_out>
+```
 
-## 环境配置
+Regression tests:
 
-创建 `.env` 文件（已包含在 `.gitignore` 中）：
+```bash
+python -m pytest src\verifier src\evaluator src\common\test_common.py
+```
+
+## Environment
+
+`src.evaluator.repeated_baseline` auto-loads `.env`.
 
 ```env
-# Decomposer — LLM+RAG 任务分解
-LLM_MODEL_URL=http://localhost:8000/v1/chat/completions
+VLM_MODEL_URL=http://host/v1/chat/completions
+VLM_MODEL_NAME=qwen3-vl-8b
+VLM_API_KEY=...
+
+LLM_MODEL_URL=http://host/v1/chat/completions
 LLM_MODEL_NAME=qwen3-8b
-LLM_API_KEY=                        # 可选
+LLM_API_KEY=...
 ```
 
-Darwin 判定服务的模型配置在 `src/oracle/conf/run_benchmark_config.conf`，API Key 通过 `MLOPS_API_KEY` 环境变量传入。
+If `LLM_*` is absent, the baseline falls back to `VLM_*` for intent reranking.
+
+## Documentation
+
+`docs/01-*.md` is the source of truth. Topic docs under `docs/` are aligned with the current baseline, while literature/resource/case-insight docs are background only.

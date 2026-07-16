@@ -1,211 +1,148 @@
-# GUI Agent 执行轨迹自动判定
+# GUI Agent Evaluation
 
-> 构建针对 AI 智能体的自动化测试评估系统，实现对多模态 GUI Agent 任务执行合理性、结果正确性、执行效率的自动判定。
+This project evaluates GUI Agent execution traces with an independent baseline. The current default path no longer depends on `src/oracle`; the old Darwin service is kept as legacy reference only.
 
-## 核心能力
-
-- **执行轨迹合理性判定**：基于操作前后截图，检测 Agent 操作是否出现异常，覆盖重复动作和规划失效等轨迹异常
-- **结果正确性判定**：综合关键检查点和达尔文功能判定结果，评估任务是否达成
-- **执行效率判定**：通过实际动作坐标、控件语义和 Plan 进展检测重复操作和无效操作
-
-## 快速开始
-
-### 1. 启动判定服务
-
-```bash
-cd src/oracle
-pip install -r requirements.txt
-# 配置 conf/run_benchmark_config.conf 中的模型地址
-uvicorn main:app --host 0.0.0.0 --port 20025
-```
-
-### 2. 数据预处理（统一管线）
-
-一次解析，三份产出（payload / dedup / stategraph）：
-
-```bash
-# 单任务
-python -m src.preprocessor.pipeline <task_uuid_dir> -o output/
-
-# 批量（遍历 base_dir 下所有 uuid 子目录）
-python -m src.preprocessor.pipeline --batch <base_dir> -o output/
-```
-
-输入目录结构：
-```
-base_dir/
-├── <uuid-1>/
-│   ├── utg.json              # UI 任务图
-│   ├── clearRes.gzip          # Agent 推理 + OCR 控件树（.gz / .zip / .json 均支持）
-│   └── catchDataTurnIdN/      # 截图
-├── <uuid-2>/
-└── ...
-```
-
-输出（每任务四份产出 + 截图）：
-```
-output/<uuid>/
-├── payload.json          ← /check_e2e 判定接口输入（_image_base_dir 已指向本目录）
-├── _deduped.json         ← 去冗摘要（人类可读）
-├── _stategraph.json      ← 状态图（语义层，供模块 B/C/D 消费）
-├── catchDataTurnId0.jpg  ← 截图（以原始目录 catchDataTurnIdN 命名）
-├── catchDataTurnId1.jpg
-└── ...
-```
-
-### 3. 任务分解（LLM + RAG，可选）
-
-启用 decomposer 后，管线会自动将用户指令分解为子目标，填入 `step_level_instruction` 字段。需在 `.env` 中配置 LLM 地址：
-
-```env
-LLM_MODEL_URL=http://localhost:8000/v1/chat/completions
-LLM_MODEL_NAME=qwen3-8b
-```
-
-**纯 LLM 模式**（无需 RAG）：不配 LLM 环境变量时自动跳过，`step_level_instruction` 为空。
-
-**RAG 知识库**（可选，提升分解精度）：
-
-首次摄入 App 知识文档：
-
-```bash
-python src/decomposer/knowledge_store.py --ingest src/decomposer/app_knowledge/
-```
-
-后续新增或修改 App 知识：
-
-1. 在 `app_knowledge/` 下新建或编辑 `<AppName>.md`
-2. 重新运行摄入命令（增量更新，覆盖旧数据）
-
-参见 [模块 A 详细文档](./src/decomposer/README.md)。
-
-### 4. 发送判定
-
-```bash
-# pipeline 输出的 payload 已自带 _image_base_dir，直发送即可
-python src/preprocessor/send_payload.py output/<uuid>/payload.json --hydrate --send http://localhost:20025
-
-# 批量发送全部 payload
-python src/preprocessor/send_payload.py output/ --send http://localhost:20025 -o results/
-```
-
-## 数据管线
-
-```
-Agent 原始数据                    预处理（统一解析）              判定服务
-┌──────────────────┐    ┌─────────────────────────┐    ┌──────────────┐
-│ utg.json         │    │  src/preprocessor/        │    │ POST         │
-│ nodes → stepData │    │  pipeline.py              │    │ /check_e2e   │
-│   → directives   │    │  preprocessor (一次解析)  │    │              │
-│                  │───▶│    ↓                     │───▶│ Darwin VLM   │
-│ clearRes.gzip    │    │  write_payload ── payload │    │   AB判定     │
-│   rawPage        │    │  write_dedup   ── dedup   │    │   意图判定    │
-│   actionPurpose  │    │  write_stategraph ── sg   │    │   Plan覆盖   │
-│                  │    │                          │    │              │
-│ catchDataTurnId*/ │    │  产出: 3 文件/任务        │    │ 重复动作判定  │
-│   *.jpg          │    │                          │    │ 规划失效判定  │
-└──────────────────┘    └─────────────────────────┘    └──────────────┘
-```
-
-### 转换映射
-
-| utg.json 来源 | /check_e2e 字段 |
-|---|---|
-| `node.raw_item.directives` JSON 解析 | `parsed_action.action_type`（edit→type, preCheckDone→do-nothing） |
-| `params.points` / `node.bounds` 中心 | `parsed_action.start_box` / `end_box` |
-| `params.node.text` | `parsed_action.text`（如 "点击隐私和安全"） |
-| `params.node.content` / `setText` | `parsed_action.content` |
-| `stepData.action_type` 解析 | `parsed_action.direction` |
-| `node.image` REST URL → 本地文件 | `image_relative_path`（发送时转 base64） |
-| `node.image` REST URL | `_image_source`（溯源地址） |
-| 节点遍历 + `raw_item.directives` 过滤 | 自动跳过思考/反射步骤 |
-
-### 截图三级兜底
-
-1. 用自己节点的 `node.image` → 读本地文件
-2. 文件不存在 → 用前一个节点的截图（`last_loaded` 追踪）
-3. 仍为空 → `image_relative_path = ""`
-
-## 判定结果字段说明
-
-| 字段 | 来源模块 | 含义 |
-|------|---------|------|
-| **Darwin E2E 判定**（VLM+LLM） | | |
-| `整体意图测试结果` | 序列意图判定 | 整个任务目标是否达成 |
-| `路径一致性测试结果` | 意图步骤匹配 | 实际执行路径与 Plan 是否一致 |
-| `Plan步骤数` / `执行覆盖Plan步骤数` | `step_level_instruction` 分解 | Plan 步骤总数/达成数 |
-| `缺失的功能` / `存在问题的功能` | 步骤覆盖率 | 未匹配到页面的步骤 / 有 bug 的步骤 |
-| **重复动作判定**（规则，寄生达尔文） | | |
-| `重复动作判定结果` | `repeated_action_detector` | `normal`=无重复, `abnormal`=有重复 |
-| `repeated_action_result.ranges` | 检测器输出 | 重复区间起止步、动作类型、证据 |
-| **规划失效判定**（规则，寄生达尔文+重复结果） | | |
-| `规划失效判定结果` | `planning_failure_detector` | `normal`=无失效, 四种子类型 |
-| `planning_failure_result.completion_score` | Plan 覆盖计算 | covered/total |
-| `planning_failure_result.subtype` | 检测器分类 | `missing_required_step` / `premature_termination` / `fail_to_terminate` / `objective_or_plan_mismatch` |
-
-### 三者执行顺序
-
-```
-Darwin E2E 判定（VLM+LLM）
-  ├─ AB 页面跳转判定 → 每步是否符合预期
-  ├─ 意图判定 → 整体任务是否达成
-  └─ Plan 分解与覆盖 → step_level_instruction → 检查点达成状态
-       ↓
-重复动作检测（纯规则，读 Darwin 的 AB 标签 + 检查点覆盖）
-  └─ 比对相邻步骤的动作/目标/页面进展 → 是否重复
-       ↓
-规划失效检测（纯规则，读 Darwin + 重复动作结果）
-  └─ 分析 Plan 覆盖 + 终止时机 → 是否规划出错
-```
-
-## 达尔文判定集成
-
-`src/oracle/` 是集成的达尔文功能判定模块：
-
-| 端点 | 说明 |
-|------|------|
-| `POST /check_single_funck` | 单步功能判定（前后两张截图对比） |
-| `POST /check_e2e` | E2E 序列判定，返回整体意图、路径一致性、Plan 覆盖、**重复动作**和**规划失效**判定 |
-| `POST /upload_funcheck_task` | 提交异步队列任务 |
-| `POST /get_check_result` | 查询异步任务结果 |
-
-详见 [E2E 调用示例](./src/oracle/examples/README.md)。
-
-## 文档索引
-
-| 文档 | 内容 |
-|------|------|
-| [最新技术方案](./docs/01-技术方案.md) | 唯一规范方案：证据分层、统一契约、规则框架、评测与迁移路线 |
-| [论文调研](./docs/02-论文调研.md) | VeriGUI、TrajAD、GUI-SHEPHERD 等 17 篇 |
-| [相关资源](./docs/03-相关资源.md) | GitHub 项目、数据集、工具链 |
-| [异常 Case 技术洞察](./docs/GUI_Agent_异常Case_技术洞察.md) | 错误 taxonomy、时序异常、环境和能力缺口 |
-| [重复动作判定方案](./docs/重复动作异常判定技术方案.md) | 动作等效、目标等效、无进展三条件模型 |
-| [规划失效判定方案](./docs/规划失效异常判定技术方案.md) | 五类规划失效 + 首错归因 |
-| [数据格式说明](./data/data.md) | utg.json 数据结构、字段速查 |
-| [E2E 调用示例](./src/oracle/examples/README.md) | /check_e2e 接口说明、场景测试 |
-
-## 项目结构
+## Current Pipeline
 
 ```text
-gui-agent-evaluation/
-├── README.md
-├── docs/
-│   ├── 01-技术方案.md                 # 当前唯一规范性方案
-│   ├── 02-论文调研.md
-│   ├── 03-相关资源.md
-│   ├── GUI_Agent_异常Case_技术洞察.md
-│   ├── 重复动作异常判定技术方案.md       # 专题参考
-│   └── 规划失效异常判定技术方案.md       # 专题参考
-├── data/
-│   └── data.md                       # 原始数据格式说明
-└── src/
-    ├── preprocessor/                 # 已接入：统一数据预处理
-    ├── decomposer/                   # 已接入：LLM + RAG 检查点原型
-    ├── oracle/                       # 已接入：Darwin 判定服务
-    ├── state_extractor/              # 原型：需替换模拟视觉信号
-    ├── verifier/                     # 原型：需重构检查点对齐和图片解析
-    ├── common/                       # 原型：目标唯一规则实现
-    ├── efficiency/                   # 原型：效率证据分析
-    ├── trajectory/                   # 原型：偏差证据聚合
-    └── evaluator/                    # 待实现：统一编排与最终报告
+raw task data
+  -> src.preprocessor.pipeline
+  -> payload.json + screenshots + dedup/stategraph artifacts
+  -> src.evaluator.repeated_baseline
+  -> ab_report
+  -> state_sequence
+  -> intent_matches
+  -> checkpoint_alignments
+  -> verification_report
+  -> repeated_prediction
+  -> baseline_result
 ```
+
+The important design change is the two-stage checkpoint flow:
+
+1. Intent recall: match `_checkpoints` against actual `agent_purpose`, action text, page descriptions, and aggregated state evidence.
+2. Execution verification: verify only recalled candidates with real screenshots and VLM evidence.
+
+If intent recall fails, the checkpoint is marked `unmatched_intent`; the verifier does not randomly bind it to a screenshot step.
+
+## Quick Start
+
+### Preprocess one task
+
+```bash
+python -m src.preprocessor.pipeline D:\path\to\raw_task_dir --output D:\path\to\preprocess_out
+```
+
+### Preprocess a batch
+
+```bash
+python -m src.preprocessor.pipeline --batch D:\path\to\raw_task_base_dir --output D:\path\to\preprocess_out
+```
+
+### Run one baseline
+
+```bash
+python -m src.evaluator.repeated_baseline D:\path\to\preprocess_out\task_uuid\payload.json --output-dir D:\path\to\baseline_out
+```
+
+### Run batch baseline
+
+```bash
+python -m src.evaluator.repeated_baseline --batch D:\path\to\preprocess_out --output-dir D:\path\to\baseline_out
+```
+
+`start.sh` wraps the same commands and supports:
+
+```bash
+MODE=single bash start.sh
+MODE=batch bash start.sh
+```
+
+## Environment
+
+`src.evaluator.repeated_baseline` auto-loads `.env` from the repo root.
+
+```env
+VLM_MODEL_URL=http://host/v1/chat/completions
+VLM_MODEL_NAME=qwen3-vl-8b
+VLM_API_KEY=...
+
+LLM_MODEL_URL=http://host/v1/chat/completions
+LLM_MODEL_NAME=qwen3-8b
+LLM_API_KEY=...
+```
+
+Usage rules:
+
+- `VLM_*` is used by AB validation and checkpoint screenshot verification.
+- `LLM_*` is used by decomposer and optional intent reranking.
+- If `LLM_*` is absent, the baseline falls back to `VLM_*` for intent reranking.
+- Do not commit `.env`.
+
+## Preprocessor Output
+
+For each task:
+
+```text
+output/<task_uuid>/
+- payload.json
+- _deduped.json
+- _stategraph.json
+- catchDataTurnId*.jpg
+- ...
+```
+
+`payload.json` contains:
+
+| Field | Meaning |
+|---|---|
+| `instruction` | User task |
+| `step_level_instruction` | Human-readable checkpoint sequence |
+| `_checkpoints` | Structured checkpoint list |
+| `agent_purposes` / `_action_purposes` | Agent self-reported step intentions |
+| `_ocr_pages` / `_ocr_page_index` | rawPage/OCR evidence |
+| `seq_info` | Actual action and screenshot sequence |
+| `_image_base_dir` | Base directory for screenshot hydration |
+
+## Baseline Output
+
+| File | Meaning |
+|---|---|
+| `ab_report.json` | AB page/action validation output |
+| `intent_matches.json` | Intent-level checkpoint recall candidates |
+| `checkpoint_alignments.json` | Candidate-to-step alignment result |
+| `verification_report.json` | VLM checkpoint achievement report |
+| `state_sequence.json` | Aggregated state, OCR, and visual evidence |
+| `repeated_prediction.json` | Repeated-action baseline result |
+| `baseline_result.json` | Full combined output |
+
+## Module Status
+
+| Module | Status |
+|---|---|
+| `src/preprocessor` | Current data preprocessing path |
+| `src/decomposer` | LLM + RAG checkpoint generation |
+| `src/common` | Shared AB validation, image hydration, repeated detector |
+| `src/evaluator` | Current baseline orchestration |
+| `src/verifier` | Intent recall, alignment, checkpoint VLM verification |
+| `src/oracle` | Legacy Darwin service, not the default baseline path |
+| `src/state_extractor` | Legacy/prototype state extractor; new baseline uses `src/evaluator/state_evidence.py` |
+
+## Tests
+
+Primary regression command:
+
+```bash
+python -m pytest src\verifier src\evaluator src\common\test_common.py
+```
+
+## Documentation Index
+
+| Document | Purpose |
+|---|---|
+| `docs/01-*.md` | Source-of-truth technical plan |
+| `docs/*repeated*.md` / repeated-action topic doc | Repeated-action design |
+| `docs/*planning*.md` / planning-failure topic doc | Planning-failure design |
+| `docs/02-*.md` | Literature notes, not implementation spec |
+| `docs/03-*.md` | Resource index, not implementation spec |
+| `docs/GUI_Agent_*.md` | Taxonomy and research insight |

@@ -1,3 +1,5 @@
+Legacy note: this document describes the old `src/oracle` Darwin-compatible service. The current default baseline is `src.evaluator.repeated_baseline`; see repo README and `docs/01-*.md`.
+
 # FuncOracleCheck
 
 FuncOracleCheck 是项目内集成的达尔文功能判定能力，用于对 GUI Agent 执行轨迹做单步功能正确性和 E2E 意图达成判定。
