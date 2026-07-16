@@ -131,6 +131,8 @@ def match_checkpoint_intents(
             "status": "skipped_no_purpose_features",
             "error": "payload has no action_purpose/_action_purposes/agent_purposes",
             "response_head": "",
+            "response_tail": "",
+            "response_length": 0,
         }
     if config.prefer_purpose_matching and purpose_features:
         matches = _match_checkpoint_purposes(
@@ -502,6 +504,8 @@ def _llm_match_plan_to_purposes(
         "status": "not_started",
         "error": "",
         "response_head": "",
+        "response_tail": "",
+        "response_length": 0,
     }
     config.diagnostics["purpose_llm"] = diag
     if config.mock_mode:
@@ -515,11 +519,13 @@ def _llm_match_plan_to_purposes(
     diag["llm_attempted"] = True
     try:
         content = _call_llm(config, prompt)
-        diag["response_head"] = content[:300]
+        diag["response_head"] = content[:2000]
+        diag["response_tail"] = content[-1000:]
+        diag["response_length"] = len(content)
         parsed = _parse_json_object(content)
     except Exception as exc:
         diag["status"] = "exception"
-        diag["error"] = str(exc)[:500]
+        diag["error"] = str(exc)[:1000]
         return {}
     items = parsed.get("matches", []) if isinstance(parsed, dict) else []
     result: dict[int, dict[str, Any]] = {}
@@ -955,15 +961,113 @@ def _safe_float(value: Any, default: float = 0.0) -> float:
 
 
 def _parse_json_object(content: str) -> dict[str, Any]:
-    try:
-        parsed = json.loads(content)
-        return parsed if isinstance(parsed, dict) else {}
-    except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", content, re.DOTALL)
-        if not match:
-            return {}
-        parsed = json.loads(match.group())
-        return parsed if isinstance(parsed, dict) else {}
+    candidates = _json_candidates(content)
+    last_error: json.JSONDecodeError | None = None
+    for candidate in candidates:
+        normalized = _normalize_json_candidate(candidate)
+        try:
+            parsed = json.loads(normalized)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError as exc:
+            last_error = exc
+            repaired = _repair_truncated_json(normalized)
+            if repaired and repaired != normalized:
+                try:
+                    parsed = json.loads(repaired)
+                    if isinstance(parsed, dict):
+                        return parsed
+                except json.JSONDecodeError as repaired_exc:
+                    last_error = repaired_exc
+    if last_error is not None:
+        raise last_error
+    return {}
+
+
+def _json_candidates(content: str) -> list[str]:
+    text = str(content or "").strip()
+    if not text:
+        return []
+    candidates: list[str] = []
+    fenced = re.findall(r"```(?:json)?\s*(.*?)```", text, re.DOTALL | re.IGNORECASE)
+    candidates.extend(item.strip() for item in fenced if item.strip())
+    balanced = _extract_balanced_json_object(text)
+    if balanced:
+        candidates.append(balanced)
+    candidates.append(text)
+    deduped: list[str] = []
+    seen: set[str] = set()
+    for item in candidates:
+        if item not in seen:
+            deduped.append(item)
+            seen.add(item)
+    return deduped
+
+
+def _extract_balanced_json_object(text: str) -> str:
+    start = text.find("{")
+    if start < 0:
+        return ""
+    depth = 0
+    in_string = False
+    escape = False
+    for idx in range(start, len(text)):
+        ch = text[idx]
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start:idx + 1]
+    return text[start:]
+
+
+def _normalize_json_candidate(candidate: str) -> str:
+    text = candidate.strip()
+    text = re.sub(r"^```(?:json)?\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s*```$", "", text)
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+    return text.strip()
+
+
+def _repair_truncated_json(candidate: str) -> str:
+    text = candidate.strip()
+    if not text:
+        return ""
+    text = re.sub(r",\s*$", "", text)
+    stack: list[str] = []
+    in_string = False
+    escape = False
+    for ch in text:
+        if in_string:
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == '"':
+                in_string = False
+            continue
+        if ch == '"':
+            in_string = True
+        elif ch == "{":
+            stack.append("}")
+        elif ch == "[":
+            stack.append("]")
+        elif ch in "}]" and stack and stack[-1] == ch:
+            stack.pop()
+    if in_string:
+        text += '"'
+    return text + "".join(reversed(stack))
 
 
 def _select_candidate(

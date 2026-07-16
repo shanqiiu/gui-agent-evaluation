@@ -337,3 +337,53 @@ def test_llm_backward_purpose_span_blocks_alignment(monkeypatch):
     assert matches[1].matched is False
     assert any("order_violation" in item for item in matches[1].evidence)
     assert alignments[1].step_index == -1
+
+def test_llm_json_parser_accepts_markdown_and_trailing_comma(monkeypatch):
+    payload = {
+        "_action_purposes": ["open app"],
+        "seq_info": [_step(1, "open_app", "open")],
+    }
+    checkpoints = [Checkpoint(name="open app", expected_state="home page")]
+
+    def fake_call(_config, _prompt):
+        return """```json
+{"matches":[{"checkpoint_index":0,"start_purpose_index":0,"end_purpose_index":0,"agent_purpose_index":0,"status":"matched","confidence":0.9,"reason":"ok",},],}
+```"""
+
+    import src.verifier.alignment as alignment
+
+    config = alignment.IntentMatcherConfig(llm_model_url="http://llm", llm_model_name="model")
+    monkeypatch.setattr(alignment, "_call_llm", fake_call)
+    matches = match_checkpoint_intents(checkpoints, payload, config=config)
+
+    assert matches[0].llm_used is True
+    assert matches[0].matched is True
+    assert config.diagnostics["purpose_llm"]["status"] == "ok"
+
+
+def test_llm_json_parse_failure_records_long_response_diagnostics(monkeypatch):
+    payload = {
+        "_action_purposes": ["open app", "input query"],
+        "seq_info": [_step(1, "open_app", "open"), _step(2, "type", "input")],
+    }
+    checkpoints = [Checkpoint(name="open app", expected_state="home page")]
+    bad_json = (
+        '{"matches":[{"checkpoint_index":0,"agent_purpose_index":0,"status":"matched"}'
+        '{"checkpoint_index":1,"agent_purpose_index":1,"status":"matched"}]}'
+    )
+
+    def fake_call(_config, _prompt):
+        return bad_json
+
+    import src.verifier.alignment as alignment
+
+    config = alignment.IntentMatcherConfig(llm_model_url="http://llm", llm_model_name="model")
+    monkeypatch.setattr(alignment, "_call_llm", fake_call)
+    matches = match_checkpoint_intents(checkpoints, payload, config=config)
+
+    diag = config.diagnostics["purpose_llm"]
+    assert diag["status"] == "exception"
+    assert "Expecting" in diag["error"]
+    assert diag["response_length"] == len(bad_json)
+    assert diag["response_head"] == bad_json
+    assert matches[0].llm_used is False
