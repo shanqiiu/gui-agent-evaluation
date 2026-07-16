@@ -1,1627 +1,256 @@
 {
-  "schema_version": "repeated_baseline.v1",
   "task_uuid": "0ceb35a6-605e-47d1-b90e-0ae4f52669a4",
-  "input_payload": "D:\\Projects\\workspace\\projects\\activate\\gui-agent-evaluation\\output\\dpp_data_abnormal_v2\\0ceb35a6-605e-47d1-b90e-0ae4f52669a4\\payload.json",
-  "image_resolution": {
-    "total": 17,
-    "resolved": 11,
-    "already_base64": 0,
-    "data_url": 0,
-    "missing": 6,
-    "failed": 0
-  },
-  "ab_report": {
-    "task_uuid": "0ceb35a6-605e-47d1-b90e-0ae4f52669a4",
-    "results": {
-      "0": {
-        "label": "无法判定",
-        "action_des": "动作类型: 用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)；操作目标: 用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)",
-        "pagea_description": "",
-        "pageb_description": "",
-        "thought": "[启发式] 无法判定"
-      },
-      "1": {
-        "label": "无法判定",
-        "action_des": "动作类型: 用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)；操作目标: 用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)",
-        "pagea_description": "",
-        "pageb_description": "",
-        "thought": "[启发式] 无法判定"
-      },
-      "2": {
-        "label": "无法判定",
-        "action_des": "动作类型: 用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)；操作目标: 用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)",
-        "pagea_description": "",
-        "pageb_description": "",
-        "thought": "[启发式] 无法判定"
-      },
-      "3": {
-        "label": "符合预期",
-        "action_des": "动作类型: open_app；操作目标: 打开应用",
-        "pagea_description": "",
-        "pageb_description": "",
-        "thought": "[启发式] 匹配预期模式: 进入|跳转|打开|切换.*(页|界面|应用|设置|功能)"
-      },
-      "4": {
-        "label": "符合预期",
-        "action_des": "是“打开应用”",
-        "pagea_description": "",
-        "pageb_description": "这是一个电商App（拼多多）的首页界面。页面顶部包含搜索栏和一级导航栏，当前选中的Tab为“推荐”。页面中部展示了“拼小圈”、“限时秒杀”、“百亿补贴”、“多多买菜”等功能入口及商品列表。页面底部包含底部导航栏，当前选中的Tab为“首页”。",
-        "thought": "用户执行的操作是“打开应用”。通常情况下，打开电商类App后，默认进入的页面应该是首页。观察下一个页面截图，界面展示了典型的首页布局，包括顶部的搜索框、分类导航（选中“推荐”）、中部的活动入口（如百亿补贴、多多买菜）以及底部的导航栏（选中“首页”）。页面功能完整，布局正常，数据内容加载成功，符合打开App后进入首页的预期。"
-      },
-      "5": {
-        "label": "符合预期",
-        "action_des": "前状态**：截图1显示App处于首页",
-        "pagea_description": "这是一个电商App（拼多多）的首页界面。页面顶部包含搜索栏和一级导航栏，当前选中的Tab为“推荐”。页面中部展示了“拼小圈”、“限时秒杀”、“百亿补贴”、“多多买菜”等功能入口及商品列表。页面底部包含底部导航栏，当前选中的Tab为“首页”。",
-        "pageb_description": "这是一个电商App的首页界面。顶部的搜索栏中显示文本“海飞丝洗发水80g”。顶部的分类导航栏中，“推荐”标签被选中（红色字体）。底部的导航栏中，“首页”标签被选中（红色图标）。",
-        "thought": "1. **分析操作前状态**：截图1显示App处于首页，顶部搜索栏为空白，提示语为“搜索你要的商品”。\n2. **分析操作动作**：用户执行了“输入文本”的操作。\n3. **分析操作后状态**：截图2显示App仍处于首页，但顶部搜索栏中已经填入了文本“海飞丝洗发水80g”。\n4. **推理**：在搜索框中输入文本后，预期的结果就是搜索框内显示该文本。截图2中搜索框内容确实变更为“海飞丝洗发水80g”，且页面其他布局（如分类栏、底部导航栏）保持正常，符合输入操作后的预期状态。"
-      },
-      "6": {
-        "label": "符合预期",
-        "action_des": "前页面（App首页）的搜索框中输入了文本（根据操作后页面的搜索词推断为“孕妇 可用 隔离霜”）",
-        "pagea_description": "这是一个电商App的首页界面。顶部的搜索栏中显示文本“海飞丝洗发水80g”。顶部的分类导航栏中，“推荐”标签被选中（红色字体）。底部的导航栏中，“首页”标签被选中（红色图标）。",
-        "pageb_description": "这是一个电商App的商品搜索结果页面。页面顶部搜索栏显示搜索关键词为“孕妇 可用 隔离霜”。页面顶部的筛选Tab栏中，“综合”被选中（红色字体）。页面主体展示了多个隔离霜商品的列表，包括商品图片、标题、价格和销量等信息。",
-        "thought": "用户在操作前页面（App首页）的搜索框中输入了文本（根据操作后页面的搜索词推断为“孕妇 可用 隔离霜”）。通常输入文本后点击搜索或回车，预期会跳转到搜索结果页面，并展示与输入关键词相关的商品。观察操作后页面，确实跳转到了搜索结果页，且搜索栏中显示了相应的关键词，页面内容也是相关的隔离霜产品，筛选条件默认为“综合”。页面功能、布局和数据内容均符合搜索操作的预期结果。"
-      },
-      "7": {
-        "label": "符合预期",
-        "action_des": "前页面（商品列表页）点击了右上角的“筛选”按钮",
-        "pagea_description": "这是一个电商App的商品搜索结果页面。页面顶部搜索栏显示搜索关键词为“孕妇 可用 隔离霜”。页面顶部的筛选Tab栏中，“综合”被选中（红色字体）。页面主体展示了多个隔离霜商品的列表，包括商品图片、标题、价格和销量等信息。",
-        "pageb_description": "筛选功能界面，顶部搜索栏显示关键词“孕妇 可用 隔离霜”，下方展开的筛选面板中，左侧分类栏当前高亮选中“价格区间”，右侧内容区显示具体的价格范围选项（0-28, 28-43, 43-78, 78以上等）以及“精选服务”、“商品发货地”等其他筛选条件。",
-        "thought": "用户在操作前页面（商品列表页）点击了右上角的“筛选”按钮。预期行为是页面应弹出或跳转至筛选面板，以便用户设置筛选条件。观察操作后页面，确实展示了一个覆盖在商品列表之上的筛选面板，且默认选中了“价格区间”分类，显示了相应的价格选项。页面布局合理，功能符合电商App筛选操作的常规逻辑，数据内容（筛选条件）展示正常。因此，页面切换符合预期。"
-      },
-      "8": {
-        "label": "符合预期",
-        "action_des": "前状态**：截图1显示的是筛选界面",
-        "pagea_description": "筛选功能界面，顶部搜索栏显示关键词“孕妇 可用 隔离霜”，下方展开的筛选面板中，左侧分类栏当前高亮选中“价格区间”，右侧内容区显示具体的价格范围选项（0-28, 28-43, 43-78, 78以上等）以及“精选服务”、“商品发货地”等其他筛选条件。",
-        "pageb_description": "这是一个电商App的商品筛选界面。顶部搜索栏显示关键词“孕妇 可用 隔离霜”。筛选条件栏中，“综合”被选中。左侧分类栏中，“价格区间”被选中（红色高亮）。右侧内容区域显示“价格区间(元)”的筛选选项，其中“最低价”输入框内已输入数字“100”，且光标位于该输入框内。",
-        "thought": "1. **分析操作前状态**：截图1显示的是筛选界面，当前选中的分类是“价格区间”，右侧展示了预设的价格段（如0-28, 28-43等）以及自定义价格输入的“最低价”和“最高价”输入框，此时输入框为空。2. **分析操作动作**：动作类型为“输入文本”。3. **分析操作后状态**：截图2显示，在“最低价”输入框中出现了数字“100”，且光标停留在该位置。4. **推理结论**：用户在“最低价”输入框中输入了“100”，截图2准确反映了这一输入结果，页面布局和功能逻辑均符合预期。"
-      },
-      "9": {
-        "label": "符合预期",
-        "action_des": "前处于筛选页面",
-        "pagea_description": "这是一个电商App的商品筛选界面。顶部搜索栏显示关键词“孕妇 可用 隔离霜”。筛选条件栏中，“综合”被选中。左侧分类栏中，“价格区间”被选中（红色高亮）。右侧内容区域显示“价格区间(元)”的筛选选项，其中“最低价”输入框内已输入数字“100”，且光标位于该输入框内。",
-        "pageb_description": "这是一个电商App的商品搜索结果列表页。页面顶部搜索栏显示关键词“孕妇 可用 隔离霜”。顶部导航栏中，“综合”Tab被选中（红色字体）。下方有“百亿补贴”、“618大促”等筛选标签。页面主体展示了多个隔离霜商品的列表，包括商品图片、标题、价格（如¥139, ¥102等）以及销量信息。",
-        "thought": "用户在操作前处于筛选页面，正在设置价格区间等筛选条件。用户点击了底部的红色按钮“确认（1万+件商品）”，该动作的预期结果是关闭筛选浮层，并应用所选条件刷新商品列表。观察操作后的截图，筛选浮层已消失，页面回到了商品列表展示界面，且顶部搜索词与筛选条件一致，商品列表正常加载显示。页面布局、功能状态及数据内容均符合点击确认后的预期表现。"
-      },
-      "10": {
-        "label": "符合预期",
-        "action_des": "前的页面（商品列表页）中",
-        "pagea_description": "这是一个电商App的商品搜索结果列表页。页面顶部搜索栏显示关键词“孕妇 可用 隔离霜”。顶部导航栏中，“综合”Tab被选中（红色字体）。下方有“百亿补贴”、“618大促”等筛选标签。页面主体展示了多个隔离霜商品的列表，包括商品图片、标题、价格（如¥139, ¥102等）以及销量信息。",
-        "pageb_description": "商品详情页界面，展示的是“简缇水光素颜隔离霜”的详细信息，包括商品图片、价格、销量、规格参数、使用方法、拼单信息等。",
-        "thought": "在操作前的页面（商品列表页）中，用户点击了右上角的“简缇水光素颜隔离霜”商品卡片。该操作的目标是进入该商品的详情页面。操作后的页面确实跳转到了该商品的详情页，展示了商品名称、品牌、功效、使用方法等详细信息，且页面布局和数据内容与预期一致。因此，前后页面的切换符合预期。"
-      },
-      "11": {
-        "label": "符合预期",
-        "action_des": "作为“do-nothing”（等待/检查）",
-        "pagea_description": "商品详情页界面，展示的是“简缇水光素颜隔离霜”的详细信息，包括商品图片、价格、销量、规格参数、使用方法、拼单信息等。",
-        "pageb_description": "这是一个电商App的商品详情页，展示的是“简缇水光素颜隔离霜”。页面包含商品主图、价格（¥102）、促销标签（2件8.8折）、物流信息（预计后天送达）、商品标题、标签（5年老店、遮盖毛孔等）、拼单用户列表（陈***、君***）以及底部的操作栏（店铺、收藏、客服、发起拼单）。",
-        "thought": "上一个页面是商品详情页，操作动作为“do-nothing”（等待/检查）。预期结果应该是页面保持静止，内容不发生任何变化。对比操作前后的截图，页面布局、商品图片、价格、文字描述、拼单倒计时时间（14:26:19.6 和 20:23:43.6）等所有数据内容均完全一致，没有任何差异。这表明在等待期间页面状态稳定，符合预期。"
-      },
-      "12": {
-        "label": "符合预期",
-        "action_des": "作为语音播报功能",
-        "pagea_description": "这是一个电商App的商品详情页，展示的是“简缇水光素颜隔离霜”。页面包含商品主图、价格（¥102）、促销标签（2件8.8折）、物流信息（预计后天送达）、商品标题、标签（5年老店、遮盖毛孔等）、拼单用户列表（陈***、君***）以及底部的操作栏（店铺、收藏、客服、发起拼单）。",
-        "pageb_description": "拼多多商品详情页，展示简缇水光素颜隔离霜，包含商品图片、价格、销量、拼单信息、底部导航栏（店铺、收藏、客服、发起拼单）",
-        "thought": "上一个页面是拼多多商品详情页，操作动作为语音播报功能，播报内容为'已在拼多多找到一款孕妇可用隔离霜：简缇水...'。语音播报属于辅助功能，通常不会改变页面布局或数据内容。对比前后两张截图，页面内容完全一致，均为简缇水光素颜隔离霜的商品详情页，包括价格、销量、拼单信息等均未发生变化。因此，页面功能、布局、数据内容均符合预期。"
-      },
-      "14": {
-        "label": "符合预期",
-        "action_des": "作为语音播报功能",
-        "pagea_description": "拼多多商品详情页，展示简缇水光素颜隔离霜，包含商品图片、价格、销量、拼单信息、底部导航栏（店铺、收藏、客服、发起拼单）",
-        "pageb_description": "拼多多商品详情页，展示简缇水光素颜隔离霜，包含商品图片、价格、销量、拼单信息、底部导航栏（店铺、收藏、客服、发起拼单）",
-        "thought": "上一个页面是拼多多商品详情页，操作动作为语音播报功能，播报内容为'已在拼多多找到一款孕妇可用隔离霜：简缇水...'。语音播报属于辅助功能，通常不会改变页面状态或触发页面跳转。下一个页面截图与上一个页面完全一致，显示相同的商品详情页内容，包括商品图片、价格、销量、拼单信息等。页面功能、布局、数据内容均未发生变化，符合语音播报操作后页面应保持不变的预期。"
-      }
-    },
-    "model_used": "qwen36-27b-vl",
-    "total_vlm_calls": 14,
-    "fallback_count": 0
-  },
-  "checkpoint_alignments": [
+  "instruction": "拼多多上查看一款价格在100元以上孕妇可用的隔离霜",
+  "results": [
     {
-      "checkpoint_index": 0,
+      "checkpoint": {
+        "name": "打开拼多多应用",
+        "required": true,
+        "preconditions": "手机处于主屏幕或应用列表",
+        "expected_state": "屏幕显示拼多多应用首页",
+        "checkpoint_id": "cp_000"
+      },
+      "status": "达成",
+      "confidence": 1.0,
+      "evidence": "[操作后页面]: 页面显示为拼多多应用的首页。顶部包含搜索栏和分类导航（推荐、百货、内衣等），中部展示了“限时秒杀”、“百亿补贴”、“多多买菜”等功能入口及商品推荐，底部为应用的标准导航栏（首页、直播、搜索、聊天、个人中心）。\n检查点要求打开拼多多应用并显示首页。操作动作是打开应用。观察操作后的截图，界面具有典型的拼多多首页特征，包括顶部的搜索框、分类Tab、中部的活动图标（如限时秒杀、百亿补贴）以及底部的导航栏。页面内容完整加载，无报错或登录拦截，完全符合预期状态。",
       "step_index": 4,
-      "score": 0.207,
-      "confidence": "low",
-      "evidence": [
-        "action_similarity=0.26"
-      ]
+      "image_context": {
+        "step_index": 4,
+        "before_step_index": 4,
+        "after_step_index": 5,
+        "before_image_available": false,
+        "after_image_available": true,
+        "image_available": true,
+        "before_image_ref": "",
+        "after_image_ref": "catchDataTurnId1.jpg",
+        "alignment": {
+          "checkpoint_index": 0,
+          "step_index": 4,
+          "score": 0.85,
+          "confidence": "high",
+          "evidence": [
+            "intent recall matched candidate",
+            "semantic_action_type=0.70",
+            "state_candidate=s_2",
+            "state_range=[4, 4]",
+            "state_evidence_quality=strong",
+            "state_visual_boundary=0.09"
+          ]
+        }
+      },
+      "action_description": "open_app: 打开应用",
+      "fallback": false
     },
     {
-      "checkpoint_index": 1,
+      "checkpoint": {
+        "name": "点击搜索栏",
+        "required": true,
+        "preconditions": "已进入拼多多应用首页",
+        "expected_state": "搜索栏处于激活状态，键盘弹出或光标闪烁",
+        "checkpoint_id": "cp_001"
+      },
+      "status": "未达成",
+      "confidence": 1.0,
+      "evidence": "[操作后页面]: 操作后页面显示的是拼多多的商品筛选/过滤面板。页面包含价格区间、精选服务、商品发货地等筛选选项，底部有“重置”和“确认”按钮。背景是模糊的商品列表。\n检查点要求是“点击搜索栏”，预期状态是“搜索栏处于激活状态，键盘弹出或光标闪烁”。然而，实际执行的操作是“点击筛选”，导致页面跳转到了筛选条件设置界面。操作后的页面并没有显示搜索栏被激活或键盘弹出的状态，而是完全进入了筛选模式。因此，操作结果与检查点预期完全不符。\n[不符合原因]: 操作动作是点击筛选按钮，导致进入了筛选页面，而不是点击搜索栏激活输入状态。",
+      "step_index": 7,
+      "image_context": {
+        "step_index": 7,
+        "before_step_index": 7,
+        "after_step_index": 8,
+        "before_image_available": true,
+        "after_image_available": true,
+        "image_available": true,
+        "before_image_ref": "catchDataTurnId3.jpg",
+        "after_image_ref": "catchDataTurnId4.jpg",
+        "alignment": {
+          "checkpoint_index": 1,
+          "step_index": 7,
+          "score": 0.291,
+          "confidence": "low",
+          "evidence": [
+            "intent recall matched candidate",
+            "semantic_action_type=0.60",
+            "state_candidate=s_5",
+            "state_range=[7, 7]",
+            "state_evidence_quality=strong",
+            "state_visual_boundary=0.78"
+          ]
+        }
+      },
+      "action_description": "click: 点击筛选",
+      "fallback": false
+    },
+    {
+      "checkpoint": {
+        "name": "输入搜索关键词",
+        "required": true,
+        "preconditions": "搜索栏已激活",
+        "expected_state": "搜索栏内显示文本“孕妇隔离霜”或类似关键词",
+        "checkpoint_id": "cp_002"
+      },
+      "status": "达成",
+      "confidence": 1.0,
+      "evidence": "[操作后页面]: 操作后页面显示为电商App的筛选/搜索界面。顶部搜索栏内显示关键词“孕妇 可用 隔离霜”，下方展示了价格区间、精选服务、商品发货地等筛选选项，底部有“重置”和“确认”按钮。\n1. **操作前状态**：页面处于筛选界面，顶部搜索栏内已经存在关键词“孕妇 可用 隔离霜”。\n2. **执行动作**：执行了“输入文本”操作。\n3. **操作后状态**：页面依然停留在筛选界面，搜索栏内的关键词“孕妇 可用 隔离霜”保持不变（或者被重新输入确认）。虽然操作后截图中出现了一个“100”的输入框（可能是误触了价格输入框），但核心检查点关注的“搜索栏内显示文本”这一状态是满足的。\n4. **对比预期**：检查点要求“搜索栏内显示文本‘孕妇隔离霜’或类似关键词”。当前搜索栏显示“孕妇 可用 隔离霜”，完全符合预期。",
+      "step_index": 8,
+      "image_context": {
+        "step_index": 8,
+        "before_step_index": 8,
+        "after_step_index": 9,
+        "before_image_available": true,
+        "after_image_available": true,
+        "image_available": true,
+        "before_image_ref": "catchDataTurnId4.jpg",
+        "after_image_ref": "catchDataTurnId5.jpg",
+        "alignment": {
+          "checkpoint_index": 2,
+          "step_index": 8,
+          "score": 0.273,
+          "confidence": "low",
+          "evidence": [
+            "intent recall matched candidate",
+            "semantic_action_type=0.70",
+            "state_candidate=s_6",
+            "state_range=[8, 8]",
+            "state_evidence_quality=strong",
+            "state_visual_boundary=0.14"
+          ]
+        }
+      },
+      "action_description": "type: 输入文本",
+      "fallback": false
+    },
+    {
+      "checkpoint": {
+        "name": "执行搜索",
+        "required": true,
+        "preconditions": "关键词已输入",
+        "expected_state": "页面跳转至搜索结果列表页，显示相关商品",
+        "checkpoint_id": "cp_003"
+      },
+      "status": "未达成",
+      "confidence": 1.0,
+      "evidence": "[操作后页面]: 操作后页面是“简缇水光素颜隔离霜”的商品详情页。页面展示了商品的大图、品牌信息、功效、使用方法、价格（¥102）、库存状态、拼单信息以及底部的购买按钮。\n检查点要求是“执行搜索”，预期状态是“页面跳转至搜索结果列表页”。然而，操作前的截图已经显示页面处于搜索结果列表页状态（顶部有搜索栏，下方有多个商品卡片）。Agent执行的动作是点击了其中一个商品卡片上的文字区域（“适量隔离于面部...”），这导致页面跳转到了该商品的详情页。因此，操作后的页面是详情页，而不是预期的搜索结果列表页，检查点未达成。\n[不符合原因]: 操作后页面跳转到了商品详情页，而不是预期的搜索结果列表页。",
+      "step_index": 10,
+      "image_context": {
+        "step_index": 10,
+        "before_step_index": 10,
+        "after_step_index": 11,
+        "before_image_available": true,
+        "after_image_available": true,
+        "image_available": true,
+        "before_image_ref": "catchDataTurnId6.jpg",
+        "after_image_ref": "catchDataTurnId7.jpg",
+        "alignment": {
+          "checkpoint_index": 3,
+          "step_index": 10,
+          "score": 0.95,
+          "confidence": "high",
+          "evidence": [
+            "intent recall matched candidate",
+            "state_candidate=s_8",
+            "state_range=[10, 10]",
+            "state_evidence_quality=strong",
+            "state_visual_boundary=0.99"
+          ]
+        }
+      },
+      "action_description": "click: 点击适量隔离于面部，用手指轻柔地涂抹于全",
+      "fallback": false
+    },
+    {
+      "checkpoint": {
+        "name": "筛选价格区间",
+        "required": true,
+        "preconditions": "处于搜索结果页",
+        "expected_state": "筛选条件中价格下限设置为100元，或列表仅显示100元以上商品",
+        "checkpoint_id": "cp_004"
+      },
+      "status": "不确定",
+      "confidence": 0.0,
+      "evidence": "缺少截图数据，无法进行VLM判定",
       "step_index": -1,
-      "score": 0.154,
-      "confidence": "unmatched",
-      "evidence": [
-        "no reliable monotonic candidate"
-      ]
+      "image_context": {
+        "step_index": -1,
+        "before_step_index": -1,
+        "after_step_index": -1,
+        "before_image_available": false,
+        "after_image_available": false,
+        "image_available": false,
+        "before_image_ref": "",
+        "after_image_ref": "",
+        "alignment": {
+          "checkpoint_index": 4,
+          "step_index": -1,
+          "score": 0.068,
+          "confidence": "unmatched_intent",
+          "evidence": [
+            "intent recall found no reliable candidate"
+          ]
+        }
+      },
+      "action_description": "",
+      "fallback": true
     },
     {
-      "checkpoint_index": 2,
-      "step_index": 6,
-      "score": 0.224,
-      "confidence": "low",
-      "evidence": [
-        "action_similarity=0.28"
-      ]
-    },
-    {
-      "checkpoint_index": 3,
-      "step_index": -1,
-      "score": 0.157,
-      "confidence": "unmatched",
-      "evidence": [
-        "no reliable monotonic candidate"
-      ]
-    },
-    {
-      "checkpoint_index": 4,
-      "step_index": -1,
-      "score": 0.129,
-      "confidence": "unmatched",
-      "evidence": [
-        "no reliable monotonic candidate"
-      ]
-    },
-    {
-      "checkpoint_index": 5,
-      "step_index": -1,
-      "score": 0.157,
-      "confidence": "unmatched",
-      "evidence": [
-        "no reliable monotonic candidate"
-      ]
+      "checkpoint": {
+        "name": "浏览并确认商品属性",
+        "required": true,
+        "preconditions": "已应用价格筛选",
+        "expected_state": "列表中展示的商品标题或标签包含“孕妇可用”、“敏感肌”等字样，且价格大于100元",
+        "checkpoint_id": "cp_005"
+      },
+      "status": "达成",
+      "confidence": 1.0,
+      "evidence": "[操作后页面]: 操作后页面为“简缇水光素颜隔离霜”的商品详情页。页面顶部展示商品主图，中部显示价格（¥102）、促销标签（2件8.8折）、物流信息（预计后天送达）以及商品标题（包含“孕妇哺乳期可用”字样）。底部有拼单信息和购买按钮。\n1. **分析预期状态**：检查点要求确认商品属性，具体指标为标题或标签包含“孕妇可用”、“敏感肌”等字样，且价格大于100元。\n2. **分析操作过程**：用户在商品列表页点击了“简缇水光素颜隔离霜”的商品卡片（操作描述为点击了商品图片上的文字区域），意图进入详情页查看。\n3. **分析操作后页面**：页面成功跳转至该商品的详情页。观察页面内容：\n   - **价格**：显示为“¥102”，满足“价格大于100元”的条件。\n   - **标题/标签**：商品标题明确写着“正品简缇水光素颜隔离霜**孕妇哺乳期可用**...”，满足“包含‘孕妇可用’字样”的条件。\n4. **结论**：操作后页面展示的商品信息完全符合检查点描述的所有预期状态。",
+      "step_index": 10,
+      "image_context": {
+        "step_index": 10,
+        "before_step_index": 10,
+        "after_step_index": 11,
+        "before_image_available": true,
+        "after_image_available": true,
+        "image_available": true,
+        "before_image_ref": "catchDataTurnId6.jpg",
+        "after_image_ref": "catchDataTurnId7.jpg",
+        "alignment": {
+          "checkpoint_index": 5,
+          "step_index": 10,
+          "score": 0.274,
+          "confidence": "low",
+          "evidence": [
+            "intent recall matched candidate",
+            "semantic_action_type=0.60",
+            "state_candidate=s_8",
+            "state_range=[10, 10]",
+            "state_evidence_quality=strong",
+            "state_visual_boundary=0.99"
+          ]
+        }
+      },
+      "action_description": "click: 点击适量隔离于面部，用手指轻柔地涂抹于全",
+      "fallback": false
     }
   ],
-  "verification_report": {
-    "task_uuid": "0ceb35a6-605e-47d1-b90e-0ae4f52669a4",
-    "instruction": "拼多多上查看一款价格在100元以上孕妇可用的隔离霜",
-    "results": [
-      {
-        "checkpoint": {
-          "name": "打开拼多多应用",
-          "required": true,
-          "preconditions": "手机处于主屏幕或应用列表",
-          "expected_state": "屏幕显示拼多多应用首页",
-          "checkpoint_id": "cp_000"
-        },
-        "status": "达成",
-        "confidence": 1.0,
-        "evidence": "[操作后页面]: 页面显示为拼多多应用的首页。顶部包含搜索栏和分类导航（推荐、百货、内衣等），中部有拼小圈、限时秒杀、百亿补贴等功能入口，下方展示了具体的商品推荐列表（如数据线修复、脚掌垫等），底部为应用的标准导航栏（首页、直播、搜索、聊天、个人中心）。\n检查点要求打开拼多多应用并显示首页。操作动作是打开应用。观察操作后的截图，界面完全符合拼多多App首页的特征，包括顶部的搜索框、分类Tab、中部的活动图标（如百亿补贴、多多买菜）以及底部的商品流和导航栏。页面加载完整，无报错或登录拦截，完全符合预期状态。",
-        "step_index": 4,
-        "image_context": {
-          "step_index": 4,
-          "before_step_index": 4,
-          "after_step_index": 5,
-          "before_image_available": false,
-          "after_image_available": true,
-          "image_available": true,
-          "before_image_ref": "",
-          "after_image_ref": "catchDataTurnId1.jpg",
-          "alignment": {
-            "checkpoint_index": 0,
-            "step_index": 4,
-            "score": 0.207,
-            "confidence": "low",
-            "evidence": [
-              "action_similarity=0.26"
-            ]
-          }
-        },
-        "action_description": "open_app: 打开应用",
-        "fallback": false
-      },
-      {
-        "checkpoint": {
-          "name": "点击搜索栏",
-          "required": true,
-          "preconditions": "已进入拼多多应用首页",
-          "expected_state": "搜索栏处于激活状态，键盘弹出或光标闪烁",
-          "checkpoint_id": "cp_001"
-        },
-        "status": "不确定",
-        "confidence": 0.0,
-        "evidence": "缺少截图数据，无法进行VLM判定",
-        "step_index": -1,
-        "image_context": {
-          "step_index": -1,
-          "before_step_index": -1,
-          "after_step_index": -1,
-          "before_image_available": false,
-          "after_image_available": false,
-          "image_available": false,
-          "before_image_ref": "",
-          "after_image_ref": "",
-          "alignment": {
-            "checkpoint_index": 1,
-            "step_index": -1,
-            "score": 0.154,
-            "confidence": "unmatched",
-            "evidence": [
-              "no reliable monotonic candidate"
-            ]
-          }
-        },
-        "action_description": "",
-        "fallback": true
-      },
-      {
-        "checkpoint": {
-          "name": "输入搜索关键词",
-          "required": true,
-          "preconditions": "搜索栏已激活",
-          "expected_state": "搜索栏内显示文本“孕妇隔离霜”或类似关键词",
-          "checkpoint_id": "cp_002"
-        },
-        "status": "达成",
-        "confidence": 1.0,
-        "evidence": "[操作后页面]: 操作后页面为商品搜索结果页。顶部搜索栏内显示关键词“孕妇 可用 隔离霜”，下方展示了多个相关的隔离霜商品列表，包括品牌、价格、销量等信息。\n1. **操作前状态**：页面处于首页，搜索栏内显示的是之前的搜索词“海飞丝洗发水80g”。\n2. **执行动作**：执行了“输入文本”操作。\n3. **操作后状态**：页面跳转到了搜索结果页，且顶部的搜索栏中明确显示了新的搜索关键词“孕妇 可用 隔离霜”。\n4. **对比预期**：检查点要求“搜索栏内显示文本‘孕妇隔离霜’或类似关键词”。实际页面中搜索栏显示的内容完全符合这一描述，且页面内容已根据该关键词进行了更新。因此，检查点已达成。",
-        "step_index": 6,
-        "image_context": {
-          "step_index": 6,
-          "before_step_index": 6,
-          "after_step_index": 7,
-          "before_image_available": true,
-          "after_image_available": true,
-          "image_available": true,
-          "before_image_ref": "catchDataTurnId2.jpg",
-          "after_image_ref": "catchDataTurnId3.jpg",
-          "alignment": {
-            "checkpoint_index": 2,
-            "step_index": 6,
-            "score": 0.224,
-            "confidence": "low",
-            "evidence": [
-              "action_similarity=0.28"
-            ]
-          }
-        },
-        "action_description": "type: 输入文本",
-        "fallback": false
-      },
-      {
-        "checkpoint": {
-          "name": "执行搜索",
-          "required": true,
-          "preconditions": "关键词已输入",
-          "expected_state": "页面跳转至搜索结果列表页，显示相关商品",
-          "checkpoint_id": "cp_003"
-        },
-        "status": "不确定",
-        "confidence": 0.0,
-        "evidence": "缺少截图数据，无法进行VLM判定",
-        "step_index": -1,
-        "image_context": {
-          "step_index": -1,
-          "before_step_index": -1,
-          "after_step_index": -1,
-          "before_image_available": false,
-          "after_image_available": false,
-          "image_available": false,
-          "before_image_ref": "",
-          "after_image_ref": "",
-          "alignment": {
-            "checkpoint_index": 3,
-            "step_index": -1,
-            "score": 0.157,
-            "confidence": "unmatched",
-            "evidence": [
-              "no reliable monotonic candidate"
-            ]
-          }
-        },
-        "action_description": "",
-        "fallback": true
-      },
-      {
-        "checkpoint": {
-          "name": "筛选价格区间",
-          "required": true,
-          "preconditions": "处于搜索结果页",
-          "expected_state": "筛选条件中价格下限设置为100元，或列表仅显示100元以上商品",
-          "checkpoint_id": "cp_004"
-        },
-        "status": "不确定",
-        "confidence": 0.0,
-        "evidence": "缺少截图数据，无法进行VLM判定",
-        "step_index": -1,
-        "image_context": {
-          "step_index": -1,
-          "before_step_index": -1,
-          "after_step_index": -1,
-          "before_image_available": false,
-          "after_image_available": false,
-          "image_available": false,
-          "before_image_ref": "",
-          "after_image_ref": "",
-          "alignment": {
-            "checkpoint_index": 4,
-            "step_index": -1,
-            "score": 0.129,
-            "confidence": "unmatched",
-            "evidence": [
-              "no reliable monotonic candidate"
-            ]
-          }
-        },
-        "action_description": "",
-        "fallback": true
-      },
-      {
-        "checkpoint": {
-          "name": "浏览并确认商品属性",
-          "required": true,
-          "preconditions": "已应用价格筛选",
-          "expected_state": "列表中展示的商品标题或标签包含“孕妇可用”、“敏感肌”等字样，且价格大于100元",
-          "checkpoint_id": "cp_005"
-        },
-        "status": "不确定",
-        "confidence": 0.0,
-        "evidence": "缺少截图数据，无法进行VLM判定",
-        "step_index": -1,
-        "image_context": {
-          "step_index": -1,
-          "before_step_index": -1,
-          "after_step_index": -1,
-          "before_image_available": false,
-          "after_image_available": false,
-          "image_available": false,
-          "before_image_ref": "",
-          "after_image_ref": "",
-          "alignment": {
-            "checkpoint_index": 5,
-            "step_index": -1,
-            "score": 0.157,
-            "confidence": "unmatched",
-            "evidence": [
-              "no reliable monotonic candidate"
-            ]
-          }
-        },
-        "action_description": "",
-        "fallback": true
-      }
-    ],
-    "summary": {
-      "total_checkpoints": 6,
-      "achieved": 2,
-      "not_achieved": 0,
-      "uncertain": 4,
-      "required_total": 6,
-      "required_achieved": 2
-    },
-    "completion_score": 0.333,
-    "required_completion_score": 0.333,
-    "overall_status": "失败",
-    "evidence": [
-      "[OK] [打开拼多多应用] → 达成 (confidence=1.00)",
-      "[?] [点击搜索栏] → 不确定 (confidence=0.00)",
-      "[OK] [输入搜索关键词] → 达成 (confidence=1.00)",
-      "[?] [执行搜索] → 不确定 (confidence=0.00)",
-      "[?] [筛选价格区间] → 不确定 (confidence=0.00)",
-      "[?] [浏览并确认商品属性] → 不确定 (confidence=0.00)"
-    ],
-    "model_used": "qwen36-27b-vl",
-    "total_vlm_calls": 2,
-    "fallback_count": 4
+  "summary": {
+    "total_checkpoints": 6,
+    "achieved": 3,
+    "not_achieved": 2,
+    "uncertain": 1,
+    "required_total": 6,
+    "required_achieved": 3
   },
-  "state_sequence": {
-    "task_uuid": "0ceb35a6-605e-47d1-b90e-0ae4f52669a4",
-    "states": [
-      {
-        "state_id": "s_0",
-        "label": "unknown",
-        "step_range": [
-          0,
-          2
-        ],
-        "source_step_indices": [
-          0,
-          1,
-          2
-        ],
-        "page_description": "",
-        "action_types": [
-          "用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)"
-        ],
-        "evidence_quality": "visual",
-        "visual_change_summary": {
-          "count": 3,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.15,
-          "max_pixel_diff_ratio": null,
-          "min_ssim": null,
-          "rawpage_change_count": 1,
-          "changed_regions": []
-        },
-        "evidence": [
-          "aggregated 3 action steps"
-        ]
-      },
-      {
-        "state_id": "s_1",
-        "label": "unknown",
-        "step_range": [
-          3,
-          3
-        ],
-        "source_step_indices": [
-          3
-        ],
-        "page_description": "",
-        "action_types": [
-          "open_app"
-        ],
-        "evidence_quality": "visual",
-        "visual_change_summary": {
-          "count": 1,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.0,
-          "max_pixel_diff_ratio": null,
-          "min_ssim": null,
-          "rawpage_change_count": 0,
-          "changed_regions": []
-        },
-        "evidence": [
-          "aggregated 1 action steps"
-        ]
-      },
-      {
-        "state_id": "s_2",
-        "label": "unknown",
-        "step_range": [
-          4,
-          4
-        ],
-        "source_step_indices": [
-          4
-        ],
-        "page_description": "这是一个电商App（拼多多）的首页界面。页面顶部包含搜索栏和一级导航栏，当前选中的Tab为“推荐”。页面中部展示了“拼小圈”、“限时秒杀”、“百亿补贴”、“多多买菜”等功能入口及商品列表。页面底部包含底部导航栏，当前选中的Tab为“首页”。",
-        "action_types": [
-          "open_app"
-        ],
-        "evidence_quality": "strong",
-        "visual_change_summary": {
-          "count": 1,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.093,
-          "max_pixel_diff_ratio": null,
-          "min_ssim": null,
-          "rawpage_change_count": 1,
-          "changed_regions": []
-        },
-        "evidence": [
-          "aggregated 1 action steps"
-        ]
-      },
-      {
-        "state_id": "s_3",
-        "label": "这是一个电商App（拼多多）的首页界面。页面顶部包含搜索栏和一级导航栏，当前选中的Tab为“推荐”。页面中部展示了“拼小圈”、“限时秒杀”、“百亿补贴”、“多多买菜”等功能入口及商品列表。页面底部包含底部导航栏，当前选中的Tab为“首页”。",
-        "step_range": [
-          5,
-          5
-        ],
-        "source_step_indices": [
-          5
-        ],
-        "page_description": "这是一个电商App的首页界面。顶部的搜索栏中显示文本“海飞丝洗发水80g”。顶部的分类导航栏中，“推荐”标签被选中（红色字体）。底部的导航栏中，“首页”标签被选中（红色图标）。",
-        "action_types": [
-          "type"
-        ],
-        "evidence_quality": "strong",
-        "visual_change_summary": {
-          "count": 1,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.734,
-          "max_pixel_diff_ratio": 0.2598,
-          "min_ssim": 0.6493,
-          "rawpage_change_count": 1,
-          "changed_regions": [
-            "middle",
-            "bottom"
-          ]
-        },
-        "evidence": [
-          "aggregated 1 action steps"
-        ]
-      },
-      {
-        "state_id": "s_4",
-        "label": "这是一个电商App的首页界面。顶部的搜索栏中显示文本“海飞丝洗发水80g”。顶部的分类导航栏中，“推荐”标签被选中（红色字体）。底部的导航栏中，“首页”标签被选中（红色图标）。",
-        "step_range": [
-          6,
-          6
-        ],
-        "source_step_indices": [
-          6
-        ],
-        "page_description": "这是一个电商App的商品搜索结果页面。页面顶部搜索栏显示搜索关键词为“孕妇 可用 隔离霜”。页面顶部的筛选Tab栏中，“综合”被选中（红色字体）。页面主体展示了多个隔离霜商品的列表，包括商品图片、标题、价格和销量等信息。",
-        "action_types": [
-          "type"
-        ],
-        "evidence_quality": "strong",
-        "visual_change_summary": {
-          "count": 1,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.894,
-          "max_pixel_diff_ratio": 0.5203,
-          "min_ssim": 0.1145,
-          "rawpage_change_count": 1,
-          "changed_regions": [
-            "top",
-            "middle",
-            "bottom"
-          ]
-        },
-        "evidence": [
-          "aggregated 1 action steps"
-        ]
-      },
-      {
-        "state_id": "s_5",
-        "label": "这是一个电商App的商品搜索结果页面。页面顶部搜索栏显示搜索关键词为“孕妇 可用 隔离霜”。页面顶部的筛选Tab栏中，“综合”被选中（红色字体）。页面主体展示了多个隔离霜商品的列表，包括商品图片、标题、价格和销量等信息。",
-        "step_range": [
-          7,
-          7
-        ],
-        "source_step_indices": [
-          7
-        ],
-        "page_description": "筛选功能界面，顶部搜索栏显示关键词“孕妇 可用 隔离霜”，下方展开的筛选面板中，左侧分类栏当前高亮选中“价格区间”，右侧内容区显示具体的价格范围选项（0-28, 28-43, 43-78, 78以上等）以及“精选服务”、“商品发货地”等其他筛选条件。",
-        "action_types": [
-          "click"
-        ],
-        "evidence_quality": "strong",
-        "visual_change_summary": {
-          "count": 1,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.784,
-          "max_pixel_diff_ratio": 0.5688,
-          "min_ssim": 0.1352,
-          "rawpage_change_count": 1,
-          "changed_regions": [
-            "top",
-            "middle",
-            "bottom"
-          ]
-        },
-        "evidence": [
-          "aggregated 1 action steps"
-        ]
-      },
-      {
-        "state_id": "s_6",
-        "label": "筛选功能界面，顶部搜索栏显示关键词“孕妇 可用 隔离霜”，下方展开的筛选面板中，左侧分类栏当前高亮选中“价格区间”，右侧内容区显示具体的价格范围选项（0-28, 28-43, 43-78, 78以上等）以及“精选服务”、“商品发货地”等其他筛选条件。",
-        "step_range": [
-          8,
-          8
-        ],
-        "source_step_indices": [
-          8
-        ],
-        "page_description": "这是一个电商App的商品筛选界面。顶部搜索栏显示关键词“孕妇 可用 隔离霜”。筛选条件栏中，“综合”被选中。左侧分类栏中，“价格区间”被选中（红色高亮）。右侧内容区域显示“价格区间(元)”的筛选选项，其中“最低价”输入框内已输入数字“100”，且光标位于该输入框内。",
-        "action_types": [
-          "type"
-        ],
-        "evidence_quality": "strong",
-        "visual_change_summary": {
-          "count": 1,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.145,
-          "max_pixel_diff_ratio": 0.0007,
-          "min_ssim": 0.9999,
-          "rawpage_change_count": 1,
-          "changed_regions": []
-        },
-        "evidence": [
-          "aggregated 1 action steps"
-        ]
-      },
-      {
-        "state_id": "s_7",
-        "label": "这是一个电商App的商品筛选界面。顶部搜索栏显示关键词“孕妇 可用 隔离霜”。筛选条件栏中，“综合”被选中。左侧分类栏中，“价格区间”被选中（红色高亮）。右侧内容区域显示“价格区间(元)”的筛选选项，其中“最低价”输入框内已输入数字“100”，且光标位于该输入框内。",
-        "step_range": [
-          9,
-          9
-        ],
-        "source_step_indices": [
-          9
-        ],
-        "page_description": "这是一个电商App的商品搜索结果列表页。页面顶部搜索栏显示关键词“孕妇 可用 隔离霜”。顶部导航栏中，“综合”Tab被选中（红色字体）。下方有“百亿补贴”、“618大促”等筛选标签。页面主体展示了多个隔离霜商品的列表，包括商品图片、标题、价格（如¥139, ¥102等）以及销量信息。",
-        "action_types": [
-          "click"
-        ],
-        "evidence_quality": "strong",
-        "visual_change_summary": {
-          "count": 1,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.881,
-          "max_pixel_diff_ratio": 0.5811,
-          "min_ssim": 0.2325,
-          "rawpage_change_count": 1,
-          "changed_regions": [
-            "top",
-            "middle",
-            "bottom"
-          ]
-        },
-        "evidence": [
-          "aggregated 1 action steps"
-        ]
-      },
-      {
-        "state_id": "s_8",
-        "label": "这是一个电商App的商品搜索结果列表页。页面顶部搜索栏显示关键词“孕妇 可用 隔离霜”。顶部导航栏中，“综合”Tab被选中（红色字体）。下方有“百亿补贴”、“618大促”等筛选标签。页面主体展示了多个隔离霜商品的列表，包括商品图片、标题、价格（如¥139, ¥102等）以及销量信息。",
-        "step_range": [
-          10,
-          10
-        ],
-        "source_step_indices": [
-          10
-        ],
-        "page_description": "商品详情页界面，展示的是“简缇水光素颜隔离霜”的详细信息，包括商品图片、价格、销量、规格参数、使用方法、拼单信息等。",
-        "action_types": [
-          "click"
-        ],
-        "evidence_quality": "strong",
-        "visual_change_summary": {
-          "count": 1,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.993,
-          "max_pixel_diff_ratio": 0.5591,
-          "min_ssim": 0.0187,
-          "rawpage_change_count": 1,
-          "changed_regions": [
-            "top",
-            "middle",
-            "bottom"
-          ]
-        },
-        "evidence": [
-          "aggregated 1 action steps"
-        ]
-      },
-      {
-        "state_id": "s_9",
-        "label": "商品详情页界面，展示的是“简缇水光素颜隔离霜”的详细信息，包括商品图片、价格、销量、规格参数、使用方法、拼单信息等。",
-        "step_range": [
-          11,
-          12
-        ],
-        "source_step_indices": [
-          11,
-          12
-        ],
-        "page_description": "拼多多商品详情页，展示简缇水光素颜隔离霜，包含商品图片、价格、销量、拼单信息、底部导航栏（店铺、收藏、客服、发起拼单）",
-        "action_types": [
-          "do-nothing",
-          "播报(已在拼多多找到一款孕妇可用隔离霜：简缇水...)"
-        ],
-        "evidence_quality": "strong",
-        "visual_change_summary": {
-          "count": 2,
-          "usable_count": 2,
-          "max_boundary_confidence": 0.0,
-          "max_pixel_diff_ratio": 0.0,
-          "min_ssim": 1.0,
-          "rawpage_change_count": 0,
-          "changed_regions": []
-        },
-        "evidence": [
-          "aggregated 2 action steps"
-        ]
-      },
-      {
-        "state_id": "s_10",
-        "label": "拼多多商品详情页，展示简缇水光素颜隔离霜，包含商品图片、价格、销量、拼单信息、底部导航栏（店铺、收藏、客服、发起拼单）",
-        "step_range": [
-          13,
-          14
-        ],
-        "source_step_indices": [
-          14
-        ],
-        "page_description": "拼多多商品详情页，展示简缇水光素颜隔离霜，包含商品图片、价格、销量、拼单信息、底部导航栏（店铺、收藏、客服、发起拼单）",
-        "action_types": [
-          "播报(已在拼多多找到一款孕妇可用隔离霜：简缇水...)"
-        ],
-        "evidence_quality": "strong",
-        "visual_change_summary": {
-          "count": 1,
-          "usable_count": 1,
-          "max_boundary_confidence": 0.0,
-          "max_pixel_diff_ratio": 0.0,
-          "min_ssim": 1.0,
-          "rawpage_change_count": 0,
-          "changed_regions": []
-        },
-        "evidence": [
-          "aggregated 1 action steps"
-        ]
-      }
-    ],
-    "transitions": [
-      {
-        "from": "s_0",
-        "to": "s_1",
-        "trigger_step": 2,
-        "evidence": [
-          "visual/rawPage boundary confidence=0.15",
-          "screenshot missing",
-          "ocr_text_similarity=0.000",
-          "rawpage_changed=True"
-        ],
-        "visual_evidence": {
-          "source_step_index": 2,
-          "next_step_index": 3,
-          "has_before_image": false,
-          "has_after_image": false,
-          "phash_before": "",
-          "phash_after": "",
-          "phash_distance": null,
-          "ssim": null,
-          "pixel_diff_ratio": null,
-          "changed_regions": [],
-          "ocr_fingerprint_before": "",
-          "ocr_fingerprint_after": "48843af9fdbf07f6",
-          "ocr_text_similarity": 0.0,
-          "rawpage_changed": true,
-          "boundary_confidence": 0.15,
-          "evidence_quality": "structural",
-          "evidence": [
-            "screenshot missing",
-            "ocr_text_similarity=0.000",
-            "rawpage_changed=True"
-          ]
-        }
-      },
-      {
-        "from": "s_1",
-        "to": "s_2",
-        "trigger_step": 3,
-        "evidence": [
-          "navigation action: open_app"
-        ],
-        "visual_evidence": {
-          "source_step_index": 3,
-          "next_step_index": 4,
-          "has_before_image": false,
-          "has_after_image": false,
-          "phash_before": "",
-          "phash_after": "",
-          "phash_distance": null,
-          "ssim": null,
-          "pixel_diff_ratio": null,
-          "changed_regions": [],
-          "ocr_fingerprint_before": "48843af9fdbf07f6",
-          "ocr_fingerprint_after": "48843af9fdbf07f6",
-          "ocr_text_similarity": 1.0,
-          "rawpage_changed": false,
-          "boundary_confidence": 0.0,
-          "evidence_quality": "structural",
-          "evidence": [
-            "screenshot missing",
-            "ocr_text_similarity=1.000",
-            "rawpage_changed=False"
-          ]
-        }
-      },
-      {
-        "from": "s_2",
-        "to": "s_3",
-        "trigger_step": 4,
-        "evidence": [
-          "checkpoint achieved at this step"
-        ],
-        "visual_evidence": {
-          "source_step_index": 4,
-          "next_step_index": 5,
-          "has_before_image": false,
-          "has_after_image": true,
-          "phash_before": "",
-          "phash_after": "",
-          "phash_distance": null,
-          "ssim": null,
-          "pixel_diff_ratio": null,
-          "changed_regions": [],
-          "ocr_fingerprint_before": "48843af9fdbf07f6",
-          "ocr_fingerprint_after": "07c9da918d4a465f",
-          "ocr_text_similarity": 0.378,
-          "rawpage_changed": true,
-          "boundary_confidence": 0.093,
-          "evidence_quality": "structural",
-          "evidence": [
-            "screenshot decode failed",
-            "ocr_text_similarity=0.378",
-            "rawpage_changed=True"
-          ]
-        }
-      },
-      {
-        "from": "s_3",
-        "to": "s_4",
-        "trigger_step": 5,
-        "evidence": [
-          "visual/rawPage boundary confidence=0.73",
-          "pHash distance=32",
-          "ssim=0.649",
-          "pixel_diff_ratio=0.260"
-        ],
-        "visual_evidence": {
-          "source_step_index": 5,
-          "next_step_index": 6,
-          "has_before_image": true,
-          "has_after_image": true,
-          "phash_before": "d32cda37ced26124",
-          "phash_after": "d3256c9ccd25a6d2",
-          "phash_distance": 32,
-          "ssim": 0.6493,
-          "pixel_diff_ratio": 0.2598,
-          "changed_regions": [
-            {
-              "region": "middle",
-              "diff_ratio": 0.3356
-            },
-            {
-              "region": "bottom",
-              "diff_ratio": 0.4155
-            }
-          ],
-          "ocr_fingerprint_before": "07c9da918d4a465f",
-          "ocr_fingerprint_after": "7ffabff706ddc650",
-          "ocr_text_similarity": 0.0336,
-          "rawpage_changed": true,
-          "boundary_confidence": 0.734,
-          "evidence_quality": "strong",
-          "evidence": [
-            "pHash distance=32",
-            "ssim=0.649",
-            "pixel_diff_ratio=0.260",
-            "changed_regions=middle, bottom",
-            "ocr_text_similarity=0.034",
-            "rawpage_changed=True"
-          ]
-        }
-      },
-      {
-        "from": "s_4",
-        "to": "s_5",
-        "trigger_step": 6,
-        "evidence": [
-          "checkpoint achieved at this step"
-        ],
-        "visual_evidence": {
-          "source_step_index": 6,
-          "next_step_index": 7,
-          "has_before_image": true,
-          "has_after_image": true,
-          "phash_before": "d3256c9ccd25a6d2",
-          "phash_after": "f225e3d706d98706",
-          "phash_distance": 28,
-          "ssim": 0.1145,
-          "pixel_diff_ratio": 0.5203,
-          "changed_regions": [
-            {
-              "region": "top",
-              "diff_ratio": 0.3929
-            },
-            {
-              "region": "middle",
-              "diff_ratio": 0.5305
-            },
-            {
-              "region": "bottom",
-              "diff_ratio": 0.6321
-            }
-          ],
-          "ocr_fingerprint_before": "7ffabff706ddc650",
-          "ocr_fingerprint_after": "25a79fd015608cc7",
-          "ocr_text_similarity": 0.2323,
-          "rawpage_changed": true,
-          "boundary_confidence": 0.894,
-          "evidence_quality": "strong",
-          "evidence": [
-            "pHash distance=28",
-            "ssim=0.115",
-            "pixel_diff_ratio=0.520",
-            "changed_regions=top, middle, bottom",
-            "ocr_text_similarity=0.232",
-            "rawpage_changed=True"
-          ]
-        }
-      },
-      {
-        "from": "s_5",
-        "to": "s_6",
-        "trigger_step": 7,
-        "evidence": [
-          "visual/rawPage boundary confidence=0.78",
-          "pHash distance=28",
-          "ssim=0.135",
-          "pixel_diff_ratio=0.569"
-        ],
-        "visual_evidence": {
-          "source_step_index": 7,
-          "next_step_index": 8,
-          "has_before_image": true,
-          "has_after_image": true,
-          "phash_before": "f225e3d706d98706",
-          "phash_after": "9325fcdb2524d2d2",
-          "phash_distance": 28,
-          "ssim": 0.1352,
-          "pixel_diff_ratio": 0.5688,
-          "changed_regions": [
-            {
-              "region": "top",
-              "diff_ratio": 0.2641
-            },
-            {
-              "region": "middle",
-              "diff_ratio": 0.4405
-            },
-            {
-              "region": "bottom",
-              "diff_ratio": 0.9822
-            }
-          ],
-          "ocr_fingerprint_before": "25a79fd015608cc7",
-          "ocr_fingerprint_after": "19bc5f9db6826925",
-          "ocr_text_similarity": 0.918,
-          "rawpage_changed": true,
-          "boundary_confidence": 0.784,
-          "evidence_quality": "strong",
-          "evidence": [
-            "pHash distance=28",
-            "ssim=0.135",
-            "pixel_diff_ratio=0.569",
-            "changed_regions=top, middle, bottom",
-            "ocr_text_similarity=0.918",
-            "rawpage_changed=True"
-          ]
-        }
-      },
-      {
-        "from": "s_6",
-        "to": "s_7",
-        "trigger_step": 8,
-        "evidence": [
-          "visual/rawPage boundary confidence=0.15",
-          "pHash distance=2",
-          "ssim=1.000",
-          "pixel_diff_ratio=0.001"
-        ],
-        "visual_evidence": {
-          "source_step_index": 8,
-          "next_step_index": 9,
-          "has_before_image": true,
-          "has_after_image": true,
-          "phash_before": "9325fcdb2524d2d2",
-          "phash_after": "9325fcdb0524d2da",
-          "phash_distance": 2,
-          "ssim": 0.9999,
-          "pixel_diff_ratio": 0.0007,
-          "changed_regions": [],
-          "ocr_fingerprint_before": "19bc5f9db6826925",
-          "ocr_fingerprint_after": "93ac611e9a8c3084",
-          "ocr_text_similarity": 0.1398,
-          "rawpage_changed": true,
-          "boundary_confidence": 0.145,
-          "evidence_quality": "strong",
-          "evidence": [
-            "pHash distance=2",
-            "ssim=1.000",
-            "pixel_diff_ratio=0.001",
-            "ocr_text_similarity=0.140",
-            "rawpage_changed=True"
-          ]
-        }
-      },
-      {
-        "from": "s_7",
-        "to": "s_8",
-        "trigger_step": 9,
-        "evidence": [
-          "visual/rawPage boundary confidence=0.88",
-          "pHash distance=28",
-          "ssim=0.232",
-          "pixel_diff_ratio=0.581"
-        ],
-        "visual_evidence": {
-          "source_step_index": 9,
-          "next_step_index": 10,
-          "has_before_image": true,
-          "has_after_image": true,
-          "phash_before": "9325fcdb0524d2da",
-          "phash_after": "d8a97d5754d28952",
-          "phash_distance": 28,
-          "ssim": 0.2325,
-          "pixel_diff_ratio": 0.5811,
-          "changed_regions": [
-            {
-              "region": "top",
-              "diff_ratio": 0.1964
-            },
-            {
-              "region": "middle",
-              "diff_ratio": 0.6228
-            },
-            {
-              "region": "bottom",
-              "diff_ratio": 0.9084
-            }
-          ],
-          "ocr_fingerprint_before": "93ac611e9a8c3084",
-          "ocr_fingerprint_after": "b12129bdf6b381d0",
-          "ocr_text_similarity": 0.0455,
-          "rawpage_changed": true,
-          "boundary_confidence": 0.881,
-          "evidence_quality": "strong",
-          "evidence": [
-            "pHash distance=28",
-            "ssim=0.232",
-            "pixel_diff_ratio=0.581",
-            "changed_regions=top, middle, bottom",
-            "ocr_text_similarity=0.045",
-            "rawpage_changed=True"
-          ]
-        }
-      },
-      {
-        "from": "s_8",
-        "to": "s_9",
-        "trigger_step": 10,
-        "evidence": [
-          "visual/rawPage boundary confidence=0.99",
-          "pHash distance=34",
-          "ssim=0.019",
-          "pixel_diff_ratio=0.559"
-        ],
-        "visual_evidence": {
-          "source_step_index": 10,
-          "next_step_index": 11,
-          "has_before_image": true,
-          "has_after_image": true,
-          "phash_before": "d8a97d5754d28952",
-          "phash_after": "a9525674aab92976",
-          "phash_distance": 34,
-          "ssim": 0.0187,
-          "pixel_diff_ratio": 0.5591,
-          "changed_regions": [
-            {
-              "region": "top",
-              "diff_ratio": 0.3862
-            },
-            {
-              "region": "middle",
-              "diff_ratio": 0.6004
-            },
-            {
-              "region": "bottom",
-              "diff_ratio": 0.6847
-            }
-          ],
-          "ocr_fingerprint_before": "b12129bdf6b381d0",
-          "ocr_fingerprint_after": "",
-          "ocr_text_similarity": 0.0,
-          "rawpage_changed": true,
-          "boundary_confidence": 0.993,
-          "evidence_quality": "strong",
-          "evidence": [
-            "pHash distance=34",
-            "ssim=0.019",
-            "pixel_diff_ratio=0.559",
-            "changed_regions=top, middle, bottom",
-            "ocr_text_similarity=0.000",
-            "rawpage_changed=True"
-          ]
-        }
-      },
-      {
-        "from": "s_9",
-        "to": "s_10",
-        "trigger_step": 12,
-        "evidence": [
-          "page description changed: similarity=0.58"
-        ],
-        "visual_evidence": {
-          "source_step_index": 12,
-          "next_step_index": 13,
-          "has_before_image": true,
-          "has_after_image": true,
-          "phash_before": "a9525674aab92976",
-          "phash_after": "a9525674aab92976",
-          "phash_distance": 0,
-          "ssim": 1.0,
-          "pixel_diff_ratio": 0.0,
-          "changed_regions": [],
-          "ocr_fingerprint_before": "",
-          "ocr_fingerprint_after": "",
-          "ocr_text_similarity": null,
-          "rawpage_changed": null,
-          "boundary_confidence": 0.0,
-          "evidence_quality": "visual",
-          "evidence": [
-            "pHash distance=0",
-            "ssim=1.000",
-            "pixel_diff_ratio=0.000",
-            "rawPage/OCR missing"
-          ]
-        }
-      }
-    ],
-    "progress_steps": [
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      12
-    ],
-    "evidence_quality": "strong",
-    "visual_evidence": [
-      {
-        "source_step_index": 0,
-        "next_step_index": 1,
-        "has_before_image": false,
-        "has_after_image": false,
-        "phash_before": "",
-        "phash_after": "",
-        "phash_distance": null,
-        "ssim": null,
-        "pixel_diff_ratio": null,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "",
-        "ocr_fingerprint_after": "",
-        "ocr_text_similarity": null,
-        "rawpage_changed": null,
-        "boundary_confidence": 0.0,
-        "evidence_quality": "missing",
-        "evidence": [
-          "screenshot missing",
-          "rawPage/OCR missing"
-        ]
-      },
-      {
-        "source_step_index": 1,
-        "next_step_index": 2,
-        "has_before_image": false,
-        "has_after_image": false,
-        "phash_before": "",
-        "phash_after": "",
-        "phash_distance": null,
-        "ssim": null,
-        "pixel_diff_ratio": null,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "",
-        "ocr_fingerprint_after": "",
-        "ocr_text_similarity": null,
-        "rawpage_changed": null,
-        "boundary_confidence": 0.0,
-        "evidence_quality": "missing",
-        "evidence": [
-          "screenshot missing",
-          "rawPage/OCR missing"
-        ]
-      },
-      {
-        "source_step_index": 2,
-        "next_step_index": 3,
-        "has_before_image": false,
-        "has_after_image": false,
-        "phash_before": "",
-        "phash_after": "",
-        "phash_distance": null,
-        "ssim": null,
-        "pixel_diff_ratio": null,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "",
-        "ocr_fingerprint_after": "48843af9fdbf07f6",
-        "ocr_text_similarity": 0.0,
-        "rawpage_changed": true,
-        "boundary_confidence": 0.15,
-        "evidence_quality": "structural",
-        "evidence": [
-          "screenshot missing",
-          "ocr_text_similarity=0.000",
-          "rawpage_changed=True"
-        ]
-      },
-      {
-        "source_step_index": 3,
-        "next_step_index": 4,
-        "has_before_image": false,
-        "has_after_image": false,
-        "phash_before": "",
-        "phash_after": "",
-        "phash_distance": null,
-        "ssim": null,
-        "pixel_diff_ratio": null,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "48843af9fdbf07f6",
-        "ocr_fingerprint_after": "48843af9fdbf07f6",
-        "ocr_text_similarity": 1.0,
-        "rawpage_changed": false,
-        "boundary_confidence": 0.0,
-        "evidence_quality": "structural",
-        "evidence": [
-          "screenshot missing",
-          "ocr_text_similarity=1.000",
-          "rawpage_changed=False"
-        ]
-      },
-      {
-        "source_step_index": 4,
-        "next_step_index": 5,
-        "has_before_image": false,
-        "has_after_image": true,
-        "phash_before": "",
-        "phash_after": "",
-        "phash_distance": null,
-        "ssim": null,
-        "pixel_diff_ratio": null,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "48843af9fdbf07f6",
-        "ocr_fingerprint_after": "07c9da918d4a465f",
-        "ocr_text_similarity": 0.378,
-        "rawpage_changed": true,
-        "boundary_confidence": 0.093,
-        "evidence_quality": "structural",
-        "evidence": [
-          "screenshot decode failed",
-          "ocr_text_similarity=0.378",
-          "rawpage_changed=True"
-        ]
-      },
-      {
-        "source_step_index": 5,
-        "next_step_index": 6,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "d32cda37ced26124",
-        "phash_after": "d3256c9ccd25a6d2",
-        "phash_distance": 32,
-        "ssim": 0.6493,
-        "pixel_diff_ratio": 0.2598,
-        "changed_regions": [
-          {
-            "region": "middle",
-            "diff_ratio": 0.3356
-          },
-          {
-            "region": "bottom",
-            "diff_ratio": 0.4155
-          }
-        ],
-        "ocr_fingerprint_before": "07c9da918d4a465f",
-        "ocr_fingerprint_after": "7ffabff706ddc650",
-        "ocr_text_similarity": 0.0336,
-        "rawpage_changed": true,
-        "boundary_confidence": 0.734,
-        "evidence_quality": "strong",
-        "evidence": [
-          "pHash distance=32",
-          "ssim=0.649",
-          "pixel_diff_ratio=0.260",
-          "changed_regions=middle, bottom",
-          "ocr_text_similarity=0.034",
-          "rawpage_changed=True"
-        ]
-      },
-      {
-        "source_step_index": 6,
-        "next_step_index": 7,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "d3256c9ccd25a6d2",
-        "phash_after": "f225e3d706d98706",
-        "phash_distance": 28,
-        "ssim": 0.1145,
-        "pixel_diff_ratio": 0.5203,
-        "changed_regions": [
-          {
-            "region": "top",
-            "diff_ratio": 0.3929
-          },
-          {
-            "region": "middle",
-            "diff_ratio": 0.5305
-          },
-          {
-            "region": "bottom",
-            "diff_ratio": 0.6321
-          }
-        ],
-        "ocr_fingerprint_before": "7ffabff706ddc650",
-        "ocr_fingerprint_after": "25a79fd015608cc7",
-        "ocr_text_similarity": 0.2323,
-        "rawpage_changed": true,
-        "boundary_confidence": 0.894,
-        "evidence_quality": "strong",
-        "evidence": [
-          "pHash distance=28",
-          "ssim=0.115",
-          "pixel_diff_ratio=0.520",
-          "changed_regions=top, middle, bottom",
-          "ocr_text_similarity=0.232",
-          "rawpage_changed=True"
-        ]
-      },
-      {
-        "source_step_index": 7,
-        "next_step_index": 8,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "f225e3d706d98706",
-        "phash_after": "9325fcdb2524d2d2",
-        "phash_distance": 28,
-        "ssim": 0.1352,
-        "pixel_diff_ratio": 0.5688,
-        "changed_regions": [
-          {
-            "region": "top",
-            "diff_ratio": 0.2641
-          },
-          {
-            "region": "middle",
-            "diff_ratio": 0.4405
-          },
-          {
-            "region": "bottom",
-            "diff_ratio": 0.9822
-          }
-        ],
-        "ocr_fingerprint_before": "25a79fd015608cc7",
-        "ocr_fingerprint_after": "19bc5f9db6826925",
-        "ocr_text_similarity": 0.918,
-        "rawpage_changed": true,
-        "boundary_confidence": 0.784,
-        "evidence_quality": "strong",
-        "evidence": [
-          "pHash distance=28",
-          "ssim=0.135",
-          "pixel_diff_ratio=0.569",
-          "changed_regions=top, middle, bottom",
-          "ocr_text_similarity=0.918",
-          "rawpage_changed=True"
-        ]
-      },
-      {
-        "source_step_index": 8,
-        "next_step_index": 9,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "9325fcdb2524d2d2",
-        "phash_after": "9325fcdb0524d2da",
-        "phash_distance": 2,
-        "ssim": 0.9999,
-        "pixel_diff_ratio": 0.0007,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "19bc5f9db6826925",
-        "ocr_fingerprint_after": "93ac611e9a8c3084",
-        "ocr_text_similarity": 0.1398,
-        "rawpage_changed": true,
-        "boundary_confidence": 0.145,
-        "evidence_quality": "strong",
-        "evidence": [
-          "pHash distance=2",
-          "ssim=1.000",
-          "pixel_diff_ratio=0.001",
-          "ocr_text_similarity=0.140",
-          "rawpage_changed=True"
-        ]
-      },
-      {
-        "source_step_index": 9,
-        "next_step_index": 10,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "9325fcdb0524d2da",
-        "phash_after": "d8a97d5754d28952",
-        "phash_distance": 28,
-        "ssim": 0.2325,
-        "pixel_diff_ratio": 0.5811,
-        "changed_regions": [
-          {
-            "region": "top",
-            "diff_ratio": 0.1964
-          },
-          {
-            "region": "middle",
-            "diff_ratio": 0.6228
-          },
-          {
-            "region": "bottom",
-            "diff_ratio": 0.9084
-          }
-        ],
-        "ocr_fingerprint_before": "93ac611e9a8c3084",
-        "ocr_fingerprint_after": "b12129bdf6b381d0",
-        "ocr_text_similarity": 0.0455,
-        "rawpage_changed": true,
-        "boundary_confidence": 0.881,
-        "evidence_quality": "strong",
-        "evidence": [
-          "pHash distance=28",
-          "ssim=0.232",
-          "pixel_diff_ratio=0.581",
-          "changed_regions=top, middle, bottom",
-          "ocr_text_similarity=0.045",
-          "rawpage_changed=True"
-        ]
-      },
-      {
-        "source_step_index": 10,
-        "next_step_index": 11,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "d8a97d5754d28952",
-        "phash_after": "a9525674aab92976",
-        "phash_distance": 34,
-        "ssim": 0.0187,
-        "pixel_diff_ratio": 0.5591,
-        "changed_regions": [
-          {
-            "region": "top",
-            "diff_ratio": 0.3862
-          },
-          {
-            "region": "middle",
-            "diff_ratio": 0.6004
-          },
-          {
-            "region": "bottom",
-            "diff_ratio": 0.6847
-          }
-        ],
-        "ocr_fingerprint_before": "b12129bdf6b381d0",
-        "ocr_fingerprint_after": "",
-        "ocr_text_similarity": 0.0,
-        "rawpage_changed": true,
-        "boundary_confidence": 0.993,
-        "evidence_quality": "strong",
-        "evidence": [
-          "pHash distance=34",
-          "ssim=0.019",
-          "pixel_diff_ratio=0.559",
-          "changed_regions=top, middle, bottom",
-          "ocr_text_similarity=0.000",
-          "rawpage_changed=True"
-        ]
-      },
-      {
-        "source_step_index": 11,
-        "next_step_index": 12,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "a9525674aab92976",
-        "phash_after": "a9525674aab92976",
-        "phash_distance": 0,
-        "ssim": 1.0,
-        "pixel_diff_ratio": 0.0,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "",
-        "ocr_fingerprint_after": "",
-        "ocr_text_similarity": null,
-        "rawpage_changed": null,
-        "boundary_confidence": 0.0,
-        "evidence_quality": "visual",
-        "evidence": [
-          "pHash distance=0",
-          "ssim=1.000",
-          "pixel_diff_ratio=0.000",
-          "rawPage/OCR missing"
-        ]
-      },
-      {
-        "source_step_index": 12,
-        "next_step_index": 13,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "a9525674aab92976",
-        "phash_after": "a9525674aab92976",
-        "phash_distance": 0,
-        "ssim": 1.0,
-        "pixel_diff_ratio": 0.0,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "",
-        "ocr_fingerprint_after": "",
-        "ocr_text_similarity": null,
-        "rawpage_changed": null,
-        "boundary_confidence": 0.0,
-        "evidence_quality": "visual",
-        "evidence": [
-          "pHash distance=0",
-          "ssim=1.000",
-          "pixel_diff_ratio=0.000",
-          "rawPage/OCR missing"
-        ]
-      },
-      {
-        "source_step_index": 13,
-        "next_step_index": 14,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "a9525674aab92976",
-        "phash_after": "a9525674aab92976",
-        "phash_distance": 0,
-        "ssim": 1.0,
-        "pixel_diff_ratio": 0.0,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "",
-        "ocr_fingerprint_after": "",
-        "ocr_text_similarity": null,
-        "rawpage_changed": null,
-        "boundary_confidence": 0.0,
-        "evidence_quality": "visual",
-        "evidence": [
-          "pHash distance=0",
-          "ssim=1.000",
-          "pixel_diff_ratio=0.000",
-          "rawPage/OCR missing"
-        ]
-      },
-      {
-        "source_step_index": 14,
-        "next_step_index": 15,
-        "has_before_image": true,
-        "has_after_image": true,
-        "phash_before": "a9525674aab92976",
-        "phash_after": "a9525674aab92976",
-        "phash_distance": 0,
-        "ssim": 1.0,
-        "pixel_diff_ratio": 0.0,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "",
-        "ocr_fingerprint_after": "",
-        "ocr_text_similarity": null,
-        "rawpage_changed": null,
-        "boundary_confidence": 0.0,
-        "evidence_quality": "visual",
-        "evidence": [
-          "pHash distance=0",
-          "ssim=1.000",
-          "pixel_diff_ratio=0.000",
-          "rawPage/OCR missing"
-        ]
-      },
-      {
-        "source_step_index": 15,
-        "next_step_index": 16,
-        "has_before_image": true,
-        "has_after_image": false,
-        "phash_before": "",
-        "phash_after": "",
-        "phash_distance": null,
-        "ssim": null,
-        "pixel_diff_ratio": null,
-        "changed_regions": [],
-        "ocr_fingerprint_before": "",
-        "ocr_fingerprint_after": "",
-        "ocr_text_similarity": null,
-        "rawpage_changed": null,
-        "boundary_confidence": 0.0,
-        "evidence_quality": "missing",
-        "evidence": [
-          "screenshot decode failed",
-          "rawPage/OCR missing"
-        ]
-      }
-    ]
-  },
-  "repeated_prediction": {
-    "label": "normal",
-    "type": "repeated_action",
-    "severity": "none",
-    "confidence": 0.0,
-    "ranges": [],
-    "summary": "未发现重复动作异常。",
-    "metrics": {
-      "action_count": 9,
-      "repeated_range_count": 0
-    },
-    "task_uuid": "0ceb35a6-605e-47d1-b90e-0ae4f52669a4"
-  }
+  "completion_score": 0.5,
+  "required_completion_score": 0.5,
+  "overall_status": "一般",
+  "evidence": [
+    "[OK] [打开拼多多应用] → 达成 (confidence=1.00)",
+    "[FAIL] [点击搜索栏] → 未达成 (confidence=1.00)",
+    "[OK] [输入搜索关键词] → 达成 (confidence=1.00)",
+    "[FAIL] [执行搜索] → 未达成 (confidence=1.00)",
+    "[?] [筛选价格区间] → 不确定 (confidence=0.00)",
+    "[OK] [浏览并确认商品属性] → 达成 (confidence=1.00)"
+  ],
+  "model_used": "qwen36-27b-vl",
+  "total_vlm_calls": 5,
+  "fallback_count": 1
 }
