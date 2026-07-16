@@ -40,10 +40,13 @@ def test_preprocessor_with_mock():
         assert len(task.steps) > 0, "Should have at least one action step"
         print(f"  PASS: {len(task.steps)} action steps parsed")
 
-        # Check that non-action steps are filtered
+        # Check that non-action/system steps are filtered
         action_types = [s.action_type for s in task.steps]
         assert "unknown" not in action_types[:5], "Thinking steps should be filtered"
-        print(f"  PASS: thinking steps filtered, action types: {action_types[:5]}")
+        assert "CheckAppExist" not in action_types, "System check steps should be filtered"
+        assert "finished" not in action_types, "Raw terminal records should be filtered before payload writing"
+        assert not any("用户回复" in a or "播报" in a for a in action_types), "Conversation records should be filtered"
+        print(f"  PASS: non-executable steps filtered, action types: {action_types[:5]}")
 
         # Check coordinates
         clicks = [s for s in task.steps if s.action_type == "click"]
@@ -88,6 +91,14 @@ def test_payload_writer():
         assert "instruction" in payload
         assert "seq_info" in payload
         assert len(payload["seq_info"]) >= 2  # at least actions + finished
+        payload_action_types = [
+            item["planning_output"]["parsed_action"]["action_type"]
+            for item in payload["seq_info"]
+        ]
+        assert payload_action_types.count("finished") == 1
+        assert payload_action_types[-1] == "finished"
+        assert "CheckAppExist" not in payload_action_types
+        assert not any("用户回复" in a or "播报" in a for a in payload_action_types)
         print(f"  PASS: payload.json generated with {len(payload['seq_info'])} seq_info entries")
         print(f"  instruction: {payload['instruction']}")
         print(f"  step_level_instruction: {payload.get('step_level_instruction', '')[:80]}")

@@ -37,6 +37,34 @@ _ACTION_NORMALIZE: dict[str, str] = {
     "scroll custom": "scroll",
 }
 
+_NON_EXECUTABLE_ACTION_TYPES = {
+    "unknown",
+    "noop",
+    "finished",
+    "done",
+    "checkappexist",
+}
+
+_NON_EXECUTABLE_ACTION_KEYWORDS = (
+    "用户回复",
+    "播报",
+    "语音播报",
+    "assistant",
+    "system",
+    "reply",
+    "speak",
+    "tts",
+)
+
+
+def _is_non_executable_action(action_type: str) -> bool:
+    """Return True for conversation/system/terminal records that are not GUI actions."""
+    normalized = action_type.strip().rstrip(";")
+    compact = normalized.lower()
+    if compact in _NON_EXECUTABLE_ACTION_TYPES:
+        return True
+    return any(keyword.lower() in compact for keyword in _NON_EXECUTABLE_ACTION_KEYWORDS)
+
 
 # ── Action type parsing ──────────────────────────────────────────
 
@@ -251,6 +279,7 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
     ocr_pages = clearres_data.get("ocr_pages", [])
     purpose_idx = 0
     last_star_action = ""  # merge consecutive same-action non-image nodes (e.g. open_app)
+    last_kept_action_type = ""
 
     steps: list[NormalizedStep] = []
     last_screenshot = ""
@@ -281,8 +310,8 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
         content = dir_info.get("content", "")
         direction = parsed_at.get("direction", "")
 
-        # Filter thinking/reflection (no directives, no real action)
-        if action_type in ("unknown", "noop") and not start_box:
+        # Filter thinking/reflection, conversation/system messages and terminal records.
+        if _is_non_executable_action(action_type):
             continue
 
         # Action purpose: image always consumes; open_app (star) consumes with merge
@@ -325,6 +354,10 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
             if ocr_idx >= 0:
                 resolved_target = _resolve_from_rawpage(start_box, ocr_pages[ocr_idx])
 
+        # Drop duplicate synthetic open_app records that carry no new executable signal.
+        if action_type == "open_app" and last_kept_action_type == "open_app" and not purpose and not start_box:
+            continue
+
         # Cost time
         cost_time = int(sd.get("cost_time", "0") or "0")
 
@@ -353,6 +386,7 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
             node_shape=(node or {}).get("shape", ""),
             ocr_page_index=purpose_idx - 1,
         ))
+        last_kept_action_type = action_type
 
     return NormalizedTask(
         task_uuid=task_uuid,

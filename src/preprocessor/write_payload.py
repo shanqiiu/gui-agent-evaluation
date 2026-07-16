@@ -67,23 +67,26 @@ def write_payload(
             },
         })
 
-    # Append finished step
-    last_idx = len(seq_info)
-    seq_info.append({
-        "index": last_idx,
-        "image_relative_path": "",
-        "_image_source": "",
-        "planning_output": {
-            "parsed_action": {
-                "action_type": "finished",
-                "start_box": [],
-                "end_box": [],
-                "text": "任务完成",
-                "direction": "",
-                "content": "",
-            }
-        },
-    })
+    # Append a single terminal sentinel for downstream compatibility.
+    if not seq_info or _parsed_action_type(seq_info[-1]) not in {"finished", "done"}:
+        last_idx = len(seq_info)
+        seq_info.append({
+            "index": last_idx,
+            "image_relative_path": "",
+            "_image_source": "",
+            "_ocr_page_index": -1,
+            "action_purpose": "",
+            "planning_output": {
+                "parsed_action": {
+                    "action_type": "finished",
+                    "start_box": [],
+                    "end_box": [],
+                    "text": "任务完成",
+                    "direction": "",
+                    "content": "",
+                }
+            },
+        })
 
     # step_level_instruction: LLM+RAG decomposed sub-goals (if available)
     step_plan = _build_step_level_instruction(task)
@@ -115,6 +118,11 @@ def write_payload(
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
     return payload
+
+
+def _parsed_action_type(seq_item: dict) -> str:
+    parsed = (seq_item.get("planning_output") or {}).get("parsed_action") or {}
+    return str(parsed.get("action_type", "")).strip().lower()
 
 
 def _make_action_text(step) -> str:
