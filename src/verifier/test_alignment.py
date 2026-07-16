@@ -204,3 +204,60 @@ def test_intent_recall_unmatched_blocks_execution_alignment():
     assert matches[0].confidence == "unmatched_intent"
     assert alignments[0].step_index == -1
     assert alignments[0].confidence == "unmatched_intent"
+
+
+
+def test_purpose_matching_is_primary_path_for_checkpoint_alignment():
+    payload = {
+        "step_level_instruction": "open app->input query->apply filter->open detail",
+        "_action_purposes": [
+            "open shopping app",
+            "input query for safe cream",
+            "set minimum price to 100 and confirm filter",
+            "open product detail to inspect attributes",
+        ],
+        "seq_info": [
+            _step(4, "open_app", "open app"),
+            _step(5, "type", "input text"),
+            _step(8, "type", "input minimum price"),
+            _step(10, "click", "open detail"),
+        ],
+    }
+    checkpoints = [
+        Checkpoint(name="open app", expected_state="home page visible"),
+        Checkpoint(name="input query", expected_state="query text appears"),
+        Checkpoint(name="apply price filter", expected_state="minimum price is 100"),
+        Checkpoint(name="inspect product detail", expected_state="detail page shows attributes"),
+    ]
+
+    matches = match_checkpoint_intents(checkpoints, payload, min_score=0.18)
+    alignments = align_checkpoints_to_steps(checkpoints, payload, intent_matches=matches)
+
+    assert [a.step_index for a in alignments] == [4, 5, 8, 10]
+    assert all(any("purpose_index=" in item for item in a.evidence) for a in alignments)
+
+
+def test_llm_purpose_missing_blocks_alignment(monkeypatch):
+    payload = {
+        "_action_purposes": ["open app", "input query"],
+        "seq_info": [_step(1, "open_app", "open"), _step(2, "type", "input")],
+    }
+    checkpoints = [Checkpoint(name="apply price filter", expected_state="filter applied")]
+
+    def fake_call(_config, _prompt):
+        return '{"matches":[{"checkpoint_index":0,"agent_purpose_index":-1,"status":"missing","confidence":0.9,"reason":"no filter intent"}]}'
+
+    import src.verifier.alignment as alignment
+
+    monkeypatch.setattr(alignment, "_call_llm", fake_call)
+    matches = match_checkpoint_intents(
+        checkpoints,
+        payload,
+        config=alignment.IntentMatcherConfig(llm_model_url="http://llm", llm_model_name="model"),
+    )
+    alignments = align_checkpoints_to_steps(checkpoints, payload, intent_matches=matches)
+
+    assert matches[0].matched is False
+    assert matches[0].llm_used is True
+    assert matches[0].confidence == "unmatched_intent"
+    assert alignments[0].step_index == -1

@@ -54,6 +54,7 @@ def write_payload(
             "image_relative_path": img_ref,
             "_image_source": step.screenshot_source,
             "_ocr_page_index": step.ocr_page_index,
+            "action_purpose": step.action_purpose,
             "planning_output": {
                 "parsed_action": {
                     "action_type": step.action_type,

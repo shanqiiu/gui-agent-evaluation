@@ -19,6 +19,7 @@ class IntentMatcherConfig:
     mock_mode: bool = False
     request_timeout: int = 60
     max_candidates: int = 4
+    prefer_purpose_matching: bool = True
 
 
 @dataclass
@@ -29,6 +30,8 @@ class IntentCandidate:
     evidence: list[str] = field(default_factory=list)
     state_id: str = ""
     step_range: list[int] = field(default_factory=list)
+    purpose_index: int = -1
+    purpose_text: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -38,6 +41,8 @@ class IntentCandidate:
             "evidence": self.evidence,
             "state_id": self.state_id,
             "step_range": self.step_range,
+            "purpose_index": self.purpose_index,
+            "purpose_text": self.purpose_text,
         }
 
 
@@ -98,6 +103,103 @@ def match_checkpoint_intents(
 ) -> list[CheckpointIntentMatch]:
     """Recall likely actual steps/states for each checkpoint at intent level."""
     config = config or IntentMatcherConfig()
+    purpose_features = _build_purpose_features(payload)
+    if config.prefer_purpose_matching and purpose_features:
+        matches = _match_checkpoint_purposes(
+            checkpoints,
+            payload,
+            purpose_features,
+            config,
+            min_score=min_score,
+        )
+        if (
+            any(match.llm_used for match in matches)
+            or any(match.matched for match in matches)
+            or not _build_alignment_features(payload, ab_report, state_sequence)
+        ):
+            return matches
+
+    return _match_checkpoint_features(
+        checkpoints,
+        payload,
+        ab_report=ab_report,
+        state_sequence=state_sequence,
+        config=config,
+        min_score=min_score,
+    )
+
+
+def _match_checkpoint_purposes(
+    checkpoints: list[Checkpoint],
+    payload: dict[str, Any],
+    purpose_features: list[dict[str, Any]],
+    config: IntentMatcherConfig,
+    *,
+    min_score: float,
+) -> list[CheckpointIntentMatch]:
+    llm_matches = _llm_match_plan_to_purposes(checkpoints, payload, purpose_features, config)
+    matches: list[CheckpointIntentMatch] = []
+    last_purpose_pos = -1
+
+    for cp_idx, checkpoint in enumerate(checkpoints):
+        llm_item = llm_matches.get(cp_idx, {})
+        if llm_item:
+            match = _match_from_llm_item(
+                cp_idx,
+                llm_item,
+                purpose_features,
+                min_score=min_score,
+            )
+            if match is not None:
+                if match.matched and match.candidates:
+                    last_purpose_pos = max(last_purpose_pos, match.candidates[0].purpose_index)
+                matches.append(match)
+                continue
+
+        scored: list[tuple[int, dict[str, Any], float, list[str]]] = []
+        cp_text = _checkpoint_text(checkpoint)
+        for pos, feature in enumerate(purpose_features):
+            if pos < last_purpose_pos:
+                continue
+            score, evidence = _score(cp_text, checkpoint, feature)
+            scored.append((pos, feature, score, ["purpose_local_match"] + evidence))
+        top = sorted(scored, key=lambda item: item[2], reverse=True)[: max(1, config.max_candidates)]
+        best = _select_candidate(top, min_score=min_score)
+        if best is None or best[2] < min_score:
+            matches.append(CheckpointIntentMatch(
+                checkpoint_index=cp_idx,
+                matched=False,
+                score=0.0 if best is None else best[2],
+                confidence="unmatched_intent",
+                candidates=[_to_intent_candidate(item) for item in top],
+                evidence=["purpose intent match found no reliable candidate"],
+                llm_used=False,
+            ))
+            continue
+        last_purpose_pos = best[0]
+        candidate = _to_intent_candidate(best)
+        matches.append(CheckpointIntentMatch(
+            checkpoint_index=cp_idx,
+            matched=True,
+            score=best[2],
+            confidence=_confidence(best[2]),
+            candidate_steps=[candidate.step_index] if candidate.step_index >= 0 else [],
+            candidates=[candidate],
+            evidence=best[3],
+            llm_used=False,
+        ))
+    return matches
+
+
+def _match_checkpoint_features(
+    checkpoints: list[Checkpoint],
+    payload: dict[str, Any],
+    *,
+    ab_report: Any = None,
+    state_sequence: Any = None,
+    config: IntentMatcherConfig,
+    min_score: float = 0.18,
+) -> list[CheckpointIntentMatch]:
     features = _build_alignment_features(payload, ab_report, state_sequence)
     matches: list[CheckpointIntentMatch] = []
     last_pos = -1
@@ -113,14 +215,6 @@ def match_checkpoint_intents(
 
         ranked = sorted(scored, key=lambda item: item[2], reverse=True)
         top = ranked[: max(1, config.max_candidates)]
-        llm_result = _llm_rerank_intent(checkpoint, top, config)
-        if llm_result is not None:
-            selected_pos = llm_result.get("selected_pos", -1)
-            selected = next((item for item in top if item[0] == selected_pos), None)
-            if selected is not None:
-                top = [selected] + [item for item in top if item[0] != selected_pos]
-                top[0] = (top[0][0], top[0][1], max(top[0][2], float(llm_result.get("score", 0.0))), top[0][3])
-
         best = _select_candidate(top, min_score=min_score)
         if best is None or best[2] < min_score:
             matches.append(CheckpointIntentMatch(
@@ -129,9 +223,8 @@ def match_checkpoint_intents(
                 score=0.0 if best is None else best[2],
                 confidence="unmatched_intent",
                 candidates=[_to_intent_candidate(item) for item in top],
-                evidence=["intent recall found no reliable candidate"],
-                llm_used=bool(llm_result),
-                llm_reason=str((llm_result or {}).get("reason", "")),
+                evidence=["fallback state/AB intent recall found no reliable candidate"],
+                llm_used=False,
             ))
             continue
 
@@ -148,10 +241,8 @@ def match_checkpoint_intents(
             candidate_states=[c.state_id for c in candidates if c.state_id],
             candidates=candidates,
             evidence=best[3],
-            llm_used=bool(llm_result),
-            llm_reason=str((llm_result or {}).get("reason", "")),
+            llm_used=False,
         ))
-
     return matches
 
 
@@ -245,13 +336,221 @@ def build_checkpoint_step_data(
 
 def _to_intent_candidate(item: tuple[int, dict[str, Any], float, list[str]]) -> IntentCandidate:
     _, feature, score, evidence = item
+    purpose_index = int(feature.get("purpose_index", -1))
+    candidate_evidence = list(evidence)
+    if purpose_index >= 0 and not any(item.startswith("purpose_index=") for item in candidate_evidence):
+        candidate_evidence.append(f"purpose_index={purpose_index}")
     return IntentCandidate(
         source_kind=str(feature.get("source_kind", "step")),
         step_index=int(feature.get("source_step_index", -1)),
         score=score,
-        evidence=evidence,
+        evidence=candidate_evidence,
         state_id=str(feature.get("state_id", "")),
         step_range=list(feature.get("state_range", [])),
+        purpose_index=purpose_index,
+        purpose_text=str(feature.get("purpose_text", "")),
+    )
+
+
+def _build_purpose_features(payload: dict[str, Any]) -> list[dict[str, Any]]:
+    seq_info = payload.get("seq_info") or []
+    features: list[dict[str, Any]] = []
+    for pos, step in enumerate(seq_info):
+        parsed = (step.get("planning_output") or {}).get("parsed_action") or {}
+        action_type = str(parsed.get("action_type", "")).strip().lower()
+        if action_type in {"finished", "done"}:
+            continue
+        purpose = str(step.get("action_purpose") or step.get("purpose") or "").strip()
+        if not purpose:
+            continue
+        source_step = int(step.get("index", pos))
+        action_text = _action_description(parsed)
+        features.append({
+            "source_kind": "purpose",
+            "source_step_index": source_step,
+            "purpose_index": len(features),
+            "purpose_text": purpose,
+            "action_type": action_type,
+            "action_text": " ".join(part for part in (purpose, action_text) if part),
+            "page_before": "",
+            "page_after": "",
+            "ab_action": "",
+        })
+    if features:
+        return features
+
+    purposes = _payload_purposes(payload)
+    if not purposes:
+        return []
+    non_terminal_steps = []
+    for pos, step in enumerate(seq_info):
+        parsed = (step.get("planning_output") or {}).get("parsed_action") or {}
+        action_type = str(parsed.get("action_type", "")).strip().lower()
+        if action_type in {"finished", "done"}:
+            continue
+        non_terminal_steps.append((pos, step, parsed))
+
+    for purpose_idx, purpose in enumerate(purposes):
+        step_pos, step, parsed = non_terminal_steps[purpose_idx] if purpose_idx < len(non_terminal_steps) else (-1, {}, {})
+        source_step = int(step.get("index", step_pos if step_pos >= 0 else purpose_idx))
+        action_type = str(parsed.get("action_type", "")).strip().lower()
+        action_text = _action_description(parsed)
+        features.append({
+            "source_kind": "purpose",
+            "source_step_index": source_step,
+            "purpose_index": purpose_idx,
+            "purpose_text": purpose,
+            "action_type": action_type,
+            "action_text": " ".join(part for part in (purpose, action_text) if part),
+            "page_before": "",
+            "page_after": "",
+            "ab_action": "",
+        })
+    return features
+
+
+def _payload_purposes(payload: dict[str, Any]) -> list[str]:
+    raw = payload.get("_action_purposes")
+    if isinstance(raw, list):
+        purposes = [str(item).strip() for item in raw if str(item).strip()]
+        if purposes:
+            return purposes
+    text = str(payload.get("agent_purposes") or "").strip()
+    if not text:
+        return []
+    parts = re.split(r"\s*(?:->|=>|,|，|;|；|\n)\s*", text)
+    return [part.strip() for part in parts if part.strip()]
+
+
+def _llm_match_plan_to_purposes(
+    checkpoints: list[Checkpoint],
+    payload: dict[str, Any],
+    purpose_features: list[dict[str, Any]],
+    config: IntentMatcherConfig,
+) -> dict[int, dict[str, Any]]:
+    if config.mock_mode or not config.llm_model_url or not config.llm_model_name:
+        return {}
+    prompt = _plan_purpose_match_prompt(checkpoints, payload, purpose_features)
+    try:
+        content = _call_llm(config, prompt)
+        parsed = _parse_json_object(content)
+    except Exception:
+        return {}
+    items = parsed.get("matches", []) if isinstance(parsed, dict) else []
+    result: dict[int, dict[str, Any]] = {}
+    if not isinstance(items, list):
+        return result
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        try:
+            cp_idx = int(item.get("checkpoint_index", -1))
+        except (TypeError, ValueError):
+            continue
+        if 0 <= cp_idx < len(checkpoints):
+            result[cp_idx] = item
+    return result
+
+
+def _plan_purpose_match_prompt(
+    checkpoints: list[Checkpoint],
+    payload: dict[str, Any],
+    purpose_features: list[dict[str, Any]],
+) -> str:
+    checkpoint_items = []
+    for idx, checkpoint in enumerate(checkpoints):
+        item = checkpoint.to_dict()
+        item["checkpoint_index"] = idx
+        checkpoint_items.append(item)
+    purpose_items = [
+        {
+            "agent_purpose_index": feature["purpose_index"],
+            "step_index": feature["source_step_index"],
+            "purpose": feature["purpose_text"],
+            "action_type": feature.get("action_type", ""),
+            "action_text": feature.get("action_text", ""),
+        }
+        for feature in purpose_features
+    ]
+    payload_summary = {
+        "instruction": payload.get("instruction", ""),
+        "step_level_instruction": payload.get("step_level_instruction", ""),
+        "checkpoints": checkpoint_items,
+        "agent_purposes": purpose_items,
+    }
+    return (
+        "你是 GUI Agent 评测中的意图对齐器，需要判断任务检查点是否被 Agent 的实际操作意图覆盖。\n"
+        "请只比较 checkpoint 与 agent_purpose 的语义意图，不要根据页面截图或执行结果猜测。\n"
+        "如果某个 checkpoint 没有对应 purpose，status 设为 missing；如果 purpose 隐含满足 checkpoint，status 设为 implicit；"
+        "如果只能由更早顺序的 purpose 满足但会破坏检查点顺序，status 设为 order_violation。\n"
+        "只输出 JSON，格式为：{\"matches\":[{\"checkpoint_index\":0,\"agent_purpose_index\":0,\"status\":\"matched|implicit|missing|order_violation\",\"confidence\":0.0,\"reason\":\"...\"}]}。\n"
+        f"输入：{json.dumps(payload_summary, ensure_ascii=False)}"
+    )
+
+
+def _match_from_llm_item(
+    cp_idx: int,
+    item: dict[str, Any],
+    purpose_features: list[dict[str, Any]],
+    *,
+    min_score: float,
+) -> CheckpointIntentMatch | None:
+    status = str(item.get("status", "")).strip().lower()
+    try:
+        purpose_idx = int(item.get("agent_purpose_index", -1))
+    except (TypeError, ValueError):
+        purpose_idx = -1
+    try:
+        score = float(item.get("confidence", 0.0))
+    except (TypeError, ValueError):
+        score = 0.0
+    score = max(0.0, min(score, 1.0))
+    reason = str(item.get("reason", "")).strip()
+    matched_status = status in {"matched", "implicit"} and purpose_idx >= 0
+    if not matched_status:
+        return CheckpointIntentMatch(
+            checkpoint_index=cp_idx,
+            matched=False,
+            score=score,
+            confidence="unmatched_intent",
+            evidence=[f"purpose_llm_status={status or 'missing'}"],
+            llm_used=True,
+            llm_reason=reason,
+        )
+    feature = next((f for f in purpose_features if int(f.get("purpose_index", -1)) == purpose_idx), None)
+    if feature is None:
+        return None
+    if score < min_score:
+        return CheckpointIntentMatch(
+            checkpoint_index=cp_idx,
+            matched=False,
+            score=score,
+            confidence="unmatched_intent",
+            evidence=[f"purpose_llm_status={status}", "llm confidence below threshold"],
+            llm_used=True,
+            llm_reason=reason,
+        )
+    candidate = IntentCandidate(
+        source_kind="purpose",
+        step_index=int(feature.get("source_step_index", -1)),
+        score=score,
+        evidence=[
+            f"purpose_llm_status={status}",
+            f"purpose_index={purpose_idx}",
+        ],
+        purpose_index=purpose_idx,
+        purpose_text=str(feature.get("purpose_text", "")),
+    )
+    return CheckpointIntentMatch(
+        checkpoint_index=cp_idx,
+        matched=True,
+        score=score,
+        confidence=_confidence(score),
+        candidate_steps=[candidate.step_index] if candidate.step_index >= 0 else [],
+        candidates=[candidate],
+        evidence=candidate.evidence,
+        llm_used=True,
+        llm_reason=reason,
     )
 
 
