@@ -1,12 +1,147 @@
-  "_decomposer": {
-    "attempted": true,
-    "status": "ok",
-    "model_name": "qwen36-27b-vl",
-    "model_url_set": true,
-    "api_key_set": true,
-    "used_vlm_url_fallback": false,
-    "used_vlm_name_fallback": false,
-    "used_vlm_key_fallback": false,
-    "checkpoint_count": 0,
-    "error": ""
+{
+  "schema_version": "repeated_baseline.v1",
+  "task_uuid": "0c4668ee-c629-40ab-9c56-c87d2b2f8d0a",
+  "input_payload": "D:\\Projects\\workspace\\projects\\activate\\gui-agent-evaluation\\output\\dpp_data\\0c4668ee-c629-40ab-9c56-c87d2b2f8d0a\\payload.json",
+  "image_resolution": {
+    "total": 3,
+    "resolved": 0,
+    "already_base64": 0,
+    "data_url": 0,
+    "missing": 3,
+    "failed": 0
+  },
+  "ab_report": {
+    "task_uuid": "0c4668ee-c629-40ab-9c56-c87d2b2f8d0a",
+    "results": {
+      "0": {
+        "label": "无法判定",
+        "action_des": "动作类型: 用户回复(京东查看我的全部订单);<br>播报(稍等，稍等片刻再试试呢。)；操作目标: 用户回复(京东查看我的全部订单);<br>播报(稍等，稍等片刻再试试呢。)",
+        "pagea_description": "",
+        "pageb_description": "",
+        "thought": "[启发式] 无法判定"
+      },
+      "1": {
+        "label": "无法判定",
+        "action_des": "动作类型: 播报(稍等，稍等片刻再试试呢。)；操作目标: 播报(稍等，稍等片刻再试试呢。)",
+        "pagea_description": "",
+        "pageb_description": "",
+        "thought": "[启发式] 无法判定"
+      }
+    },
+    "model_used": "qwen36-27b-vl",
+    "total_vlm_calls": 2,
+    "fallback_count": 0
+  },
+  "checkpoint_alignments": [
+    {
+      "checkpoint_index": 0,
+      "step_index": -1,
+      "score": 0.04,
+      "confidence": "unmatched",
+      "evidence": [
+        "no reliable monotonic candidate"
+      ]
+    },
+    {
+      "checkpoint_index": 1,
+      "step_index": -1,
+      "score": 0.059,
+      "confidence": "unmatched",
+      "evidence": [
+        "no reliable monotonic candidate"
+      ]
+    },
+    {
+      "checkpoint_index": 2,
+      "step_index": -1,
+      "score": 0.062,
+      "confidence": "unmatched",
+      "evidence": [
+        "no reliable monotonic candidate"
+      ]
+    }
+  ],
+  "verification_report": {
+    "task_uuid": "0c4668ee-c629-40ab-9c56-c87d2b2f8d0a",
+    "instruction": "京东查看我的全部订单",
+    "results": [
+      {
+        "checkpoint": {
+          "name": "打开京东应用",
+          "required": true,
+          "preconditions": "手机处于主屏幕或应用列表界面",
+          "expected_state": "京东应用主界面已加载完成，显示首页内容",
+          "checkpoint_id": "cp_000"
+        },
+        "status": "不确定",
+        "confidence": 0.0,
+        "evidence": "缺少截图数据，无法进行VLM判定",
+        "step_index": -1,
+        "action_description": "",
+        "fallback": true
+      },
+      {
+        "checkpoint": {
+          "name": "进入我的页面",
+          "required": true,
+          "preconditions": "京东应用主界面已打开",
+          "expected_state": "页面切换至'我的'标签页，显示用户头像、订单概览等个人信息区域",
+          "checkpoint_id": "cp_001"
+        },
+        "status": "不确定",
+        "confidence": 0.0,
+        "evidence": "缺少截图数据，无法进行VLM判定",
+        "step_index": -1,
+        "action_description": "",
+        "fallback": true
+      },
+      {
+        "checkpoint": {
+          "name": "点击全部订单入口",
+          "required": true,
+          "preconditions": "已处于'我的'页面",
+          "expected_state": "页面跳转至订单列表页，顶部显示'全部'标签被选中，下方展示历史订单列表",
+          "checkpoint_id": "cp_002"
+        },
+        "status": "不确定",
+        "confidence": 0.0,
+        "evidence": "缺少截图数据，无法进行VLM判定",
+        "step_index": -1,
+        "action_description": "",
+        "fallback": true
+      }
+    ],
+    "summary": {
+      "total_checkpoints": 3,
+      "achieved": 0,
+      "not_achieved": 0,
+      "uncertain": 3,
+      "required_total": 3,
+      "required_achieved": 0
+    },
+    "completion_score": 0.0,
+    "required_completion_score": 0.0,
+    "overall_status": "失败",
+    "evidence": [
+      "[?] [打开京东应用] → 不确定 (confidence=0.00)",
+      "[?] [进入我的页面] → 不确定 (confidence=0.00)",
+      "[?] [点击全部订单入口] → 不确定 (confidence=0.00)"
+    ],
+    "model_used": "qwen36-27b-vl",
+    "total_vlm_calls": 0,
+    "fallback_count": 3
+  },
+  "repeated_prediction": {
+    "label": "normal",
+    "type": "repeated_action",
+    "severity": "none",
+    "confidence": 0.0,
+    "ranges": [],
+    "summary": "未发现重复动作异常。",
+    "metrics": {
+      "action_count": 2,
+      "repeated_range_count": 0
+    },
+    "task_uuid": "0c4668ee-c629-40ab-9c56-c87d2b2f8d0a"
   }
+}
