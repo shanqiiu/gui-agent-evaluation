@@ -330,7 +330,31 @@ class TestRepeatedActionDetector:
         assert "过短" in result.summary
 
 
+    def test_non_gui_dialogue_actions_are_ignored(self):
+        task_text = "\u62fc\u591a\u591a\u4e0a\u67e5\u770b\u4e00\u6b3e\u4ef7\u683c\u5728100\u5143\u4ee5\u4e0a\u5b55\u5987\u53ef\u7528\u7684\u9694\u79bb\u971c"
+        user_reply = "\u7528\u6237\u56de\u590d"
+        speech = "\u64ad\u62a5"
+        payload = make_payload([
+            {"action_type": f"{user_reply}({task_text})", "text": task_text},
+            {"action_type": f"{user_reply}({task_text})", "text": task_text},
+            {"action_type": speech, "text": "\u5df2\u4e3a\u4f60\u627e\u5230\u5546\u54c1"},
+            {"action_type": "finished", "text": "done"},
+        ])
+        ab = make_ab_report([
+            make_step_ab(0, "\u65e0\u6cd5\u5224\u5b9a", user_reply),
+            make_step_ab(1, "\u65e0\u6cd5\u5224\u5b9a", user_reply),
+            make_step_ab(2, "\u7b26\u5408\u9884\u671f", speech),
+        ])
+
+        result = detect_repeated_actions(payload, ab)
+
+        assert result.label == "normal"
+        assert result.action_count == 0
+
+
 # ═══════════════════════════════════════════════════════════════════
+
+
 # 3. PlanningFailureDetector
 # ═══════════════════════════════════════════════════════════════════
 

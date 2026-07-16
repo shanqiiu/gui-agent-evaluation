@@ -36,6 +36,34 @@ class RepeatedActionConfig:
     consecutive_swipe_threshold: int = 4
 
 
+_GUI_ACTION_TYPES = {
+    "click",
+    "long_press",
+    "type",
+    "set_text",
+    "scroll",
+    "swipe",
+    "drag",
+    "wait",
+    "do-nothing",
+    "do_nothing",
+    "do_nothing()",
+    "open_app",
+    "back",
+}
+
+_NON_GUI_ACTION_KEYWORDS = (
+    "\u7528\u6237\u56de\u590d",
+    "\u64ad\u62a5",
+    "\u8bed\u97f3\u64ad\u62a5",
+    "assistant",
+    "system",
+    "reply",
+    "speak",
+    "tts",
+)
+
+
 def detect_repeated_actions(
     payload: dict[str, Any],
     ab_report: Any = None,                    # ABValidationReport or compatible
@@ -114,7 +142,7 @@ class RepeatedActionDetector:
             action_type = self._normalize_text(parsed_action.get("action_type"))
             if not action_type:
                 continue
-            if action_type in {"finished", "done"}:
+            if not self._is_repeated_candidate_action(action_type):
                 continue
 
             source_step_index = int(item.get("index", pos))
@@ -140,6 +168,14 @@ class RepeatedActionDetector:
             })
 
         return steps
+
+
+    def _is_repeated_candidate_action(self, action_type: str) -> bool:
+        if action_type in {"finished", "done", "clarify"}:
+            return False
+        if action_type in _GUI_ACTION_TYPES:
+            return True
+        return not any(keyword.lower() in action_type for keyword in _NON_GUI_ACTION_KEYWORDS)
 
     def _get_ab_result(self, ab_report: Any, step_index: int) -> dict[str, Any]:
         """Get AB result for a step from ABValidationReport or Darwin dict."""
