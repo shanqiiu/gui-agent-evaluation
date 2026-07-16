@@ -84,15 +84,32 @@ def build_checkpoint_step_data(
 
     for alignment in alignments:
         if alignment.step_index < 0 or alignment.step_index not in by_source:
-            step_data.append({"step_index": -1, "alignment": alignment.to_dict()})
+            step_data.append({
+                "step_index": -1,
+                "before_step_index": -1,
+                "after_step_index": -1,
+                "before_image_base64": "",
+                "after_image_base64": "",
+                "before_image_ref": "",
+                "after_image_ref": "",
+                "image_available": False,
+                "alignment": alignment.to_dict(),
+            })
             continue
 
         pos, step = by_source[alignment.step_index]
         next_step = seq_info[pos + 1] if pos + 1 < len(seq_info) else {}
         parsed = (step.get("planning_output") or {}).get("parsed_action") or {}
+        before_img = step.get("image_relative_path", "")
+        after_img = next_step.get("image_relative_path", "")
         step_data.append({
-            "before_image_base64": step.get("image_relative_path", ""),
-            "after_image_base64": next_step.get("image_relative_path", ""),
+            "before_image_base64": before_img,
+            "after_image_base64": after_img,
+            "before_image_ref": step.get("_image_original_ref", before_img),
+            "after_image_ref": next_step.get("_image_original_ref", after_img),
+            "before_step_index": int(step.get("index", alignment.step_index)),
+            "after_step_index": int(next_step.get("index", -1)) if next_step else -1,
+            "image_available": bool(before_img or after_img),
             "action_description": _action_description(parsed),
             "step_index": alignment.step_index,
             "alignment": alignment.to_dict(),

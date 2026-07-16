@@ -258,6 +258,7 @@ class CheckpointVerifier:
                 action_description=data.get("action_description", ""),
                 step_index=data.get("step_index", -1),
             )
+            result.image_context = self._build_image_context(data)
             if not result.fallback:
                 vlm_calls += 1
             else:
@@ -332,6 +333,22 @@ class CheckpointVerifier:
         )
 
     # ── VLM call ──────────────────────────────────────────────────
+
+    @staticmethod
+    def _build_image_context(data: dict[str, Any]) -> dict[str, Any]:
+        before = data.get("before_image_base64", "")
+        after = data.get("after_image_base64", "")
+        return {
+            "step_index": data.get("step_index", -1),
+            "before_step_index": data.get("before_step_index", data.get("step_index", -1)),
+            "after_step_index": data.get("after_step_index", -1),
+            "before_image_available": bool(before),
+            "after_image_available": bool(after),
+            "image_available": bool(before or after),
+            "before_image_ref": data.get("before_image_ref", ""),
+            "after_image_ref": data.get("after_image_ref", ""),
+            "alignment": data.get("alignment", {}),
+        }
 
     def _call_vlm(self, prompt: str, images: list[str]) -> str:
         """Call the VLM endpoint (OpenAI-compatible chat/completions).

@@ -59,6 +59,7 @@ class CheckpointResult:
     before_image: str = ""                       # reference to the before screenshot
     after_image: str = ""                        # reference to the after screenshot
     action_description: str = ""                 # what the Agent did
+    image_context: dict[str, Any] = field(default_factory=dict)
 
     # Flag for when VLM call failed and we fell back to heuristics
     fallback: bool = False
@@ -70,6 +71,7 @@ class CheckpointResult:
             "confidence": round(self.confidence, 3),
             "evidence": self.evidence,
             "step_index": self.step_index,
+            "image_context": self.image_context,
             "action_description": self.action_description,
             "fallback": self.fallback,
         }
