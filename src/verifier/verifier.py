@@ -26,7 +26,11 @@ from .models import (
     VerificationReport,
     VerifierConfig,
 )
-from .alignment import align_checkpoints_to_steps, build_checkpoint_step_data
+from .alignment import (
+    CheckpointIntentMatch,
+    align_checkpoints_to_steps,
+    build_checkpoint_step_data,
+)
 
 # ── VLM Prompt Template ──────────────────────────────────────────────
 # Adapted from Darwin's ab_test_prompts.py + intention_predicate.py,
@@ -280,6 +284,8 @@ class CheckpointVerifier:
         *,
         checkpoint_step_map: dict[int, int] | None = None,
         ab_report: Any = None,
+        state_sequence: Any = None,
+        intent_matches: list[CheckpointIntentMatch] | None = None,
     ) -> VerificationReport:
         """Verify checkpoints using a full /check_e2e payload.
 
@@ -304,6 +310,8 @@ class CheckpointVerifier:
                 checkpoints,
                 payload,
                 ab_report=ab_report,
+                state_sequence=state_sequence,
+                intent_matches=intent_matches,
             )
             step_data = build_checkpoint_step_data(checkpoints, payload, alignments)
         else:

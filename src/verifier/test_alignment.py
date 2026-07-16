@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from src.common import ABValidationReport, StepABResult
-from src.verifier import Checkpoint, align_checkpoints_to_steps
+from src.verifier import Checkpoint, align_checkpoints_to_steps, match_checkpoint_intents
 
 
 def test_generic_form_flow_checkpoints_align_to_semantic_steps():
@@ -118,3 +118,89 @@ def _step(index: int, action_type: str, text: str) -> dict:
             }
         },
     }
+
+
+
+def test_alignment_can_use_aggregated_state_purpose_when_step_text_is_weak():
+    payload = {
+        "seq_info": [
+            _step(1, "click", "tap element"),
+            _step(2, "click", "tap element"),
+        ]
+    }
+    state_sequence = {
+        "states": [
+            {
+                "state_id": "s_0",
+                "label": "home page",
+                "step_range": [1, 1],
+                "source_step_indices": [1],
+                "page_description": "home page with entry button",
+                "action_purposes": ["enter account preferences"],
+                "action_types": ["click"],
+                "evidence_quality": "partial",
+                "visual_change_summary": {},
+            },
+            {
+                "state_id": "s_1",
+                "label": "account preferences page",
+                "step_range": [2, 2],
+                "source_step_indices": [2],
+                "page_description": "account preferences page displays notification switch",
+                "action_purposes": ["open notification preferences"],
+                "action_types": ["click"],
+                "evidence_quality": "partial",
+                "visual_change_summary": {},
+            },
+        ]
+    }
+    checkpoints = [
+        Checkpoint(
+            name="open notification preferences",
+            expected_state="account preferences page displays notification switch",
+        )
+    ]
+
+    without_state = align_checkpoints_to_steps(
+        checkpoints,
+        payload,
+        min_score=0.24,
+    )
+    with_state = align_checkpoints_to_steps(
+        checkpoints,
+        payload,
+        state_sequence=state_sequence,
+        min_score=0.24,
+    )
+
+    assert without_state[0].step_index == -1
+    assert with_state[0].step_index == 2
+    assert any("state_candidate=s_1" in item for item in with_state[0].evidence)
+
+
+
+def test_intent_recall_unmatched_blocks_execution_alignment():
+    payload = {
+        "seq_info": [
+            _step(1, "click", "tap generic element"),
+        ]
+    }
+    checkpoints = [
+        Checkpoint(
+            name="enable advanced backup setting",
+            expected_state="advanced backup setting is enabled",
+        )
+    ]
+
+    matches = match_checkpoint_intents(checkpoints, payload, min_score=0.5)
+    alignments = align_checkpoints_to_steps(
+        checkpoints,
+        payload,
+        intent_matches=matches,
+        min_score=0.5,
+    )
+
+    assert matches[0].matched is False
+    assert matches[0].confidence == "unmatched_intent"
+    assert alignments[0].step_index == -1
+    assert alignments[0].confidence == "unmatched_intent"

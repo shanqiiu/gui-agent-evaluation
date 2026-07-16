@@ -18,8 +18,12 @@ from .models import (
 )
 from .alignment import (
     CheckpointAlignment,
+    CheckpointIntentMatch,
+    IntentCandidate,
+    IntentMatcherConfig,
     align_checkpoints_to_steps,
     build_checkpoint_step_data,
+    match_checkpoint_intents,
 )
 from .verifier import CheckpointVerifier
 
@@ -56,11 +60,15 @@ def verify_checkpoints(
 __all__ = [
     "Checkpoint",
     "CheckpointAlignment",
+    "CheckpointIntentMatch",
     "CheckpointResult",
     "CheckpointVerifier",
+    "IntentCandidate",
+    "IntentMatcherConfig",
     "VerificationReport",
     "VerifierConfig",
     "align_checkpoints_to_steps",
     "build_checkpoint_step_data",
+    "match_checkpoint_intents",
     "verify_checkpoints",
 ]

@@ -18,8 +18,10 @@ from src.common import (
 from src.verifier import (
     Checkpoint,
     CheckpointVerifier,
+    IntentMatcherConfig,
     VerifierConfig,
     align_checkpoints_to_steps,
+    match_checkpoint_intents,
 )
 from src.evaluator.state_evidence import build_state_sequence
 
@@ -29,6 +31,9 @@ class RepeatedBaselineConfig:
     vlm_model_url: str = ""
     vlm_model_name: str = "qwen3-vl-8b"
     vlm_api_key: str = ""
+    llm_model_url: str = ""
+    llm_model_name: str = ""
+    llm_api_key: str = ""
     mock_mode: bool = False
     verify_checkpoints: bool = True
 
@@ -61,7 +66,27 @@ def run_repeated_baseline(
     )
 
     checkpoints = _load_checkpoints(hydrated)
-    alignments = align_checkpoints_to_steps(checkpoints, hydrated, ab_report=ab_report)
+    state_sequence = build_state_sequence(hydrated, ab_report)
+    intent_config = IntentMatcherConfig(
+        llm_model_url=config.llm_model_url,
+        llm_model_name=config.llm_model_name,
+        llm_api_key=config.llm_api_key,
+        mock_mode=config.mock_mode,
+    )
+    intent_matches = match_checkpoint_intents(
+        checkpoints,
+        hydrated,
+        ab_report=ab_report,
+        state_sequence=state_sequence,
+        config=intent_config,
+    )
+    alignments = align_checkpoints_to_steps(
+        checkpoints,
+        hydrated,
+        ab_report=ab_report,
+        state_sequence=state_sequence,
+        intent_matches=intent_matches,
+    )
 
     verification_report = None
     if config.verify_checkpoints and checkpoints:
@@ -75,6 +100,8 @@ def run_repeated_baseline(
             checkpoints,
             hydrated,
             ab_report=ab_report,
+            state_sequence=state_sequence,
+            intent_matches=intent_matches,
         )
 
     state_sequence = build_state_sequence(hydrated, ab_report, verification_report)
@@ -94,6 +121,7 @@ def run_repeated_baseline(
         "input_payload": str(payload_path),
         "image_resolution": image_stats.to_dict(),
         "ab_report": ab_report.to_dict(),
+        "intent_matches": [m.to_dict() for m in intent_matches],
         "checkpoint_alignments": [a.to_dict() for a in alignments],
         "verification_report": (
             verification_report.to_dict() if verification_report else None
@@ -105,6 +133,7 @@ def run_repeated_baseline(
     output_base = Path(output_dir) if output_dir else payload_path.parent / "repeated_baseline"
     output_base.mkdir(parents=True, exist_ok=True)
     _write_json(output_base / "ab_report.json", result["ab_report"])
+    _write_json(output_base / "intent_matches.json", result["intent_matches"])
     _write_json(output_base / "checkpoint_alignments.json", result["checkpoint_alignments"])
     if result["verification_report"] is not None:
         _write_json(output_base / "verification_report.json", result["verification_report"])
@@ -230,6 +259,24 @@ def _config_from_env(args: argparse.Namespace) -> RepeatedBaselineConfig:
         vlm_model_url=args.vlm_model_url or os.getenv("VLM_MODEL_URL", ""),
         vlm_model_name=args.vlm_model_name or os.getenv("VLM_MODEL_NAME", "qwen3-vl-8b"),
         vlm_api_key=args.vlm_api_key or os.getenv("VLM_API_KEY", ""),
+        llm_model_url=(
+            args.llm_model_url
+            or os.getenv("LLM_MODEL_URL", "")
+            or args.vlm_model_url
+            or os.getenv("VLM_MODEL_URL", "")
+        ),
+        llm_model_name=(
+            args.llm_model_name
+            or os.getenv("LLM_MODEL_NAME", "")
+            or args.vlm_model_name
+            or os.getenv("VLM_MODEL_NAME", "qwen3-vl-8b")
+        ),
+        llm_api_key=(
+            args.llm_api_key
+            or os.getenv("LLM_API_KEY", "")
+            or args.vlm_api_key
+            or os.getenv("VLM_API_KEY", "")
+        ),
         mock_mode=args.mock,
         verify_checkpoints=not args.skip_checkpoint_verify,
     )
@@ -243,6 +290,9 @@ def main() -> None:
     parser.add_argument("--vlm-model-url", default="")
     parser.add_argument("--vlm-model-name", default="")
     parser.add_argument("--vlm-api-key", default="")
+    parser.add_argument("--llm-model-url", default="")
+    parser.add_argument("--llm-model-name", default="")
+    parser.add_argument("--llm-api-key", default="")
     parser.add_argument("--mock", action="store_true")
     parser.add_argument("--skip-checkpoint-verify", action="store_true")
     args = parser.parse_args()

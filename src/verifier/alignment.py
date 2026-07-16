@@ -1,12 +1,72 @@
-"""Checkpoint-to-step alignment for GUI trajectories."""
+"""Checkpoint intent matching and execution-step alignment."""
 
 from __future__ import annotations
 
+import json
+import re
 from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Any
 
 from .models import Checkpoint
+
+
+@dataclass
+class IntentMatcherConfig:
+    llm_model_url: str = ""
+    llm_model_name: str = ""
+    llm_api_key: str = ""
+    mock_mode: bool = False
+    request_timeout: int = 60
+    max_candidates: int = 4
+
+
+@dataclass
+class IntentCandidate:
+    source_kind: str
+    step_index: int
+    score: float
+    evidence: list[str] = field(default_factory=list)
+    state_id: str = ""
+    step_range: list[int] = field(default_factory=list)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source_kind": self.source_kind,
+            "step_index": self.step_index,
+            "score": round(self.score, 3),
+            "evidence": self.evidence,
+            "state_id": self.state_id,
+            "step_range": self.step_range,
+        }
+
+
+@dataclass
+class CheckpointIntentMatch:
+    checkpoint_index: int
+    matched: bool
+    score: float
+    confidence: str
+    candidate_steps: list[int] = field(default_factory=list)
+    candidate_states: list[str] = field(default_factory=list)
+    candidates: list[IntentCandidate] = field(default_factory=list)
+    evidence: list[str] = field(default_factory=list)
+    llm_used: bool = False
+    llm_reason: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "checkpoint_index": self.checkpoint_index,
+            "matched": self.matched,
+            "score": round(self.score, 3),
+            "confidence": self.confidence,
+            "candidate_steps": self.candidate_steps,
+            "candidate_states": self.candidate_states,
+            "candidates": [c.to_dict() for c in self.candidates],
+            "evidence": self.evidence,
+            "llm_used": self.llm_used,
+            "llm_reason": self.llm_reason,
+        }
 
 
 @dataclass
@@ -27,68 +87,114 @@ class CheckpointAlignment:
         }
 
 
+def match_checkpoint_intents(
+    checkpoints: list[Checkpoint],
+    payload: dict[str, Any],
+    *,
+    ab_report: Any = None,
+    state_sequence: Any = None,
+    config: IntentMatcherConfig | None = None,
+    min_score: float = 0.18,
+) -> list[CheckpointIntentMatch]:
+    """Recall likely actual steps/states for each checkpoint at intent level."""
+    config = config or IntentMatcherConfig()
+    features = _build_alignment_features(payload, ab_report, state_sequence)
+    matches: list[CheckpointIntentMatch] = []
+    last_pos = -1
+
+    for cp_idx, checkpoint in enumerate(checkpoints):
+        cp_text = _checkpoint_text(checkpoint)
+        scored: list[tuple[int, dict[str, Any], float, list[str]]] = []
+        for pos, feature in enumerate(features):
+            if pos < last_pos:
+                continue
+            score, evidence = _score(cp_text, checkpoint, feature)
+            scored.append((pos, feature, score, evidence))
+
+        ranked = sorted(scored, key=lambda item: item[2], reverse=True)
+        top = ranked[: max(1, config.max_candidates)]
+        llm_result = _llm_rerank_intent(checkpoint, top, config)
+        if llm_result is not None:
+            selected_pos = llm_result.get("selected_pos", -1)
+            selected = next((item for item in top if item[0] == selected_pos), None)
+            if selected is not None:
+                top = [selected] + [item for item in top if item[0] != selected_pos]
+                top[0] = (top[0][0], top[0][1], max(top[0][2], float(llm_result.get("score", 0.0))), top[0][3])
+
+        best = _select_candidate(top, min_score=min_score)
+        if best is None or best[2] < min_score:
+            matches.append(CheckpointIntentMatch(
+                checkpoint_index=cp_idx,
+                matched=False,
+                score=0.0 if best is None else best[2],
+                confidence="unmatched_intent",
+                candidates=[_to_intent_candidate(item) for item in top],
+                evidence=["intent recall found no reliable candidate"],
+                llm_used=bool(llm_result),
+                llm_reason=str((llm_result or {}).get("reason", "")),
+            ))
+            continue
+
+        last_pos = best[0]
+        candidates = [_to_intent_candidate(item) for item in top if item[2] >= min_score]
+        if not candidates:
+            candidates = [_to_intent_candidate(best)]
+        matches.append(CheckpointIntentMatch(
+            checkpoint_index=cp_idx,
+            matched=True,
+            score=best[2],
+            confidence=_confidence(best[2]),
+            candidate_steps=sorted({c.step_index for c in candidates if c.step_index >= 0}),
+            candidate_states=[c.state_id for c in candidates if c.state_id],
+            candidates=candidates,
+            evidence=best[3],
+            llm_used=bool(llm_result),
+            llm_reason=str((llm_result or {}).get("reason", "")),
+        ))
+
+    return matches
+
+
 def align_checkpoints_to_steps(
     checkpoints: list[Checkpoint],
     payload: dict[str, Any],
     *,
     ab_report: Any = None,
+    state_sequence: Any = None,
+    intent_matches: list[CheckpointIntentMatch] | None = None,
+    intent_config: IntentMatcherConfig | None = None,
     min_score: float = 0.18,
 ) -> list[CheckpointAlignment]:
-    """Align checkpoints to source step indexes with monotonic ordering."""
-    steps = _build_step_features(payload, ab_report)
+    """Align checkpoints to source step indexes after intent-level recall."""
+    matches = intent_matches or match_checkpoint_intents(
+        checkpoints,
+        payload,
+        ab_report=ab_report,
+        state_sequence=state_sequence,
+        config=intent_config,
+        min_score=min_score,
+    )
     alignments: list[CheckpointAlignment] = []
-    last_pos = -1
 
-    for cp_idx, checkpoint in enumerate(checkpoints):
-        candidates: list[tuple[int, dict[str, Any], float, list[str]]] = []
-        cp_text = _checkpoint_text(checkpoint)
-        for pos, step in enumerate(steps):
-            if pos < last_pos:
-                continue
-            score, evidence = _score(cp_text, checkpoint, step)
-            candidates.append((pos, step, score, evidence))
-
-        best = _select_candidate(candidates, min_score=min_score)
-        if best is None or best[2] < min_score:
+    for cp_idx, match in enumerate(matches):
+        if not match.matched or not match.candidates:
             alignments.append(CheckpointAlignment(
                 checkpoint_index=cp_idx,
                 step_index=-1,
-                score=0.0 if best is None else best[2],
-                confidence="unmatched",
-                evidence=["no reliable monotonic candidate"],
+                score=match.score,
+                confidence="unmatched_intent",
+                evidence=match.evidence or ["intent recall failed; execution verification skipped"],
             ))
             continue
-
-        last_pos = best[0]
+        best = max(match.candidates, key=lambda item: item.score)
         alignments.append(CheckpointAlignment(
             checkpoint_index=cp_idx,
-            step_index=int(best[1]["source_step_index"]),
-            score=best[2],
-            confidence=_confidence(best[2]),
-            evidence=best[3],
+            step_index=best.step_index,
+            score=best.score,
+            confidence=match.confidence,
+            evidence=["intent recall matched candidate"] + best.evidence,
         ))
-
     return alignments
-
-
-
-def _select_candidate(
-    candidates: list[tuple[int, dict[str, Any], float, list[str]]],
-    *,
-    min_score: float,
-    near_best_margin: float = 0.03,
-) -> tuple[int, dict[str, Any], float, list[str]] | None:
-    if not candidates:
-        return None
-    best_score = max(item[2] for item in candidates)
-    if best_score < min_score:
-        return max(candidates, key=lambda item: item[2])
-
-    threshold = max(min_score, best_score - near_best_margin)
-    for item in candidates:
-        if item[2] >= threshold:
-            return item
-    return max(candidates, key=lambda item: item[2])
 
 
 def build_checkpoint_step_data(
@@ -137,8 +243,37 @@ def build_checkpoint_step_data(
     return step_data
 
 
+def _to_intent_candidate(item: tuple[int, dict[str, Any], float, list[str]]) -> IntentCandidate:
+    _, feature, score, evidence = item
+    return IntentCandidate(
+        source_kind=str(feature.get("source_kind", "step")),
+        step_index=int(feature.get("source_step_index", -1)),
+        score=score,
+        evidence=evidence,
+        state_id=str(feature.get("state_id", "")),
+        step_range=list(feature.get("state_range", [])),
+    )
+
+
+def _build_alignment_features(
+    payload: dict[str, Any],
+    ab_report: Any,
+    state_sequence: Any = None,
+) -> list[dict[str, Any]]:
+    features = _build_step_features(payload, ab_report)
+    features.extend(_build_state_features(state_sequence))
+    return sorted(
+        features,
+        key=lambda item: (
+            int(item.get("source_step_index", -1)),
+            0 if item.get("source_kind") == "step" else 1,
+        ),
+    )
+
+
 def _build_step_features(payload: dict[str, Any], ab_report: Any) -> list[dict[str, Any]]:
     features: list[dict[str, Any]] = []
+    purpose_by_pos = _purpose_by_position(payload)
     for pos, step in enumerate(payload.get("seq_info") or []):
         parsed = (step.get("planning_output") or {}).get("parsed_action") or {}
         action_type = str(parsed.get("action_type", "")).strip().lower()
@@ -146,15 +281,88 @@ def _build_step_features(payload: dict[str, Any], ab_report: Any) -> list[dict[s
             continue
         source_step = int(step.get("index", pos))
         ab = _ab_result(ab_report, source_step)
+        action_text = _action_description(parsed)
+        purpose = (
+            str(step.get("action_purpose") or step.get("purpose") or "").strip()
+            or purpose_by_pos.get(pos, "")
+            or purpose_by_pos.get(source_step, "")
+        )
         features.append({
+            "source_kind": "step",
             "source_step_index": source_step,
             "action_type": action_type,
-            "action_text": _action_description(parsed),
+            "action_text": " ".join(part for part in (action_text, purpose) if part),
             "page_before": str(ab.get("pagea_description") or ""),
             "page_after": str(ab.get("pageb_description") or ""),
             "ab_action": str(ab.get("action_des") or ""),
         })
     return features
+
+
+def _build_state_features(state_sequence: Any) -> list[dict[str, Any]]:
+    features: list[dict[str, Any]] = []
+    states = _state_items(state_sequence)
+    for state in states:
+        source_steps = _as_int_list(_value(state, "source_step_indices", []))
+        if not source_steps:
+            step_range = _value(state, "step_range", [])
+            source_steps = _as_int_list(step_range)
+        if not source_steps:
+            continue
+        action_purposes = _as_str_list(_value(state, "action_purposes", []))
+        action_types = _as_str_list(_value(state, "action_types", []))
+        page_description = str(_value(state, "page_description", "") or "")
+        label = str(_value(state, "label", "") or "")
+        visual_summary = _value(state, "visual_change_summary", {}) or {}
+        features.append({
+            "source_kind": "state",
+            "source_step_index": max(source_steps),
+            "source_step_indices": source_steps,
+            "state_id": str(_value(state, "state_id", "")),
+            "state_range": [min(source_steps), max(source_steps)],
+            "action_type": " ".join(action_types),
+            "action_text": " ".join(action_purposes + action_types),
+            "page_before": label,
+            "page_after": page_description or label,
+            "ab_action": "",
+            "evidence_quality": str(_value(state, "evidence_quality", "") or ""),
+            "visual_change_summary": visual_summary,
+        })
+    return features
+
+
+def _state_items(state_sequence: Any) -> list[Any]:
+    if state_sequence is None:
+        return []
+    if isinstance(state_sequence, dict):
+        states = state_sequence.get("states") or []
+        return states if isinstance(states, list) else []
+    states = getattr(state_sequence, "states", [])
+    return states if isinstance(states, list) else []
+
+
+def _value(item: Any, key: str, default: Any = None) -> Any:
+    if isinstance(item, dict):
+        return item.get(key, default)
+    return getattr(item, key, default)
+
+
+def _as_int_list(value: Any) -> list[int]:
+    if not isinstance(value, (list, tuple)):
+        return []
+    result: list[int] = []
+    for item in value:
+        try:
+            result.append(int(item))
+        except (TypeError, ValueError):
+            continue
+    return result
+
+
+def _as_str_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [str(item).strip() for item in value if str(item).strip()]
 
 
 def _score(cp_text: str, checkpoint: Checkpoint, step: dict[str, Any]) -> tuple[float, list[str]]:
@@ -167,6 +375,7 @@ def _score(cp_text: str, checkpoint: Checkpoint, step: dict[str, Any]) -> tuple[
     page_score = _similarity(_checkpoint_state_text(checkpoint), page_text)
     keyword_score = _keyword_overlap(cp_text, all_step_text)
     semantic_score, semantic_evidence = _semantic_score(cp_text, checkpoint, step, all_step_text)
+    state_score, state_evidence = _state_candidate_score(step, page_score, keyword_score, semantic_score)
     type_bonus = 0.0
 
     if step["action_type"] in {"click", "open_app", "type", "set_text"}:
@@ -179,15 +388,161 @@ def _score(cp_text: str, checkpoint: Checkpoint, step: dict[str, Any]) -> tuple[
         evidence.append(f"keyword_overlap={keyword_score:.2f}")
     if semantic_score > 0:
         evidence.extend(semantic_evidence)
+    if state_evidence:
+        evidence.extend(state_evidence)
 
     score = (
         0.30 * action_score
         + 0.25 * page_score
         + 0.20 * keyword_score
         + 0.20 * semantic_score
+        + state_score
         + type_bonus
     )
-    return min(score, 1.0), evidence or ["weak text candidate"]
+    return min(score, 1.0), evidence or ["weak intent candidate"]
+
+
+def _state_candidate_score(
+    step: dict[str, Any],
+    page_score: float,
+    keyword_score: float,
+    semantic_score: float,
+) -> tuple[float, list[str]]:
+    if step.get("source_kind") != "state":
+        return 0.0, []
+    evidence = [
+        f"state_candidate={step.get('state_id') or 'unknown'}",
+        f"state_range={step.get('state_range', [])}",
+    ]
+    quality = step.get("evidence_quality", "")
+    if quality:
+        evidence.append(f"state_evidence_quality={quality}")
+    summary = step.get("visual_change_summary") or {}
+    if isinstance(summary, dict) and summary.get("usable_count", 0):
+        evidence.append(
+            "state_visual_boundary="
+            f"{float(summary.get('max_boundary_confidence') or 0.0):.2f}"
+        )
+
+    textual_support = max(page_score, keyword_score, semantic_score)
+    if textual_support < 0.12:
+        return 0.0, evidence[:2]
+    quality_bonus = 0.03 if quality in {"strong", "visual", "partial"} else 0.0
+    return min(0.10, 0.05 + quality_bonus), evidence[:4]
+
+
+def _llm_rerank_intent(
+    checkpoint: Checkpoint,
+    candidates: list[tuple[int, dict[str, Any], float, list[str]]],
+    config: IntentMatcherConfig,
+) -> dict[str, Any] | None:
+    if config.mock_mode or not config.llm_model_url or not config.llm_model_name or not candidates:
+        return None
+    prompt = _intent_rerank_prompt(checkpoint, candidates)
+    try:
+        content = _call_llm(config, prompt)
+        parsed = _parse_json_object(content)
+    except Exception:
+        return None
+    if not isinstance(parsed, dict) or parsed.get("matched") is False:
+        return None
+    selected = parsed.get("selected_candidate")
+    try:
+        selected_pos = int(selected)
+    except (TypeError, ValueError):
+        return None
+    return {
+        "selected_pos": selected_pos,
+        "score": float(parsed.get("confidence", 0.0)),
+        "reason": str(parsed.get("reason", "")),
+    }
+
+
+def _intent_rerank_prompt(
+    checkpoint: Checkpoint,
+    candidates: list[tuple[int, dict[str, Any], float, list[str]]],
+) -> str:
+    candidate_items = []
+    for pos, feature, score, _ in candidates:
+        candidate_items.append({
+            "candidate_id": pos,
+            "source_kind": feature.get("source_kind", "step"),
+            "step_index": feature.get("source_step_index", -1),
+            "state_id": feature.get("state_id", ""),
+            "action_intent": feature.get("action_text", ""),
+            "page_state": " ".join([
+                str(feature.get("page_before", "")),
+                str(feature.get("page_after", "")),
+            ]).strip(),
+            "local_score": round(score, 3),
+        })
+    return (
+        "You are an intent recall reranker for GUI Agent evaluation. "
+        "Choose the actual candidate that most likely corresponds to the checkpoint. "
+        "Output only a JSON object.\n"
+        f"checkpoint: {json.dumps(checkpoint.to_dict(), ensure_ascii=False)}\n"
+        f"candidates: {json.dumps(candidate_items, ensure_ascii=False)}\n"
+        "schema: {\"matched\": true/false, \"selected_candidate\": <candidate_id or -1>, "
+        "\"confidence\": 0 to 1, \"reason\": \"short reason\"}"
+    )
+
+
+def _call_llm(config: IntentMatcherConfig, prompt: str) -> str:
+    import requests
+
+    payload = {
+        "model": config.llm_model_name,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.0,
+        "max_tokens": 512,
+    }
+    headers = {"Content-Type": "application/json;charset=UTF-8"}
+    if config.llm_api_key:
+        headers["Authorization"] = f"Bearer {config.llm_api_key}"
+    resp = requests.post(
+        config.llm_model_url,
+        json=payload,
+        headers=headers,
+        timeout=config.request_timeout,
+    )
+    if resp.status_code != 200:
+        raise ValueError(f"LLM API returned {resp.status_code}: {resp.text[:200]}")
+    data = resp.json()
+    choices = data.get("choices", [])
+    if not choices:
+        raise ValueError("LLM returned no choices")
+    return choices[0].get("message", {}).get("content", "")
+
+
+def _parse_json_object(content: str) -> dict[str, Any]:
+    try:
+        parsed = json.loads(content)
+        return parsed if isinstance(parsed, dict) else {}
+    except json.JSONDecodeError:
+        match = re.search(r"\{.*\}", content, re.DOTALL)
+        if not match:
+            return {}
+        parsed = json.loads(match.group())
+        return parsed if isinstance(parsed, dict) else {}
+
+
+def _select_candidate(
+    candidates: list[tuple[int, dict[str, Any], float, list[str]]],
+    *,
+    min_score: float,
+    near_best_margin: float = 0.03,
+) -> tuple[int, dict[str, Any], float, list[str]] | None:
+    if not candidates:
+        return None
+    best_score = max(item[2] for item in candidates)
+    if best_score < min_score:
+        return max(candidates, key=lambda item: item[2])
+
+    threshold = max(min_score, best_score - near_best_margin)
+    for item in sorted(candidates, key=lambda candidate: candidate[0]):
+        if item[2] >= threshold:
+            return item
+    return max(candidates, key=lambda item: item[2])
 
 
 def _ab_result(ab_report: Any, step_index: int) -> dict[str, Any]:
@@ -287,8 +642,16 @@ def _action_type_score(cp_text: str, action_type: str) -> float:
     return 0.0
 
 
+def _purpose_by_position(payload: dict[str, Any]) -> dict[int, str]:
+    raw = payload.get("_action_purposes") or []
+    if not isinstance(raw, list):
+        return {}
+    return {idx: str(value).strip() for idx, value in enumerate(raw) if str(value).strip()}
+
+
 def _contains_any(text: str, tokens: tuple[str, ...]) -> bool:
     return any(_compact(token) in text for token in tokens)
+
 
 def _similarity(left: str, right: str) -> float:
     left = _compact(left)

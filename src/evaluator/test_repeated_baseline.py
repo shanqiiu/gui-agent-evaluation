@@ -127,6 +127,8 @@ def test_repeated_baseline_mock_end_to_end(tmp_path):
 
     assert result["task_uuid"] == "case-001"
     assert result["repeated_prediction"]["task_uuid"] == "case-001"
+    assert "intent_matches" in result
+    assert (payload_path.parent / "repeated_baseline" / "intent_matches.json").is_file()
     assert (payload_path.parent / "repeated_baseline" / "baseline_result.json").is_file()
 
 def test_repeated_baseline_batch(tmp_path):

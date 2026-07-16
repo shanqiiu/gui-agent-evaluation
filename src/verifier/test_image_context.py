@@ -46,7 +46,7 @@ def test_unmatched_checkpoint_reports_empty_image_context():
     assert item["image_context"]["before_step_index"] == -1
     assert item["image_context"]["after_step_index"] == -1
     assert item["image_context"]["image_available"] is False
-    assert item["image_context"]["alignment"]["confidence"] == "unmatched"
+    assert item["image_context"]["alignment"]["confidence"] == "unmatched_intent"
 
 
 def test_matched_checkpoint_reports_before_after_image_indices():

@@ -16,6 +16,7 @@ class StateSegment:
     step_range: tuple[int, int]
     source_step_indices: list[int] = field(default_factory=list)
     page_description: str = ""
+    action_purposes: list[str] = field(default_factory=list)
     action_types: list[str] = field(default_factory=list)
     evidence_quality: str = "missing"
     visual_change_summary: dict[str, Any] = field(default_factory=dict)
@@ -28,6 +29,7 @@ class StateSegment:
             "step_range": list(self.step_range),
             "source_step_indices": self.source_step_indices,
             "page_description": self.page_description,
+            "action_purposes": self.action_purposes,
             "action_types": self.action_types,
             "evidence_quality": self.evidence_quality,
             "visual_change_summary": self.visual_change_summary,
@@ -153,6 +155,7 @@ def _build_step_records(
     visual_by_step: dict[int, StepVisualEvidence] | None = None,
 ) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
+    purpose_by_pos = _purpose_by_position(payload)
     for pos, item in enumerate(payload.get("seq_info") or []):
         parsed = (item.get("planning_output") or {}).get("parsed_action") or {}
         action_type = str(parsed.get("action_type", "")).strip().lower()
@@ -161,6 +164,11 @@ def _build_step_records(
         source_step_index = int(item.get("index", pos))
         ab = _ab_result(ab_report, source_step_index)
         visual = (visual_by_step or {}).get(source_step_index)
+        purpose = (
+            str(item.get("action_purpose") or item.get("purpose") or "").strip()
+            or purpose_by_pos.get(pos, "")
+            or purpose_by_pos.get(source_step_index, "")
+        )
         records.append({
             "source_step_index": source_step_index,
             "action_type": action_type,
@@ -172,6 +180,7 @@ def _build_step_records(
             "page_before": str(ab.get("pagea_description") or "").strip(),
             "page_after": str(ab.get("pageb_description") or "").strip(),
             "ab_label": str(ab.get("label") or "").strip(),
+            "action_purpose": purpose,
             "visual_evidence": visual,
         })
     return records
@@ -234,10 +243,14 @@ def _make_state(
     ]
     page_description = page_descriptions[-1] if page_descriptions else ""
     action_types = []
+    action_purposes = []
     visual_changes = []
     for step in steps:
         if step["action_type"] not in action_types:
             action_types.append(step["action_type"])
+        purpose = step.get("action_purpose", "")
+        if purpose and purpose not in action_purposes:
+            action_purposes.append(purpose)
         visual = step.get("visual_evidence")
         if visual is not None:
             visual_changes.append(visual)
@@ -249,6 +262,7 @@ def _make_state(
         step_range=(start_step, end_step),
         source_step_indices=[s["source_step_index"] for s in steps],
         page_description=page_description,
+        action_purposes=action_purposes,
         action_types=action_types,
         evidence_quality=quality,
         visual_change_summary=visual_summary,
@@ -270,6 +284,13 @@ def _checkpoint_progress_steps(verification_report: Any) -> list[int]:
             if isinstance(step_index, int) and step_index >= 0:
                 progress_steps.append(step_index)
     return progress_steps
+
+
+def _purpose_by_position(payload: dict[str, Any]) -> dict[int, str]:
+    raw = payload.get("_action_purposes") or []
+    if not isinstance(raw, list):
+        return {}
+    return {idx: str(value).strip() for idx, value in enumerate(raw) if str(value).strip()}
 
 
 def _ab_result(ab_report: Any, step_index: int) -> dict[str, Any]:
