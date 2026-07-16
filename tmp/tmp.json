@@ -1,147 +1,118 @@
 {
-  "schema_version": "repeated_baseline.v1",
-  "task_uuid": "0c4668ee-c629-40ab-9c56-c87d2b2f8d0a",
-  "input_payload": "D:\\Projects\\workspace\\projects\\activate\\gui-agent-evaluation\\output\\dpp_data\\0c4668ee-c629-40ab-9c56-c87d2b2f8d0a\\payload.json",
-  "image_resolution": {
-    "total": 3,
-    "resolved": 0,
-    "already_base64": 0,
-    "data_url": 0,
-    "missing": 3,
-    "failed": 0
-  },
-  "ab_report": {
-    "task_uuid": "0c4668ee-c629-40ab-9c56-c87d2b2f8d0a",
-    "results": {
-      "0": {
-        "label": "无法判定",
-        "action_des": "动作类型: 用户回复(京东查看我的全部订单);<br>播报(稍等，稍等片刻再试试呢。)；操作目标: 用户回复(京东查看我的全部订单);<br>播报(稍等，稍等片刻再试试呢。)",
-        "pagea_description": "",
-        "pageb_description": "",
-        "thought": "[启发式] 无法判定"
+  "task_uuid": "0ceb35a6-605e-47d1-b90e-0ae4f52669a4",
+  "instruction": "拼多多上查看一款价格在100元以上孕妇可用的隔离霜",
+  "results": [
+    {
+      "checkpoint": {
+        "name": "打开拼多多应用",
+        "required": true,
+        "preconditions": "手机处于主屏幕或应用列表",
+        "expected_state": "屏幕显示拼多多应用首页",
+        "checkpoint_id": "cp_000"
       },
-      "1": {
-        "label": "无法判定",
-        "action_des": "动作类型: 播报(稍等，稍等片刻再试试呢。)；操作目标: 播报(稍等，稍等片刻再试试呢。)",
-        "pagea_description": "",
-        "pageb_description": "",
-        "thought": "[启发式] 无法判定"
-      }
-    },
-    "model_used": "qwen36-27b-vl",
-    "total_vlm_calls": 2,
-    "fallback_count": 0
-  },
-  "checkpoint_alignments": [
-    {
-      "checkpoint_index": 0,
-      "step_index": -1,
-      "score": 0.04,
-      "confidence": "unmatched",
-      "evidence": [
-        "no reliable monotonic candidate"
-      ]
+      "status": "达成",
+      "confidence": 1.0,
+      "evidence": "[操作后页面]: 页面显示为拼多多应用的首页。顶部包含搜索栏和分类导航（推荐、百货、内衣等），中部展示了“限时秒杀”、“百亿补贴”、“多多买菜”等功能入口及商品推荐，底部为应用的标准导航栏（首页、直播、搜索、聊天、个人中心）。\n检查点要求打开拼多多应用并显示首页。操作动作是打开应用。观察操作后的截图，界面具有典型的拼多多首页特征，包括顶部的搜索框、分类Tab、中部的活动图标（如百亿补贴、多多买菜）以及底部的导航栏。页面内容完整，无加载错误或登录拦截，完全符合“屏幕显示拼多多应用首页”的预期状态。",
+      "step_index": 4,
+      "action_description": "open_app: 打开应用",
+      "fallback": false
     },
     {
-      "checkpoint_index": 1,
+      "checkpoint": {
+        "name": "点击搜索栏",
+        "required": true,
+        "preconditions": "已进入拼多多应用首页",
+        "expected_state": "搜索栏处于激活状态，键盘弹出或光标闪烁",
+        "checkpoint_id": "cp_001"
+      },
+      "status": "不确定",
+      "confidence": 0.0,
+      "evidence": "缺少截图数据，无法进行VLM判定",
       "step_index": -1,
-      "score": 0.059,
-      "confidence": "unmatched",
-      "evidence": [
-        "no reliable monotonic candidate"
-      ]
+      "action_description": "",
+      "fallback": true
     },
     {
-      "checkpoint_index": 2,
+      "checkpoint": {
+        "name": "输入搜索关键词",
+        "required": true,
+        "preconditions": "搜索栏已激活",
+        "expected_state": "搜索栏内显示文本“孕妇隔离霜”或类似关键词",
+        "checkpoint_id": "cp_002"
+      },
+      "status": "达成",
+      "confidence": 1.0,
+      "evidence": "[操作后页面]: 操作后页面为商品搜索结果页。顶部搜索栏内显示关键词“孕妇 可用 隔离霜”，下方展示了多个相关的隔离霜商品列表，包括品牌、价格、销量等信息。\n1. **操作前状态**：页面处于首页，搜索栏内显示的是之前的搜索词“海飞丝洗发水80g”。\n2. **执行动作**：执行了“输入文本”操作。\n3. **操作后状态**：页面跳转到了搜索结果页，且顶部的搜索栏中明确显示了新的搜索关键词“孕妇 可用 隔离霜”。\n4. **对比预期**：检查点要求“搜索栏内显示文本‘孕妇隔离霜’或类似关键词”。实际页面中搜索栏显示的内容完全符合这一描述，且页面内容已根据该关键词进行了更新。因此，检查点已达成。",
+      "step_index": 6,
+      "action_description": "type: 输入文本",
+      "fallback": false
+    },
+    {
+      "checkpoint": {
+        "name": "执行搜索",
+        "required": true,
+        "preconditions": "关键词已输入",
+        "expected_state": "页面跳转至搜索结果列表页，显示相关商品",
+        "checkpoint_id": "cp_003"
+      },
+      "status": "不确定",
+      "confidence": 0.0,
+      "evidence": "缺少截图数据，无法进行VLM判定",
       "step_index": -1,
-      "score": 0.062,
-      "confidence": "unmatched",
-      "evidence": [
-        "no reliable monotonic candidate"
-      ]
+      "action_description": "",
+      "fallback": true
+    },
+    {
+      "checkpoint": {
+        "name": "筛选价格区间",
+        "required": true,
+        "preconditions": "处于搜索结果页",
+        "expected_state": "筛选条件中价格下限设置为100元，或列表仅显示100元以上商品",
+        "checkpoint_id": "cp_004"
+      },
+      "status": "不确定",
+      "confidence": 0.0,
+      "evidence": "缺少截图数据，无法进行VLM判定",
+      "step_index": -1,
+      "action_description": "",
+      "fallback": true
+    },
+    {
+      "checkpoint": {
+        "name": "浏览并确认商品属性",
+        "required": true,
+        "preconditions": "已应用价格筛选",
+        "expected_state": "列表中展示的商品标题或标签包含“孕妇可用”、“敏感肌”等字样，且价格大于100元",
+        "checkpoint_id": "cp_005"
+      },
+      "status": "不确定",
+      "confidence": 0.0,
+      "evidence": "缺少截图数据，无法进行VLM判定",
+      "step_index": -1,
+      "action_description": "",
+      "fallback": true
     }
   ],
-  "verification_report": {
-    "task_uuid": "0c4668ee-c629-40ab-9c56-c87d2b2f8d0a",
-    "instruction": "京东查看我的全部订单",
-    "results": [
-      {
-        "checkpoint": {
-          "name": "打开京东应用",
-          "required": true,
-          "preconditions": "手机处于主屏幕或应用列表界面",
-          "expected_state": "京东应用主界面已加载完成，显示首页内容",
-          "checkpoint_id": "cp_000"
-        },
-        "status": "不确定",
-        "confidence": 0.0,
-        "evidence": "缺少截图数据，无法进行VLM判定",
-        "step_index": -1,
-        "action_description": "",
-        "fallback": true
-      },
-      {
-        "checkpoint": {
-          "name": "进入我的页面",
-          "required": true,
-          "preconditions": "京东应用主界面已打开",
-          "expected_state": "页面切换至'我的'标签页，显示用户头像、订单概览等个人信息区域",
-          "checkpoint_id": "cp_001"
-        },
-        "status": "不确定",
-        "confidence": 0.0,
-        "evidence": "缺少截图数据，无法进行VLM判定",
-        "step_index": -1,
-        "action_description": "",
-        "fallback": true
-      },
-      {
-        "checkpoint": {
-          "name": "点击全部订单入口",
-          "required": true,
-          "preconditions": "已处于'我的'页面",
-          "expected_state": "页面跳转至订单列表页，顶部显示'全部'标签被选中，下方展示历史订单列表",
-          "checkpoint_id": "cp_002"
-        },
-        "status": "不确定",
-        "confidence": 0.0,
-        "evidence": "缺少截图数据，无法进行VLM判定",
-        "step_index": -1,
-        "action_description": "",
-        "fallback": true
-      }
-    ],
-    "summary": {
-      "total_checkpoints": 3,
-      "achieved": 0,
-      "not_achieved": 0,
-      "uncertain": 3,
-      "required_total": 3,
-      "required_achieved": 0
-    },
-    "completion_score": 0.0,
-    "required_completion_score": 0.0,
-    "overall_status": "失败",
-    "evidence": [
-      "[?] [打开京东应用] → 不确定 (confidence=0.00)",
-      "[?] [进入我的页面] → 不确定 (confidence=0.00)",
-      "[?] [点击全部订单入口] → 不确定 (confidence=0.00)"
-    ],
-    "model_used": "qwen36-27b-vl",
-    "total_vlm_calls": 0,
-    "fallback_count": 3
+  "summary": {
+    "total_checkpoints": 6,
+    "achieved": 2,
+    "not_achieved": 0,
+    "uncertain": 4,
+    "required_total": 6,
+    "required_achieved": 2
   },
-  "repeated_prediction": {
-    "label": "normal",
-    "type": "repeated_action",
-    "severity": "none",
-    "confidence": 0.0,
-    "ranges": [],
-    "summary": "未发现重复动作异常。",
-    "metrics": {
-      "action_count": 2,
-      "repeated_range_count": 0
-    },
-    "task_uuid": "0c4668ee-c629-40ab-9c56-c87d2b2f8d0a"
-  }
+  "completion_score": 0.333,
+  "required_completion_score": 0.333,
+  "overall_status": "失败",
+  "evidence": [
+    "[OK] [打开拼多多应用] → 达成 (confidence=1.00)",
+    "[?] [点击搜索栏] → 不确定 (confidence=0.00)",
+    "[OK] [输入搜索关键词] → 达成 (confidence=1.00)",
+    "[?] [执行搜索] → 不确定 (confidence=0.00)",
+    "[?] [筛选价格区间] → 不确定 (confidence=0.00)",
+    "[?] [浏览并确认商品属性] → 不确定 (confidence=0.00)"
+  ],
+  "model_used": "qwen36-27b-vl",
+  "total_vlm_calls": 2,
+  "fallback_count": 4
 }
