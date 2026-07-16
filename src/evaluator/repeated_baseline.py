@@ -21,6 +21,7 @@ from src.verifier import (
     VerifierConfig,
     align_checkpoints_to_steps,
 )
+from src.evaluator.state_evidence import build_state_sequence
 
 
 @dataclass
@@ -76,7 +77,14 @@ def run_repeated_baseline(
             ab_report=ab_report,
         )
 
-    repeated = detect_repeated_actions(hydrated, ab_report, verification_report)
+    state_sequence = build_state_sequence(hydrated, ab_report, verification_report)
+
+    repeated = detect_repeated_actions(
+        hydrated,
+        ab_report,
+        verification_report,
+        state_sequence=state_sequence,
+    )
     repeated_prediction = repeated.to_dict()
     repeated_prediction["task_uuid"] = task_uuid
 
@@ -90,6 +98,7 @@ def run_repeated_baseline(
         "verification_report": (
             verification_report.to_dict() if verification_report else None
         ),
+        "state_sequence": state_sequence.to_dict(),
         "repeated_prediction": repeated_prediction,
     }
 
@@ -99,6 +108,7 @@ def run_repeated_baseline(
     _write_json(output_base / "checkpoint_alignments.json", result["checkpoint_alignments"])
     if result["verification_report"] is not None:
         _write_json(output_base / "verification_report.json", result["verification_report"])
+    _write_json(output_base / "state_sequence.json", result["state_sequence"])
     _write_json(output_base / "repeated_prediction.json", result["repeated_prediction"])
     _write_json(output_base / "baseline_result.json", result)
     return result

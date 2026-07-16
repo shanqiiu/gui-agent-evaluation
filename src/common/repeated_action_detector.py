@@ -1,4 +1,4 @@
-﻿"""Repeated action detection — independent of Darwin oracle.
+"""Repeated action detection — independent of Darwin oracle.
 
 Detects four types of repeated actions from trajectory data:
     1. Consecutive repeat — same action on same target with no progress
@@ -41,6 +41,7 @@ def detect_repeated_actions(
     ab_report: Any = None,                    # ABValidationReport or compatible
     verification_report: Any = None,          # VerificationReport (Module B) or compatible
     config: RepeatedActionConfig | None = None,
+    state_sequence: Any = None,               # StateSequence or compatible
 ) -> RepeatedActionResult:
     """Detect repeated actions from payload + AB validation + verification results.
 
@@ -54,7 +55,7 @@ def detect_repeated_actions(
         RepeatedActionResult.
     """
     detector = RepeatedActionDetector(config or RepeatedActionConfig())
-    return detector.detect(payload, ab_report, verification_report)
+    return detector.detect(payload, ab_report, verification_report, state_sequence)
 
 
 class RepeatedActionDetector:
@@ -68,13 +69,14 @@ class RepeatedActionDetector:
         payload: dict[str, Any],
         ab_report: Any = None,
         verification_report: Any = None,
+        state_sequence: Any = None,
     ) -> RepeatedActionResult:
         steps = self._build_steps(payload, ab_report)
         if len(steps) < 2:
             return self._normal_result("动作序列过短，未发现重复动作。", len(steps))
 
         progress_by_step = self._build_progress_by_step(
-            payload, ab_report, verification_report
+            payload, ab_report, verification_report, state_sequence
         )
         ranges: list[RepeatedActionRange] = []
         ranges.extend(self._detect_consecutive_repeats(steps, progress_by_step))
@@ -160,6 +162,7 @@ class RepeatedActionDetector:
         payload: dict[str, Any],
         ab_report: Any,
         verification_report: Any,
+        state_sequence: Any = None,
     ) -> dict[int, int]:
         """Build a mapping from step_index to cumulative progress.
 
@@ -169,6 +172,18 @@ class RepeatedActionDetector:
         """
         progress_points: list[int] = []
 
+        # From lightweight StateSequence transitions.
+        if state_sequence is not None:
+            if hasattr(state_sequence, "progress_steps"):
+                progress_points.extend(
+                    p for p in state_sequence.progress_steps
+                    if isinstance(p, int) and p >= 0
+                )
+            elif isinstance(state_sequence, dict):
+                progress_points.extend(
+                    p for p in state_sequence.get("progress_steps", [])
+                    if isinstance(p, int) and p >= 0
+                )
         # From Module B VerificationReport
         if verification_report is not None and hasattr(verification_report, "results"):
             for r in verification_report.results:
