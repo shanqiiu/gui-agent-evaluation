@@ -18,6 +18,7 @@ class IntentMatcherConfig:
     llm_api_key: str = ""
     mock_mode: bool = False
     request_timeout: int = 60
+    llm_max_tokens: int = 2048
     max_candidates: int = 4
     prefer_purpose_matching: bool = True
     diagnostics: dict[str, Any] = field(default_factory=dict)
@@ -534,20 +535,41 @@ def _llm_match_plan_to_purposes(
         diag["error"] = "LLM JSON does not contain a list field: matches"
         return result
     for item in items:
-        if not isinstance(item, dict):
+        normalized = _normalize_llm_match_item(item)
+        if normalized is None:
             continue
-        try:
-            cp_idx = int(item.get("checkpoint_index", -1))
-        except (TypeError, ValueError):
-            continue
+        cp_idx = _safe_int(normalized.get("checkpoint_index", -1), -1)
         if 0 <= cp_idx < len(checkpoints):
-            result[cp_idx] = item
+            result[cp_idx] = normalized
     diag["returned_match_count"] = len(result)
     diag["status"] = "ok" if result else "empty_matches"
     if not result:
         diag["error"] = "LLM returned no valid checkpoint matches"
     return result
 
+
+def _normalize_llm_match_item(item: Any) -> dict[str, Any] | None:
+    if isinstance(item, dict):
+        return item
+    if isinstance(item, list):
+        if len(item) < 5:
+            return None
+        cp_idx = _safe_int(item[0], -1)
+        start_idx = _safe_int(item[1], -1)
+        end_idx = _safe_int(item[2], start_idx)
+        status = str(item[3]).strip().lower()
+        confidence = _safe_float(item[4], 0.0)
+        reason = str(item[5]).strip() if len(item) > 5 else ""
+        return {
+            "checkpoint_index": cp_idx,
+            "start_purpose_index": start_idx,
+            "end_purpose_index": end_idx,
+            "agent_purpose_index": end_idx,
+            "status": status,
+            "confidence": confidence,
+            "reason": reason,
+        }
+    return None
 
 def _plan_purpose_match_prompt(
     checkpoints: list[Checkpoint],
@@ -576,13 +598,12 @@ def _plan_purpose_match_prompt(
         "agent_purposes": purpose_items,
     }
     return (
-        "你是 GUI Agent 评测中的意图对齐器，需要判断任务检查点是否被 Agent 的实际操作意图覆盖。\n"
-        "请只比较 checkpoint 与 agent_purpose 的语义意图，不要根据页面截图或执行结果猜测。\n"
-        "如果某个 checkpoint 需要多个连续 purpose 才能完成，请返回覆盖这些 purpose 的 start_purpose_index 和 end_purpose_index；"
-        "agent_purpose_index 保持兼容，可填写 end_purpose_index。\n"
-        "如果某个 checkpoint 没有对应 purpose，status 设为 missing；如果 purpose 隐含满足 checkpoint，status 设为 implicit；"
-        "如果只能由更早顺序的 purpose 满足但会破坏检查点顺序，status 设为 order_violation。\n"
-        "只输出 JSON，格式为：{\"matches\":[{\"checkpoint_index\":0,\"start_purpose_index\":0,\"end_purpose_index\":1,\"agent_purpose_index\":1,\"status\":\"matched|implicit|missing|order_violation\",\"confidence\":0.0,\"reason\":\"...\"}]}。\n"
+        "你是 GUI Agent 评测中的意图对齐器。只比较 checkpoint 与 agent_purpose 的语义意图，不看截图。\n"
+        "优先输出紧凑 JSON，禁止 Markdown，禁止额外文字。\n"
+        "matches 每项格式固定为 [checkpoint_index,start_purpose_index,end_purpose_index,status,confidence,reason]。\n"
+        "status 只能是 matched、implicit、missing、order_violation；missing 时 start/end 均填 -1。\n"
+        "如果 checkpoint 需要多个连续 purpose 才完成，用 start/end 覆盖完整 purpose span；reason 不超过 12 个汉字。\n"
+        "示例：{\"matches\":[[0,0,0,\"matched\",1.0,\"直接对应\"],[1,1,2,\"matched\",0.9,\"输入并搜索\"]]}\n"
         f"输入：{json.dumps(payload_summary, ensure_ascii=False)}"
     )
 
@@ -926,7 +947,7 @@ def _call_llm(config: IntentMatcherConfig, prompt: str) -> str:
         "model": config.llm_model_name,
         "messages": [{"role": "user", "content": prompt}],
         "temperature": 0.0,
-        "max_tokens": 512,
+        "max_tokens": config.llm_max_tokens,
     }
     headers = {"Content-Type": "application/json;charset=UTF-8"}
     if config.llm_api_key:

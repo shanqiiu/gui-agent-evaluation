@@ -387,3 +387,54 @@ def test_llm_json_parse_failure_records_long_response_diagnostics(monkeypatch):
     assert diag["response_length"] == len(bad_json)
     assert diag["response_head"] == bad_json
     assert matches[0].llm_used is False
+
+def test_llm_call_uses_configured_max_tokens(monkeypatch):
+    import src.verifier.alignment as alignment
+
+    captured = {}
+
+    class FakeResponse:
+        status_code = 200
+        text = "ok"
+
+        @staticmethod
+        def json():
+            return {"choices": [{"message": {"content": "{}"}}]}
+
+    def fake_post(_url, **kwargs):
+        captured.update(kwargs)
+        return FakeResponse()
+
+    monkeypatch.setattr("requests.post", fake_post)
+    config = alignment.IntentMatcherConfig(
+        llm_model_url="http://llm",
+        llm_model_name="model",
+        llm_max_tokens=4096,
+    )
+
+    alignment._call_llm(config, "prompt")
+
+    assert captured["json"]["max_tokens"] == 4096
+
+def test_llm_compact_array_match_format(monkeypatch):
+    payload = {
+        "_action_purposes": ["open app", "input query", "tap search"],
+        "seq_info": [_step(1, "open_app", "open"), _step(2, "type", "input"), _step(3, "click", "search")],
+    }
+    checkpoints = [Checkpoint(name="search product", expected_state="results page")]
+
+    def fake_call(_config, _prompt):
+        return '{"matches":[[0,1,2,"matched",0.92,"输入搜索"]]}'
+
+    import src.verifier.alignment as alignment
+
+    config = alignment.IntentMatcherConfig(llm_model_url="http://llm", llm_model_name="model")
+    monkeypatch.setattr(alignment, "_call_llm", fake_call)
+    matches = match_checkpoint_intents(checkpoints, payload, config=config)
+    alignments = align_checkpoints_to_steps(checkpoints, payload, intent_matches=matches)
+
+    assert matches[0].llm_used is True
+    assert matches[0].matched is True
+    assert alignments[0].start_step_index == 2
+    assert alignments[0].end_step_index == 3
+    assert "purpose_span=1-2" in alignments[0].evidence
