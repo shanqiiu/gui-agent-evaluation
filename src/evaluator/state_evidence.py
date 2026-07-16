@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Any
 
+from src.evaluator.visual_evidence import StepVisualEvidence, build_visual_evidence
+
 
 @dataclass
 class StateSegment:
@@ -16,6 +18,7 @@ class StateSegment:
     page_description: str = ""
     action_types: list[str] = field(default_factory=list)
     evidence_quality: str = "missing"
+    visual_change_summary: dict[str, Any] = field(default_factory=dict)
     evidence: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
@@ -27,6 +30,7 @@ class StateSegment:
             "page_description": self.page_description,
             "action_types": self.action_types,
             "evidence_quality": self.evidence_quality,
+            "visual_change_summary": self.visual_change_summary,
             "evidence": self.evidence,
         }
 
@@ -37,6 +41,7 @@ class StateTransition:
     to_state: str
     trigger_step: int
     evidence: list[str] = field(default_factory=list)
+    visual_evidence: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -44,6 +49,7 @@ class StateTransition:
             "to": self.to_state,
             "trigger_step": self.trigger_step,
             "evidence": self.evidence,
+            "visual_evidence": self.visual_evidence,
         }
 
 
@@ -54,6 +60,7 @@ class StateSequence:
     transitions: list[StateTransition] = field(default_factory=list)
     progress_steps: list[int] = field(default_factory=list)
     evidence_quality: str = "missing"
+    visual_evidence: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -62,6 +69,7 @@ class StateSequence:
             "transitions": [t.to_dict() for t in self.transitions],
             "progress_steps": self.progress_steps,
             "evidence_quality": self.evidence_quality,
+            "visual_evidence": self.visual_evidence,
         }
 
 
@@ -73,7 +81,8 @@ def build_state_sequence(
     page_similarity_threshold: float = 0.82,
 ) -> StateSequence:
     """Build a lightweight actual-state sequence from payload and AB evidence."""
-    steps = _build_step_records(payload, ab_report)
+    visual_by_step = build_visual_evidence(payload)
+    steps = _build_step_records(payload, ab_report, visual_by_step)
     if not steps:
         return StateSequence(task_uuid=payload.get("task_uuid", ""))
 
@@ -110,6 +119,7 @@ def build_state_sequence(
             to_state=next_state_id,
             trigger_step=step["source_step_index"],
             evidence=evidence,
+            visual_evidence=_visual_to_dict(step.get("visual_evidence")),
         ))
         current_steps = []
         current_label = next_label or step.get("page_after") or current_label
@@ -133,10 +143,15 @@ def build_state_sequence(
         transitions=transitions,
         progress_steps=progress_steps,
         evidence_quality=_sequence_quality(states),
+        visual_evidence=[item.to_dict() for item in visual_by_step.values()],
     )
 
 
-def _build_step_records(payload: dict[str, Any], ab_report: Any) -> list[dict[str, Any]]:
+def _build_step_records(
+    payload: dict[str, Any],
+    ab_report: Any,
+    visual_by_step: dict[int, StepVisualEvidence] | None = None,
+) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for pos, item in enumerate(payload.get("seq_info") or []):
         parsed = (item.get("planning_output") or {}).get("parsed_action") or {}
@@ -145,6 +160,7 @@ def _build_step_records(payload: dict[str, Any], ab_report: Any) -> list[dict[st
             continue
         source_step_index = int(item.get("index", pos))
         ab = _ab_result(ab_report, source_step_index)
+        visual = (visual_by_step or {}).get(source_step_index)
         records.append({
             "source_step_index": source_step_index,
             "action_type": action_type,
@@ -156,6 +172,7 @@ def _build_step_records(payload: dict[str, Any], ab_report: Any) -> list[dict[st
             "page_before": str(ab.get("pagea_description") or "").strip(),
             "page_after": str(ab.get("pageb_description") or "").strip(),
             "ab_label": str(ab.get("label") or "").strip(),
+            "visual_evidence": visual,
         })
     return records
 
@@ -168,10 +185,18 @@ def _is_boundary(
 ) -> tuple[bool, list[str], str]:
     action_type = step["action_type"]
     page_after = step.get("page_after") or ""
+    visual = step.get("visual_evidence")
     evidence: list[str] = []
 
     if step["source_step_index"] in checkpoint_progress:
         evidence.append("checkpoint achieved at this step")
+        return True, evidence, page_after or current_label
+
+    if _is_visual_boundary(visual):
+        evidence.append(
+            f"visual/rawPage boundary confidence={visual.boundary_confidence:.2f}"
+        )
+        evidence.extend(visual.evidence[:3])
         return True, evidence, page_after or current_label
 
     if action_type in {"open_app", "back"}:
@@ -209,10 +234,15 @@ def _make_state(
     ]
     page_description = page_descriptions[-1] if page_descriptions else ""
     action_types = []
+    visual_changes = []
     for step in steps:
         if step["action_type"] not in action_types:
             action_types.append(step["action_type"])
-    quality = "partial" if page_description else "missing"
+        visual = step.get("visual_evidence")
+        if visual is not None:
+            visual_changes.append(visual)
+    visual_summary = _visual_summary(visual_changes)
+    quality = _state_quality(page_description, visual_summary)
     return StateSegment(
         state_id=f"s_{state_pos}",
         label=label or page_description or "unknown",
@@ -221,6 +251,7 @@ def _make_state(
         page_description=page_description,
         action_types=action_types,
         evidence_quality=quality,
+        visual_change_summary=visual_summary,
         evidence=[f"aggregated {len(steps)} action steps"],
     )
 
@@ -259,11 +290,73 @@ def _ab_result(ab_report: Any, step_index: int) -> dict[str, Any]:
 def _sequence_quality(states: list[StateSegment]) -> str:
     if not states:
         return "missing"
-    if all(s.evidence_quality == "partial" for s in states):
-        return "partial"
-    if any(s.evidence_quality == "partial" for s in states):
+    qualities = {s.evidence_quality for s in states}
+    if "strong" in qualities:
+        return "strong"
+    if "visual" in qualities:
+        return "visual"
+    if "partial" in qualities:
         return "partial"
     return "missing"
+
+
+def _is_visual_boundary(visual: StepVisualEvidence | None) -> bool:
+    if visual is None:
+        return False
+    if visual.boundary_confidence >= 0.35:
+        return True
+    if visual.rawpage_changed is True and (
+        visual.ocr_text_similarity is None or visual.ocr_text_similarity <= 0.75
+    ):
+        return True
+    return False
+
+
+def _visual_summary(visual_changes: list[StepVisualEvidence]) -> dict[str, Any]:
+    usable = [v for v in visual_changes if v.evidence_quality != "missing"]
+    if not usable:
+        return {
+            "count": len(visual_changes),
+            "usable_count": 0,
+            "max_boundary_confidence": 0.0,
+            "max_pixel_diff_ratio": None,
+            "min_ssim": None,
+            "rawpage_change_count": 0,
+            "changed_regions": [],
+        }
+
+    regions: list[str] = []
+    for visual in usable:
+        for region in visual.changed_regions:
+            if region.region not in regions:
+                regions.append(region.region)
+    pixel_values = [
+        v.pixel_diff_ratio for v in usable if v.pixel_diff_ratio is not None
+    ]
+    ssim_values = [v.ssim for v in usable if v.ssim is not None]
+    return {
+        "count": len(visual_changes),
+        "usable_count": len(usable),
+        "max_boundary_confidence": round(max(v.boundary_confidence for v in usable), 3),
+        "max_pixel_diff_ratio": round(max(pixel_values), 4) if pixel_values else None,
+        "min_ssim": round(min(ssim_values), 4) if ssim_values else None,
+        "rawpage_change_count": sum(1 for v in usable if v.rawpage_changed is True),
+        "changed_regions": regions,
+    }
+
+
+def _state_quality(page_description: str, visual_summary: dict[str, Any]) -> str:
+    if visual_summary.get("usable_count", 0) > 0 and page_description:
+        return "strong"
+    if visual_summary.get("usable_count", 0) > 0:
+        return "visual"
+    if page_description:
+        return "partial"
+    return "missing"
+
+
+def _visual_to_dict(visual: StepVisualEvidence | None) -> dict[str, Any]:
+    return visual.to_dict() if visual is not None else {}
 
 
 def _similarity(left: str, right: str) -> float:
