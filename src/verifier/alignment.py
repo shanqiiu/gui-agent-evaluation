@@ -20,6 +20,7 @@ class IntentMatcherConfig:
     request_timeout: int = 60
     max_candidates: int = 4
     prefer_purpose_matching: bool = True
+    diagnostics: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -116,6 +117,21 @@ def match_checkpoint_intents(
     """Recall likely actual steps/states for each checkpoint at intent level."""
     config = config or IntentMatcherConfig()
     purpose_features = _build_purpose_features(payload)
+    if config.prefer_purpose_matching and not purpose_features:
+        config.diagnostics["purpose_llm"] = {
+            "llm_configured": bool(config.llm_model_url and config.llm_model_name),
+            "llm_attempted": False,
+            "mock_mode": config.mock_mode,
+            "model_url_set": bool(config.llm_model_url),
+            "model_name": config.llm_model_name,
+            "api_key_set": bool(config.llm_api_key),
+            "purpose_feature_count": 0,
+            "checkpoint_count": len(checkpoints),
+            "returned_match_count": 0,
+            "status": "skipped_no_purpose_features",
+            "error": "payload has no action_purpose/_action_purposes/agent_purposes",
+            "response_head": "",
+        }
     if config.prefer_purpose_matching and purpose_features:
         matches = _match_checkpoint_purposes(
             checkpoints,
@@ -473,17 +489,43 @@ def _llm_match_plan_to_purposes(
     purpose_features: list[dict[str, Any]],
     config: IntentMatcherConfig,
 ) -> dict[int, dict[str, Any]]:
-    if config.mock_mode or not config.llm_model_url or not config.llm_model_name:
+    diag = {
+        "llm_configured": bool(config.llm_model_url and config.llm_model_name),
+        "llm_attempted": False,
+        "mock_mode": config.mock_mode,
+        "model_url_set": bool(config.llm_model_url),
+        "model_name": config.llm_model_name,
+        "api_key_set": bool(config.llm_api_key),
+        "purpose_feature_count": len(purpose_features),
+        "checkpoint_count": len(checkpoints),
+        "returned_match_count": 0,
+        "status": "not_started",
+        "error": "",
+        "response_head": "",
+    }
+    config.diagnostics["purpose_llm"] = diag
+    if config.mock_mode:
+        diag["status"] = "skipped_mock_mode"
+        return {}
+    if not config.llm_model_url or not config.llm_model_name:
+        diag["status"] = "skipped_missing_config"
+        diag["error"] = "LLM model url/name not set"
         return {}
     prompt = _plan_purpose_match_prompt(checkpoints, payload, purpose_features)
+    diag["llm_attempted"] = True
     try:
         content = _call_llm(config, prompt)
+        diag["response_head"] = content[:300]
         parsed = _parse_json_object(content)
-    except Exception:
+    except Exception as exc:
+        diag["status"] = "exception"
+        diag["error"] = str(exc)[:500]
         return {}
     items = parsed.get("matches", []) if isinstance(parsed, dict) else []
     result: dict[int, dict[str, Any]] = {}
     if not isinstance(items, list):
+        diag["status"] = "invalid_response"
+        diag["error"] = "LLM JSON does not contain a list field: matches"
         return result
     for item in items:
         if not isinstance(item, dict):
@@ -494,6 +536,10 @@ def _llm_match_plan_to_purposes(
             continue
         if 0 <= cp_idx < len(checkpoints):
             result[cp_idx] = item
+    diag["returned_match_count"] = len(result)
+    diag["status"] = "ok" if result else "empty_matches"
+    if not result:
+        diag["error"] = "LLM returned no valid checkpoint matches"
     return result
 
 

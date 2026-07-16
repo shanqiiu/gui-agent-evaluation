@@ -121,6 +121,7 @@ def run_repeated_baseline(
         "input_payload": str(payload_path),
         "image_resolution": image_stats.to_dict(),
         "ab_report": ab_report.to_dict(),
+        "intent_matcher_diagnostics": intent_config.diagnostics,
         "intent_matches": [m.to_dict() for m in intent_matches],
         "checkpoint_alignments": [a.to_dict() for a in alignments],
         "verification_report": (
@@ -133,6 +134,7 @@ def run_repeated_baseline(
     output_base = Path(output_dir) if output_dir else payload_path.parent / "repeated_baseline"
     output_base.mkdir(parents=True, exist_ok=True)
     _write_json(output_base / "ab_report.json", result["ab_report"])
+    _write_json(output_base / "intent_matcher_diagnostics.json", result["intent_matcher_diagnostics"])
     _write_json(output_base / "intent_matches.json", result["intent_matches"])
     _write_json(output_base / "checkpoint_alignments.json", result["checkpoint_alignments"])
     if result["verification_report"] is not None:
