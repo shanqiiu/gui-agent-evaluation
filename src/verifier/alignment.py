@@ -84,28 +84,12 @@ def _select_candidate(
     if best_score < min_score:
         return max(candidates, key=lambda item: item[2])
 
-    specific = [
-        item for item in candidates
-        if item[2] >= min_score and _has_specific_intent(item[3])
-    ]
-    if specific:
-        return max(specific, key=lambda item: item[2])
-
     threshold = max(min_score, best_score - near_best_margin)
     for item in candidates:
         if item[2] >= threshold:
             return item
     return max(candidates, key=lambda item: item[2])
 
-
-def _has_specific_intent(evidence: list[str]) -> bool:
-    specific_intents = {
-        "intent=input_text",
-        "intent=keyword_visible",
-        "intent=price_input",
-        "intent=product_detail",
-    }
-    return any(item in specific_intents for item in evidence)
 
 def build_checkpoint_step_data(
     checkpoints: list[Checkpoint],
@@ -182,7 +166,7 @@ def _score(cp_text: str, checkpoint: Checkpoint, step: dict[str, Any]) -> tuple[
     action_score = _similarity(cp_text, action_text)
     page_score = _similarity(_checkpoint_state_text(checkpoint), page_text)
     keyword_score = _keyword_overlap(cp_text, all_step_text)
-    intent_score, intent_evidence = _intent_score(cp_text, checkpoint, step, all_step_text)
+    semantic_score, semantic_evidence = _semantic_score(cp_text, checkpoint, step, all_step_text)
     type_bonus = 0.0
 
     if step["action_type"] in {"click", "open_app", "type", "set_text"}:
@@ -193,14 +177,14 @@ def _score(cp_text: str, checkpoint: Checkpoint, step: dict[str, Any]) -> tuple[
         evidence.append(f"page_similarity={page_score:.2f}")
     if keyword_score > 0:
         evidence.append(f"keyword_overlap={keyword_score:.2f}")
-    if intent_score > 0:
-        evidence.extend(intent_evidence)
+    if semantic_score > 0:
+        evidence.extend(semantic_evidence)
 
     score = (
         0.30 * action_score
         + 0.25 * page_score
-        + 0.15 * keyword_score
-        + 0.25 * intent_score
+        + 0.20 * keyword_score
+        + 0.20 * semantic_score
         + type_bonus
     )
     return min(score, 1.0), evidence or ["weak text candidate"]
@@ -242,58 +226,68 @@ def _action_description(parsed: dict[str, Any]) -> str:
     return ": ".join([parts[0], " ".join(parts[1:])]) if parts[0] else " ".join(parts[1:])
 
 
-
-
-def _intent_score(
+def _semantic_score(
     cp_text: str,
     checkpoint: Checkpoint,
     step: dict[str, Any],
     step_text: str,
 ) -> tuple[float, list[str]]:
-    del checkpoint
-    cp = _compact(cp_text)
-    st = _compact(step_text)
-    action_type = step.get("action_type", "")
-    score = 0.0
+    cp_tokens = set(_tokens(cp_text))
+    state_tokens = set(_tokens(_checkpoint_state_text(checkpoint)))
+    step_tokens = set(_tokens(step_text))
+    action_tokens = set(_tokens(step.get("action_text", "")))
+    page_after_tokens = set(_tokens(step.get("page_after", "")))
+
     evidence: list[str] = []
+    scores: list[float] = []
 
-    def add(value: float, reason: str) -> None:
-        nonlocal score
-        if value > score:
-            score = value
-        evidence.append(reason)
+    coverage = _coverage(cp_tokens, step_tokens)
+    if coverage > 0:
+        scores.append(coverage)
+        evidence.append(f"semantic_checkpoint_coverage={coverage:.2f}")
 
-    if _has_any(cp, ("\u6253\u5f00", "\u5e94\u7528", "\u9996\u9875")) and action_type == "open_app":
-        add(0.70, "intent=open_app")
+    state_coverage = _coverage(state_tokens, page_after_tokens or step_tokens)
+    if state_coverage > 0:
+        scores.append(state_coverage)
+        evidence.append(f"semantic_state_coverage={state_coverage:.2f}")
 
-    if _has_any(cp, ("\u641c\u7d22\u680f", "\u641c\u7d22\u6846")):
-        if action_type in {"click", "type", "set_text"} and _has_any(st, ("\u641c\u7d22", "\u641c\u7d22\u680f", "\u641c\u7d22\u6846")):
-            add(0.55, "intent=activate_search")
+    action_coverage = _coverage(cp_tokens, action_tokens)
+    if action_coverage > 0:
+        scores.append(action_coverage * 0.8)
+        evidence.append(f"semantic_action_coverage={action_coverage:.2f}")
 
-    if _has_any(cp, ("\u8f93\u5165", "\u5173\u952e\u8bcd", "\u6587\u672c")):
-        if action_type in {"type", "set_text"}:
-            add(0.70, "intent=input_text")
-        if _has_any(st, ("\u5b55\u5987", "\u9694\u79bb\u971c", "\u641c\u7d22\u7ed3\u679c", "\u5173\u952e\u8bcd")):
-            add(0.65, "intent=keyword_visible")
+    type_score = _action_type_score(cp_text, step.get("action_type", ""))
+    if type_score > 0:
+        scores.append(type_score)
+        evidence.append(f"semantic_action_type={type_score:.2f}")
 
-    if _has_any(cp, ("\u6267\u884c\u641c\u7d22", "\u641c\u7d22\u7ed3\u679c", "\u76f8\u5173\u5546\u54c1", "\u5546\u54c1\u5217\u8868")):
-        if _has_any(st, ("\u641c\u7d22\u7ed3\u679c", "\u5546\u54c1\u5217\u8868", "\u76f8\u5173", "\u7efc\u5408", "\u9500\u91cf", "\u4ef7\u683c")):
-            add(0.72, "intent=search_results")
-
-    if _has_any(cp, ("\u7b5b\u9009", "\u4ef7\u683c\u533a\u95f4", "\u6700\u4f4e\u4ef7", "100", "100\u5143")):
-        if _has_any(st, ("\u7b5b\u9009", "\u4ef7\u683c\u533a\u95f4", "\u6700\u4f4e\u4ef7", "100", "\u786e\u8ba4")):
-            add(0.74, "intent=filter_price")
-        if action_type in {"type", "set_text"} and _has_any(st, ("100", "\u4ef7\u683c", "\u6700\u4f4e\u4ef7")):
-            add(0.78, "intent=price_input")
-
-    if _has_any(cp, ("\u6d4f\u89c8", "\u786e\u8ba4\u5546\u54c1", "\u5546\u54c1\u5c5e\u6027", "\u5b55\u5987\u53ef\u7528", "\u5927\u4e8e100", "\u8be6\u60c5")):
-        if _has_any(st, ("\u5546\u54c1\u8be6\u60c5", "\u8be6\u60c5\u9875", "\u4ef7\u683c", "102", "139", "\u9694\u79bb\u971c", "\u5b55\u5987")):
-            add(0.78, "intent=product_detail")
-
-    return min(score, 1.0), evidence[:3]
+    if not scores:
+        return 0.0, []
+    return min(max(scores), 1.0), evidence[:3]
 
 
-def _has_any(text: str, tokens: tuple[str, ...]) -> bool:
+def _coverage(left_tokens: set[str], right_tokens: set[str]) -> float:
+    if not left_tokens or not right_tokens:
+        return 0.0
+    return len(left_tokens & right_tokens) / len(left_tokens)
+
+
+def _action_type_score(cp_text: str, action_type: str) -> float:
+    cp = _compact(cp_text)
+    if action_type in {"type", "set_text"} and _contains_any(cp, ("input", "enter", "type", "fill", "\u8f93\u5165", "\u586b\u5199")):
+        return 0.7
+    if action_type == "open_app" and _contains_any(cp, ("open", "launch", "start", "\u6253\u5f00", "\u542f\u52a8")):
+        return 0.7
+    if action_type in {"click", "long_press"} and _contains_any(cp, ("click", "tap", "select", "press", "\u70b9\u51fb", "\u9009\u62e9", "\u786e\u8ba4")):
+        return 0.6
+    if action_type in {"scroll", "swipe", "drag"} and _contains_any(cp, ("scroll", "swipe", "drag", "\u6ed1\u52a8", "\u6eda\u52a8", "\u62d6\u52a8")):
+        return 0.6
+    if action_type == "back" and _contains_any(cp, ("back", "return", "\u8fd4\u56de")):
+        return 0.6
+    return 0.0
+
+
+def _contains_any(text: str, tokens: tuple[str, ...]) -> bool:
     return any(_compact(token) in text for token in tokens)
 
 def _similarity(left: str, right: str) -> float:
