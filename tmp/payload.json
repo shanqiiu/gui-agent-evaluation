@@ -1,17 +1,105 @@
 {
-  "instruction": "打开设置华为账号负一屏页面",
-  "step_level_instruction": "输入文本->点击负一屏设置->do_nothing()->点击页面元素",
+  "instruction": "拼多多上查看一款价格在100元以上孕妇可用的隔离霜",
+  "step_level_instruction": "打开拼多多应用->点击搜索栏->输入搜索关键词->执行搜索->筛选价格区间->浏览并确认商品属性",
+  "agent_purposes": "打开拼多多->在首页搜索框输入“孕妇可用 隔离霜”->在搜索框输入“孕妇 可用 隔离霜”->点击顶部“筛选”按钮，进入筛选页面以设置价格下限->在“最低价”输入框中输入100，设置价格下限为100元。->点击底部“确认（1万+件商品）”按钮，应用价格筛选返回结果页->点击价格为102元的“简缇水光素颜隔离霜孕”商品进入详情页查看->结束任务：已在拼多多查看到符合要求的隔离霜：简缇水光素颜隔离霜，售价 ¥102，商品标注“孕妇哺乳期可用”，满足价格≥100 元且孕妇可用的条件。",
   "seq_info": [
     {
       "index": 0,
+      "image_relative_path": "",
+      "_image_source": "",
+      "_ocr_page_index": -1,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)",
+          "start_box": [],
+          "end_box": [],
+          "text": "用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image_relative_path": "",
+      "_image_source": "",
+      "_ocr_page_index": -1,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)",
+          "start_box": [],
+          "end_box": [],
+          "text": "用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image_relative_path": "",
+      "_image_source": "",
+      "_ocr_page_index": -1,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)",
+          "start_box": [],
+          "end_box": [],
+          "text": "用户回复(拼多多上查看一款价格在100元以上孕妇可用的隔离霜)",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 3,
+      "image_relative_path": "",
+      "_image_source": "",
+      "_ocr_page_index": 0,
+      "action_purpose": "打开拼多多",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "open_app",
+          "start_box": [],
+          "end_box": [],
+          "text": "打开应用",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 4,
+      "image_relative_path": "",
+      "_image_source": "",
+      "_ocr_page_index": 0,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "open_app",
+          "start_box": [],
+          "end_box": [],
+          "text": "打开应用",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 5,
       "image_relative_path": "catchDataTurnId1.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId1/temp_image-screenshot-drawRect.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/0ceb35a6-605e-47d1-b90e-0ae4f52669a4/catchDataTurnId1/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 1,
+      "action_purpose": "在首页搜索框输入“孕妇可用 隔离霜”",
       "planning_output": {
         "parsed_action": {
           "action_type": "type",
           "start_box": [
-            328,
-            455
+            604,
+            190
           ],
           "end_box": [],
           "text": "输入文本",
@@ -21,60 +109,111 @@
       }
     },
     {
-      "index": 1,
+      "index": 6,
       "image_relative_path": "catchDataTurnId2.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId2/temp_image-screenshot-drawRect.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/0ceb35a6-605e-47d1-b90e-0ae4f52669a4/catchDataTurnId2/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 2,
+      "action_purpose": "在搜索框输入“孕妇 可用 隔离霜”",
       "planning_output": {
         "parsed_action": {
-          "action_type": "click",
+          "action_type": "type",
           "start_box": [
-            403,
-            455
+            601,
+            190
           ],
           "end_box": [],
-          "text": "点击负一屏设置",
+          "text": "输入文本",
           "direction": "",
           "content": ""
         }
       }
     },
     {
-      "index": 2,
+      "index": 7,
       "image_relative_path": "catchDataTurnId3.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId3/temp_image-screenshot-origin.jpg",
-      "planning_output": {
-        "parsed_action": {
-          "action_type": "do_nothing()",
-          "start_box": [],
-          "end_box": [],
-          "text": "do_nothing()",
-          "direction": "",
-          "content": ""
-        }
-      }
-    },
-    {
-      "index": 3,
-      "image_relative_path": "catchDataTurnId4.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId4/temp_image-screenshot-drawRect.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/0ceb35a6-605e-47d1-b90e-0ae4f52669a4/catchDataTurnId3/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 3,
+      "action_purpose": "点击顶部“筛选”按钮，进入筛选页面以设置价格下限",
       "planning_output": {
         "parsed_action": {
           "action_type": "click",
           "start_box": [
-            1130,
-            1959
+            1079,
+            330
           ],
           "end_box": [],
-          "text": "点击页面元素",
+          "text": "点击筛选",
           "direction": "",
           "content": ""
         }
       }
     },
     {
-      "index": 4,
+      "index": 8,
+      "image_relative_path": "catchDataTurnId4.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/0ceb35a6-605e-47d1-b90e-0ae4f52669a4/catchDataTurnId4/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 4,
+      "action_purpose": "在“最低价”输入框中输入100，设置价格下限为100元。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "type",
+          "start_box": [
+            758,
+            763
+          ],
+          "end_box": [],
+          "text": "输入文本",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 9,
       "image_relative_path": "catchDataTurnId5.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/catchDataTurnId5/temp_image-screenshot-origin.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/0ceb35a6-605e-47d1-b90e-0ae4f52669a4/catchDataTurnId5/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 5,
+      "action_purpose": "点击底部“确认（1万+件商品）”按钮，应用价格筛选返回结果页",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            912,
+            1752
+          ],
+          "end_box": [],
+          "text": "点击确认（1万＋件商品）",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 10,
+      "image_relative_path": "catchDataTurnId6.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/0ceb35a6-605e-47d1-b90e-0ae4f52669a4/catchDataTurnId6/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 6,
+      "action_purpose": "点击价格为102元的“简缇水光素颜隔离霜孕”商品进入详情页查看",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            910,
+            884
+          ],
+          "end_box": [],
+          "text": "点击适量隔离于面部，用手指轻柔地涂抹于全",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 11,
+      "image_relative_path": "catchDataTurnId7.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/0ceb35a6-605e-47d1-b90e-0ae4f52669a4/catchDataTurnId7/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 7,
+      "action_purpose": "结束任务：已在拼多多查看到符合要求的隔离霜：简缇水光素颜隔离霜，售价 ¥102，商品标注“孕妇哺乳期可用”，满足价格≥100 元且孕妇可用的条件。",
       "planning_output": {
         "parsed_action": {
           "action_type": "do-nothing",
@@ -87,9 +226,77 @@
       }
     },
     {
-      "index": 5,
-      "image_relative_path": "catchDataTurnId5.jpg",
-      "_image_source": "/rest/analyzeResult/stream/download?taskId=0304da64c21a4e8d9082411317c616a0&address=e63dd288-af51-4147-9ac8-67cf73042651/476c401c-d843-4581-ab13-49f97cd33711/end/temp_image-screenshot-origin.jpg",
+      "index": 12,
+      "image_relative_path": "catchDataTurnId7.jpg",
+      "_image_source": "",
+      "_ocr_page_index": 7,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "播报(已在拼多多找到一款孕妇可用隔离霜：简缇水...)",
+          "start_box": [],
+          "end_box": [],
+          "text": "播报(已在拼多多找到一款孕妇可用隔离霜：简缇水...)",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 13,
+      "image_relative_path": "catchDataTurnId7.jpg",
+      "_image_source": "",
+      "_ocr_page_index": 7,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "finished",
+          "start_box": [],
+          "end_box": [],
+          "text": "任务完成",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 14,
+      "image_relative_path": "catchDataTurnId7.jpg",
+      "_image_source": "",
+      "_ocr_page_index": 7,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "播报(已在拼多多找到一款孕妇可用隔离霜：简缇水...)",
+          "start_box": [],
+          "end_box": [],
+          "text": "播报(已在拼多多找到一款孕妇可用隔离霜：简缇水...)",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 15,
+      "image_relative_path": "catchDataTurnId7.jpg",
+      "_image_source": "",
+      "_ocr_page_index": 7,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "finished",
+          "start_box": [],
+          "end_box": [],
+          "text": "任务完成",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 16,
+      "image_relative_path": "",
+      "_image_source": "",
       "planning_output": {
         "parsed_action": {
           "action_type": "finished",
@@ -102,6 +309,67 @@
       }
     }
   ],
-  "_image_base_dir": "/data/gui-agent-evaluation/data/test_data/476c401c-d843-4581-ab13-49f97cd33711",
-  "_image_mode": "path"
+  "_image_base_dir": "D:\\Projects\\workspace\\projects\\activate\\gui-agent-evaluation\\output\\dpp_data_abnormal_v2\\0ceb35a6-605e-47d1-b90e-0ae4f52669a4",
+  "_image_mode": "path",
+  "_action_purposes": [
+    "打开拼多多",
+    "在首页搜索框输入“孕妇可用 隔离霜”",
+    "在搜索框输入“孕妇 可用 隔离霜”",
+    "点击顶部“筛选”按钮，进入筛选页面以设置价格下限",
+    "在“最低价”输入框中输入100，设置价格下限为100元。",
+    "点击底部“确认（1万+件商品）”按钮，应用价格筛选返回结果页",
+    "点击价格为102元的“简缇水光素颜隔离霜孕”商品进入详情页查看",
+    "结束任务：已在拼多多查看到符合要求的隔离霜：简缇水光素颜隔离霜，售价 ¥102，商品标注“孕妇哺乳期可用”，满足价格≥100 元且孕妇可用的条件。"
+  ],
+  "_decomposer": {
+    "attempted": true,
+    "status": "ok",
+    "model_name": "qwen36-27b-vl",
+    "model_url_set": true,
+    "api_key_set": true,
+    "used_vlm_url_fallback": false,
+    "used_vlm_name_fallback": false,
+    "used_vlm_key_fallback": false,
+    "checkpoint_count": 6,
+    "error": "",
+    "response_head": "[\n  {\n    \"name\": \"打开拼多多应用\",\n    \"required\": true,\n    \"preconditions\": \"手机处于主屏幕或应用列表\",\n    \"expected_state\": \"屏幕显示拼多多应用首页\"\n  },\n  {\n    \"name\": \"点击搜索栏\",\n    \"required\": true,\n    \"preconditions\": \"已进入拼多多应用首页\",\n    \"expected_state\": \"搜索栏处于激活状态，键盘弹出或光标闪烁\"\n  },\n  {\n    \"name\": \"输入搜索关键词\",\n    \"required\": true,\n    \"preconditions\": \"搜索栏已激活\",\n    \"expected_state\": \"搜索栏内显示文本'孕妇隔离霜'或类似关键词\"\n  },\n  {\n    \"name\": \"执行搜索\",\n    \"required\": true,\n    \"preconditions\": \"关键词已输入\",\n    \"expected_state\": \"页面跳转至搜索结果"
+  },
+  "_checkpoints": [
+    {
+      "name": "打开拼多多应用",
+      "required": true,
+      "preconditions": "手机处于主屏幕或应用列表",
+      "expected_state": "屏幕显示拼多多应用首页"
+    },
+    {
+      "name": "点击搜索栏",
+      "required": true,
+      "preconditions": "已进入拼多多应用首页",
+      "expected_state": "搜索栏处于激活状态，键盘弹出或光标闪烁"
+    },
+    {
+      "name": "输入搜索关键词",
+      "required": true,
+      "preconditions": "搜索栏已激活",
+      "expected_state": "搜索栏内显示文本'孕妇隔离霜'或类似关键词"
+    },
+    {
+      "name": "执行搜索",
+      "required": true,
+      "preconditions": "关键词已输入",
+      "expected_state": "页面跳转至搜索结果列表页，显示相关商品"
+    },
+    {
+      "name": "筛选价格区间",
+      "required": true,
+      "preconditions": "处于搜索结果页",
+      "expected_state": "筛选条件中价格下限设置为100元，或列表仅显示100元以上商品"
+    },
+    {
+      "name": "浏览并确认商品属性",
+      "required": true,
+      "preconditions": "已应用价格筛选",
+      "expected_state": "列表中展示的商品标题或标签包含'孕妇可用'、'敏感肌'等字样，且价格大于100元"
+    }
+  ]
 }
