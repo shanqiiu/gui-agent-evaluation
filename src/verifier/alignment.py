@@ -32,17 +32,25 @@ class IntentCandidate:
     step_range: list[int] = field(default_factory=list)
     purpose_index: int = -1
     purpose_text: str = ""
+    start_step_index: int = -1
+    end_step_index: int = -1
+    start_purpose_index: int = -1
+    end_purpose_index: int = -1
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "source_kind": self.source_kind,
             "step_index": self.step_index,
+            "start_step_index": self.start_step_index,
+            "end_step_index": self.end_step_index,
             "score": round(self.score, 3),
             "evidence": self.evidence,
             "state_id": self.state_id,
             "step_range": self.step_range,
             "purpose_index": self.purpose_index,
             "purpose_text": self.purpose_text,
+            "start_purpose_index": self.start_purpose_index,
+            "end_purpose_index": self.end_purpose_index,
         }
 
 
@@ -80,12 +88,16 @@ class CheckpointAlignment:
     step_index: int
     score: float
     confidence: str
+    start_step_index: int = -1
+    end_step_index: int = -1
     evidence: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "checkpoint_index": self.checkpoint_index,
             "step_index": self.step_index,
+            "start_step_index": self.start_step_index,
+            "end_step_index": self.end_step_index,
             "score": round(self.score, 3),
             "confidence": self.confidence,
             "evidence": self.evidence,
@@ -149,10 +161,11 @@ def _match_checkpoint_purposes(
                 llm_item,
                 purpose_features,
                 min_score=min_score,
+                min_purpose_index=last_purpose_pos,
             )
             if match is not None:
                 if match.matched and match.candidates:
-                    last_purpose_pos = max(last_purpose_pos, match.candidates[0].purpose_index)
+                    last_purpose_pos = max(last_purpose_pos, match.candidates[0].end_purpose_index)
                 matches.append(match)
                 continue
 
@@ -273,6 +286,8 @@ def align_checkpoints_to_steps(
                 checkpoint_index=cp_idx,
                 step_index=-1,
                 score=match.score,
+                start_step_index=-1,
+                end_step_index=-1,
                 confidence="unmatched_intent",
                 evidence=match.evidence or ["intent recall failed; execution verification skipped"],
             ))
@@ -282,6 +297,8 @@ def align_checkpoints_to_steps(
             checkpoint_index=cp_idx,
             step_index=best.step_index,
             score=best.score,
+            start_step_index=best.start_step_index if best.start_step_index >= 0 else best.step_index,
+            end_step_index=best.end_step_index if best.end_step_index >= 0 else best.step_index,
             confidence=match.confidence,
             evidence=["intent recall matched candidate"] + best.evidence,
         ))
@@ -300,11 +317,19 @@ def build_checkpoint_step_data(
     step_data: list[dict[str, Any]] = []
 
     for alignment in alignments:
-        if alignment.step_index < 0 or alignment.step_index not in by_source:
+        start_step_index = alignment.start_step_index if alignment.start_step_index >= 0 else alignment.step_index
+        end_step_index = alignment.end_step_index if alignment.end_step_index >= 0 else alignment.step_index
+        if (
+            alignment.step_index < 0
+            or start_step_index not in by_source
+            or end_step_index not in by_source
+        ):
             step_data.append({
                 "step_index": -1,
                 "before_step_index": -1,
                 "after_step_index": -1,
+                "start_step_index": -1,
+                "end_step_index": -1,
                 "before_image_base64": "",
                 "after_image_base64": "",
                 "before_image_ref": "",
@@ -314,41 +339,61 @@ def build_checkpoint_step_data(
             })
             continue
 
-        pos, step = by_source[alignment.step_index]
-        next_step = seq_info[pos + 1] if pos + 1 < len(seq_info) else {}
-        parsed = (step.get("planning_output") or {}).get("parsed_action") or {}
-        before_img = step.get("image_relative_path", "")
-        after_img = next_step.get("image_relative_path", "")
+        start_pos, start_step = by_source[start_step_index]
+        end_pos, end_step = by_source[end_step_index]
+        if end_pos < start_pos:
+            start_pos, end_pos = end_pos, start_pos
+            start_step, end_step = end_step, start_step
+        after_step = seq_info[end_pos + 1] if end_pos + 1 < len(seq_info) else end_step
+        before_img = start_step.get("image_relative_path", "")
+        after_img = after_step.get("image_relative_path", "") or end_step.get("image_relative_path", "")
         step_data.append({
             "before_image_base64": before_img,
             "after_image_base64": after_img,
-            "before_image_ref": step.get("_image_original_ref", before_img),
-            "after_image_ref": next_step.get("_image_original_ref", after_img),
-            "before_step_index": int(step.get("index", alignment.step_index)),
-            "after_step_index": int(next_step.get("index", -1)) if next_step else -1,
+            "before_image_ref": start_step.get("_image_original_ref", before_img),
+            "after_image_ref": after_step.get("_image_original_ref", after_img) or end_step.get("_image_original_ref", after_img),
+            "before_step_index": int(start_step.get("index", start_step_index)),
+            "after_step_index": int(after_step.get("index", end_step_index)) if after_step else end_step_index,
+            "start_step_index": start_step_index,
+            "end_step_index": end_step_index,
             "image_available": bool(before_img or after_img),
-            "action_description": _action_description(parsed),
+            "action_description": _span_action_description(seq_info[start_pos:end_pos + 1]),
             "step_index": alignment.step_index,
             "alignment": alignment.to_dict(),
         })
     return step_data
 
 
+def _span_action_description(steps: list[dict[str, Any]]) -> str:
+    actions: list[str] = []
+    for step in steps:
+        parsed = (step.get("planning_output") or {}).get("parsed_action") or {}
+        desc = _action_description(parsed)
+        if desc:
+            actions.append(desc)
+    return " -> ".join(actions)
+
+
 def _to_intent_candidate(item: tuple[int, dict[str, Any], float, list[str]]) -> IntentCandidate:
     _, feature, score, evidence = item
     purpose_index = int(feature.get("purpose_index", -1))
+    source_step = int(feature.get("source_step_index", -1))
     candidate_evidence = list(evidence)
     if purpose_index >= 0 and not any(item.startswith("purpose_index=") for item in candidate_evidence):
         candidate_evidence.append(f"purpose_index={purpose_index}")
     return IntentCandidate(
         source_kind=str(feature.get("source_kind", "step")),
-        step_index=int(feature.get("source_step_index", -1)),
+        step_index=source_step,
         score=score,
         evidence=candidate_evidence,
         state_id=str(feature.get("state_id", "")),
         step_range=list(feature.get("state_range", [])),
         purpose_index=purpose_index,
         purpose_text=str(feature.get("purpose_text", "")),
+        start_step_index=source_step,
+        end_step_index=source_step,
+        start_purpose_index=purpose_index,
+        end_purpose_index=purpose_index,
     )
 
 
@@ -481,9 +526,11 @@ def _plan_purpose_match_prompt(
     return (
         "你是 GUI Agent 评测中的意图对齐器，需要判断任务检查点是否被 Agent 的实际操作意图覆盖。\n"
         "请只比较 checkpoint 与 agent_purpose 的语义意图，不要根据页面截图或执行结果猜测。\n"
+        "如果某个 checkpoint 需要多个连续 purpose 才能完成，请返回覆盖这些 purpose 的 start_purpose_index 和 end_purpose_index；"
+        "agent_purpose_index 保持兼容，可填写 end_purpose_index。\n"
         "如果某个 checkpoint 没有对应 purpose，status 设为 missing；如果 purpose 隐含满足 checkpoint，status 设为 implicit；"
         "如果只能由更早顺序的 purpose 满足但会破坏检查点顺序，status 设为 order_violation。\n"
-        "只输出 JSON，格式为：{\"matches\":[{\"checkpoint_index\":0,\"agent_purpose_index\":0,\"status\":\"matched|implicit|missing|order_violation\",\"confidence\":0.0,\"reason\":\"...\"}]}。\n"
+        "只输出 JSON，格式为：{\"matches\":[{\"checkpoint_index\":0,\"start_purpose_index\":0,\"end_purpose_index\":1,\"agent_purpose_index\":1,\"status\":\"matched|implicit|missing|order_violation\",\"confidence\":0.0,\"reason\":\"...\"}]}。\n"
         f"输入：{json.dumps(payload_summary, ensure_ascii=False)}"
     )
 
@@ -494,19 +541,43 @@ def _match_from_llm_item(
     purpose_features: list[dict[str, Any]],
     *,
     min_score: float,
+    min_purpose_index: int = -1,
 ) -> CheckpointIntentMatch | None:
     status = str(item.get("status", "")).strip().lower()
-    try:
-        purpose_idx = int(item.get("agent_purpose_index", -1))
-    except (TypeError, ValueError):
-        purpose_idx = -1
-    try:
-        score = float(item.get("confidence", 0.0))
-    except (TypeError, ValueError):
-        score = 0.0
-    score = max(0.0, min(score, 1.0))
+    purpose_idx = _safe_int(item.get("agent_purpose_index", -1), -1)
+    start_purpose_idx = _safe_int(item.get("start_purpose_index", purpose_idx), purpose_idx)
+    end_purpose_idx = _safe_int(item.get("end_purpose_index", purpose_idx), purpose_idx)
+    score = max(0.0, min(_safe_float(item.get("confidence", 0.0), 0.0), 1.0))
     reason = str(item.get("reason", "")).strip()
-    matched_status = status in {"matched", "implicit"} and purpose_idx >= 0
+    matched_status = status in {"matched", "implicit"} and start_purpose_idx >= 0 and end_purpose_idx >= 0
+
+    if matched_status and start_purpose_idx < min_purpose_index:
+        return CheckpointIntentMatch(
+            checkpoint_index=cp_idx,
+            matched=False,
+            score=score,
+            confidence="unmatched_intent",
+            evidence=[
+                "purpose_llm_status=order_violation",
+                f"purpose_span={start_purpose_idx}-{end_purpose_idx}",
+                f"min_purpose_index={min_purpose_index}",
+            ],
+            llm_used=True,
+            llm_reason=reason or "LLM purpose span moves backward",
+        )
+    if matched_status and end_purpose_idx < start_purpose_idx:
+        return CheckpointIntentMatch(
+            checkpoint_index=cp_idx,
+            matched=False,
+            score=score,
+            confidence="unmatched_intent",
+            evidence=[
+                "purpose_llm_status=order_violation",
+                f"purpose_span={start_purpose_idx}-{end_purpose_idx}",
+            ],
+            llm_used=True,
+            llm_reason=reason or "LLM purpose span end is before start",
+        )
     if not matched_status:
         return CheckpointIntentMatch(
             checkpoint_index=cp_idx,
@@ -517,8 +588,10 @@ def _match_from_llm_item(
             llm_used=True,
             llm_reason=reason,
         )
-    feature = next((f for f in purpose_features if int(f.get("purpose_index", -1)) == purpose_idx), None)
-    if feature is None:
+
+    start_feature = next((f for f in purpose_features if int(f.get("purpose_index", -1)) == start_purpose_idx), None)
+    end_feature = next((f for f in purpose_features if int(f.get("purpose_index", -1)) == end_purpose_idx), None)
+    if start_feature is None or end_feature is None:
         return None
     if score < min_score:
         return CheckpointIntentMatch(
@@ -530,23 +603,31 @@ def _match_from_llm_item(
             llm_used=True,
             llm_reason=reason,
         )
+
+    start_step = int(start_feature.get("source_step_index", -1))
+    end_step = int(end_feature.get("source_step_index", -1))
     candidate = IntentCandidate(
         source_kind="purpose",
-        step_index=int(feature.get("source_step_index", -1)),
+        step_index=end_step,
         score=score,
         evidence=[
             f"purpose_llm_status={status}",
-            f"purpose_index={purpose_idx}",
+            f"purpose_span={start_purpose_idx}-{end_purpose_idx}",
+            f"purpose_index={end_purpose_idx}",
         ],
-        purpose_index=purpose_idx,
-        purpose_text=str(feature.get("purpose_text", "")),
+        purpose_index=end_purpose_idx,
+        purpose_text=str(end_feature.get("purpose_text", "")),
+        start_step_index=start_step,
+        end_step_index=end_step,
+        start_purpose_index=start_purpose_idx,
+        end_purpose_index=end_purpose_idx,
     )
     return CheckpointIntentMatch(
         checkpoint_index=cp_idx,
         matched=True,
         score=score,
         confidence=_confidence(score),
-        candidate_steps=[candidate.step_index] if candidate.step_index >= 0 else [],
+        candidate_steps=[step for step in (start_step, end_step) if step >= 0],
         candidates=[candidate],
         evidence=candidate.evidence,
         llm_used=True,
@@ -811,6 +892,20 @@ def _call_llm(config: IntentMatcherConfig, prompt: str) -> str:
     if not choices:
         raise ValueError("LLM returned no choices")
     return choices[0].get("message", {}).get("content", "")
+
+
+def _safe_int(value: Any, default: int = -1) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
 
 
 def _parse_json_object(content: str) -> dict[str, Any]:

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from src.common import ABValidationReport, StepABResult
-from src.verifier import Checkpoint, align_checkpoints_to_steps, match_checkpoint_intents
+from src.verifier import Checkpoint, align_checkpoints_to_steps, build_checkpoint_step_data, match_checkpoint_intents
 
 
 def test_generic_form_flow_checkpoints_align_to_semantic_steps():
@@ -108,9 +108,11 @@ def test_adjacent_checkpoints_can_share_one_step_when_state_satisfies_both():
     assert all(item.confidence != "unmatched" for item in alignments)
 
 
-def _step(index: int, action_type: str, text: str) -> dict:
+def _step(index: int, action_type: str, text: str, image: str = "") -> dict:
     return {
         "index": index,
+        "image_relative_path": image,
+        "_image_original_ref": image,
         "planning_output": {
             "parsed_action": {
                 "action_type": action_type,
@@ -261,3 +263,77 @@ def test_llm_purpose_missing_blocks_alignment(monkeypatch):
     assert matches[0].llm_used is True
     assert matches[0].confidence == "unmatched_intent"
     assert alignments[0].step_index == -1
+
+def test_llm_purpose_span_uses_completion_step_for_verification(monkeypatch):
+    payload = {
+        "_action_purposes": ["activate search box", "input query", "tap search and show results"],
+        "seq_info": [
+            _step(1, "click", "tap search", image="img1"),
+            _step(2, "type", "input query", image="img2"),
+            _step(3, "click", "tap search", image="img3"),
+            _step(4, "finished", "done", image="img4"),
+        ],
+    }
+    checkpoints = [Checkpoint(name="search product", expected_state="search results page is displayed")]
+
+    def fake_call(_config, _prompt):
+        return (
+            '{"matches":[{"checkpoint_index":0,"start_purpose_index":1,'
+            '"end_purpose_index":2,"agent_purpose_index":2,"status":"matched",'
+            '"confidence":0.95,"reason":"input plus search completes checkpoint"}]}'
+        )
+
+    import src.verifier.alignment as alignment
+
+    monkeypatch.setattr(alignment, "_call_llm", fake_call)
+    matches = match_checkpoint_intents(
+        checkpoints,
+        payload,
+        config=alignment.IntentMatcherConfig(llm_model_url="http://llm", llm_model_name="model"),
+    )
+    alignments = align_checkpoints_to_steps(checkpoints, payload, intent_matches=matches)
+    step_data = build_checkpoint_step_data(checkpoints, payload, alignments)
+
+    assert alignments[0].step_index == 3
+    assert alignments[0].start_step_index == 2
+    assert alignments[0].end_step_index == 3
+    assert step_data[0]["before_step_index"] == 2
+    assert step_data[0]["after_step_index"] == 4
+    assert step_data[0]["before_image_base64"] == "img2"
+    assert step_data[0]["after_image_base64"] == "img4"
+    assert "type: input query" in step_data[0]["action_description"]
+    assert "click: tap search" in step_data[0]["action_description"]
+
+
+def test_llm_backward_purpose_span_blocks_alignment(monkeypatch):
+    payload = {
+        "_action_purposes": ["open app", "input query", "apply filter"],
+        "seq_info": [_step(1, "open_app", "open"), _step(2, "type", "input"), _step(3, "click", "filter")],
+    }
+    checkpoints = [
+        Checkpoint(name="apply filter", expected_state="filter panel applied"),
+        Checkpoint(name="input query", expected_state="query appears"),
+    ]
+
+    def fake_call(_config, _prompt):
+        return (
+            '{"matches":['
+            '{"checkpoint_index":0,"start_purpose_index":2,"end_purpose_index":2,"agent_purpose_index":2,"status":"matched","confidence":0.9,"reason":"filter"},'
+            '{"checkpoint_index":1,"start_purpose_index":1,"end_purpose_index":1,"agent_purpose_index":1,"status":"matched","confidence":0.9,"reason":"backward"}'
+            ']}'
+        )
+
+    import src.verifier.alignment as alignment
+
+    monkeypatch.setattr(alignment, "_call_llm", fake_call)
+    matches = match_checkpoint_intents(
+        checkpoints,
+        payload,
+        config=alignment.IntentMatcherConfig(llm_model_url="http://llm", llm_model_name="model"),
+    )
+    alignments = align_checkpoints_to_steps(checkpoints, payload, intent_matches=matches)
+
+    assert matches[0].matched is True
+    assert matches[1].matched is False
+    assert any("order_violation" in item for item in matches[1].evidence)
+    assert alignments[1].step_index == -1
