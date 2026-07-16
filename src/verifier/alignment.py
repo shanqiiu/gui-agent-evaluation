@@ -40,15 +40,15 @@ def align_checkpoints_to_steps(
     last_pos = -1
 
     for cp_idx, checkpoint in enumerate(checkpoints):
-        best: tuple[int, dict[str, Any], float, list[str]] | None = None
+        candidates: list[tuple[int, dict[str, Any], float, list[str]]] = []
         cp_text = _checkpoint_text(checkpoint)
         for pos, step in enumerate(steps):
-            if pos <= last_pos:
+            if pos < last_pos:
                 continue
             score, evidence = _score(cp_text, checkpoint, step)
-            if best is None or score > best[2]:
-                best = (pos, step, score, evidence)
+            candidates.append((pos, step, score, evidence))
 
+        best = _select_candidate(candidates, min_score=min_score)
         if best is None or best[2] < min_score:
             alignments.append(CheckpointAlignment(
                 checkpoint_index=cp_idx,
@@ -70,6 +70,42 @@ def align_checkpoints_to_steps(
 
     return alignments
 
+
+
+def _select_candidate(
+    candidates: list[tuple[int, dict[str, Any], float, list[str]]],
+    *,
+    min_score: float,
+    near_best_margin: float = 0.03,
+) -> tuple[int, dict[str, Any], float, list[str]] | None:
+    if not candidates:
+        return None
+    best_score = max(item[2] for item in candidates)
+    if best_score < min_score:
+        return max(candidates, key=lambda item: item[2])
+
+    specific = [
+        item for item in candidates
+        if item[2] >= min_score and _has_specific_intent(item[3])
+    ]
+    if specific:
+        return max(specific, key=lambda item: item[2])
+
+    threshold = max(min_score, best_score - near_best_margin)
+    for item in candidates:
+        if item[2] >= threshold:
+            return item
+    return max(candidates, key=lambda item: item[2])
+
+
+def _has_specific_intent(evidence: list[str]) -> bool:
+    specific_intents = {
+        "intent=input_text",
+        "intent=keyword_visible",
+        "intent=price_input",
+        "intent=product_detail",
+    }
+    return any(item in specific_intents for item in evidence)
 
 def build_checkpoint_step_data(
     checkpoints: list[Checkpoint],
@@ -141,10 +177,12 @@ def _score(cp_text: str, checkpoint: Checkpoint, step: dict[str, Any]) -> tuple[
     evidence: list[str] = []
     action_text = f"{step['action_text']} {step['ab_action']}".strip()
     page_text = f"{step['page_before']} {step['page_after']}".strip()
+    all_step_text = f"{action_text} {page_text}"
 
     action_score = _similarity(cp_text, action_text)
     page_score = _similarity(_checkpoint_state_text(checkpoint), page_text)
-    keyword_score = _keyword_overlap(cp_text, f"{action_text} {page_text}")
+    keyword_score = _keyword_overlap(cp_text, all_step_text)
+    intent_score, intent_evidence = _intent_score(cp_text, checkpoint, step, all_step_text)
     type_bonus = 0.0
 
     if step["action_type"] in {"click", "open_app", "type", "set_text"}:
@@ -155,8 +193,16 @@ def _score(cp_text: str, checkpoint: Checkpoint, step: dict[str, Any]) -> tuple[
         evidence.append(f"page_similarity={page_score:.2f}")
     if keyword_score > 0:
         evidence.append(f"keyword_overlap={keyword_score:.2f}")
+    if intent_score > 0:
+        evidence.extend(intent_evidence)
 
-    score = 0.45 * action_score + 0.35 * page_score + 0.15 * keyword_score + type_bonus
+    score = (
+        0.30 * action_score
+        + 0.25 * page_score
+        + 0.15 * keyword_score
+        + 0.25 * intent_score
+        + type_bonus
+    )
     return min(score, 1.0), evidence or ["weak text candidate"]
 
 
@@ -195,6 +241,60 @@ def _action_description(parsed: dict[str, Any]) -> str:
             parts.append(value)
     return ": ".join([parts[0], " ".join(parts[1:])]) if parts[0] else " ".join(parts[1:])
 
+
+
+
+def _intent_score(
+    cp_text: str,
+    checkpoint: Checkpoint,
+    step: dict[str, Any],
+    step_text: str,
+) -> tuple[float, list[str]]:
+    del checkpoint
+    cp = _compact(cp_text)
+    st = _compact(step_text)
+    action_type = step.get("action_type", "")
+    score = 0.0
+    evidence: list[str] = []
+
+    def add(value: float, reason: str) -> None:
+        nonlocal score
+        if value > score:
+            score = value
+        evidence.append(reason)
+
+    if _has_any(cp, ("\u6253\u5f00", "\u5e94\u7528", "\u9996\u9875")) and action_type == "open_app":
+        add(0.70, "intent=open_app")
+
+    if _has_any(cp, ("\u641c\u7d22\u680f", "\u641c\u7d22\u6846")):
+        if action_type in {"click", "type", "set_text"} and _has_any(st, ("\u641c\u7d22", "\u641c\u7d22\u680f", "\u641c\u7d22\u6846")):
+            add(0.55, "intent=activate_search")
+
+    if _has_any(cp, ("\u8f93\u5165", "\u5173\u952e\u8bcd", "\u6587\u672c")):
+        if action_type in {"type", "set_text"}:
+            add(0.70, "intent=input_text")
+        if _has_any(st, ("\u5b55\u5987", "\u9694\u79bb\u971c", "\u641c\u7d22\u7ed3\u679c", "\u5173\u952e\u8bcd")):
+            add(0.65, "intent=keyword_visible")
+
+    if _has_any(cp, ("\u6267\u884c\u641c\u7d22", "\u641c\u7d22\u7ed3\u679c", "\u76f8\u5173\u5546\u54c1", "\u5546\u54c1\u5217\u8868")):
+        if _has_any(st, ("\u641c\u7d22\u7ed3\u679c", "\u5546\u54c1\u5217\u8868", "\u76f8\u5173", "\u7efc\u5408", "\u9500\u91cf", "\u4ef7\u683c")):
+            add(0.72, "intent=search_results")
+
+    if _has_any(cp, ("\u7b5b\u9009", "\u4ef7\u683c\u533a\u95f4", "\u6700\u4f4e\u4ef7", "100", "100\u5143")):
+        if _has_any(st, ("\u7b5b\u9009", "\u4ef7\u683c\u533a\u95f4", "\u6700\u4f4e\u4ef7", "100", "\u786e\u8ba4")):
+            add(0.74, "intent=filter_price")
+        if action_type in {"type", "set_text"} and _has_any(st, ("100", "\u4ef7\u683c", "\u6700\u4f4e\u4ef7")):
+            add(0.78, "intent=price_input")
+
+    if _has_any(cp, ("\u6d4f\u89c8", "\u786e\u8ba4\u5546\u54c1", "\u5546\u54c1\u5c5e\u6027", "\u5b55\u5987\u53ef\u7528", "\u5927\u4e8e100", "\u8be6\u60c5")):
+        if _has_any(st, ("\u5546\u54c1\u8be6\u60c5", "\u8be6\u60c5\u9875", "\u4ef7\u683c", "102", "139", "\u9694\u79bb\u971c", "\u5b55\u5987")):
+            add(0.78, "intent=product_detail")
+
+    return min(score, 1.0), evidence[:3]
+
+
+def _has_any(text: str, tokens: tuple[str, ...]) -> bool:
+    return any(_compact(token) in text for token in tokens)
 
 def _similarity(left: str, right: str) -> float:
     left = _compact(left)
