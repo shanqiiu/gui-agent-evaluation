@@ -127,11 +127,13 @@ def test_repeated_baseline_mock_end_to_end(tmp_path):
 
     assert result["task_uuid"] == "case-001"
     assert result["repeated_prediction"]["task_uuid"] == "case-001"
+    assert result["planning_failure_prediction"]["task_uuid"] == "case-001"
     assert "intent_matches" in result
     assert "intent_matcher_diagnostics" in result
     assert result["intent_matcher_diagnostics"]["purpose_llm"]["status"] == "skipped_no_purpose_features"
     assert (payload_path.parent / "repeated_baseline" / "intent_matcher_diagnostics.json").is_file()
     assert (payload_path.parent / "repeated_baseline" / "intent_matches.json").is_file()
+    assert (payload_path.parent / "repeated_baseline" / "planning_failure_result.json").is_file()
     assert (payload_path.parent / "repeated_baseline" / "baseline_result.json").is_file()
 
 def test_repeated_baseline_batch(tmp_path):
@@ -177,5 +179,6 @@ def test_repeated_baseline_batch(tmp_path):
     assert result["total"] == 2
     assert result["ok"] == 2
     assert result["error"] == 0
+    assert result["results"][0]["planning_failure_label"] in {"normal", "abnormal", "uncertain"}
     assert (tmp_path / "baseline_out" / "batch_result.json").is_file()
     assert (tmp_path / "baseline_out" / "case-001" / "baseline_result.json").is_file()

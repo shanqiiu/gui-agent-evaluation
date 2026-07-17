@@ -23,6 +23,7 @@ from src.verifier import (
     align_checkpoints_to_steps,
     match_checkpoint_intents,
 )
+from src.evaluator.planning_failure import detect_planning_failure
 from src.evaluator.state_evidence import build_state_sequence
 
 
@@ -114,6 +115,16 @@ def run_repeated_baseline(
     )
     repeated_prediction = repeated.to_dict()
     repeated_prediction["task_uuid"] = task_uuid
+    planning_failure = detect_planning_failure(
+        checkpoints=checkpoints,
+        payload=hydrated,
+        intent_matches=intent_matches,
+        verification_report=verification_report,
+        state_sequence=state_sequence,
+        repeated_prediction=repeated_prediction,
+    )
+    planning_failure_prediction = planning_failure.to_dict()
+    planning_failure_prediction["task_uuid"] = task_uuid
 
     result = {
         "schema_version": "repeated_baseline.v1",
@@ -129,6 +140,7 @@ def run_repeated_baseline(
         ),
         "state_sequence": state_sequence.to_dict(),
         "repeated_prediction": repeated_prediction,
+        "planning_failure_prediction": planning_failure_prediction,
     }
 
     output_base = Path(output_dir) if output_dir else payload_path.parent / "repeated_baseline"
@@ -141,6 +153,7 @@ def run_repeated_baseline(
         _write_json(output_base / "verification_report.json", result["verification_report"])
     _write_json(output_base / "state_sequence.json", result["state_sequence"])
     _write_json(output_base / "repeated_prediction.json", result["repeated_prediction"])
+    _write_json(output_base / "planning_failure_result.json", result["planning_failure_prediction"])
     _write_json(output_base / "baseline_result.json", result)
     return result
 
@@ -179,6 +192,9 @@ def run_repeated_baseline_batch(
                 "output_dir": str(task_output),
                 "label": result["repeated_prediction"]["label"],
                 "confidence": result["repeated_prediction"].get("confidence", 0.0),
+                "planning_failure_label": result["planning_failure_prediction"]["label"],
+                "planning_failure_subtype": result["planning_failure_prediction"]["subtype"],
+                "planning_failure_confidence": result["planning_failure_prediction"].get("confidence", 0.0),
             })
         except Exception as exc:
             errors.append({
