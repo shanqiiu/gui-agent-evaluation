@@ -28,6 +28,13 @@ LLM_API_KEY=...
 python src/decomposer/knowledge_store.py --ingest src/decomposer/app_knowledge/
 ```
 
+`src/decomposer/app_knowledge/*.md` 是 App 任务拆解知识源。新增或修改 Markdown 后，需要重新执行摄入命令，已经持久化的 ChromaDB 不会自动更新。
+
+当前包含的专用建模：
+
+- `settings.md`：设置类页面流和关键控件。
+- `taobao.md`：淘宝“再来一单/历史订单复购”任务，优先建模为历史订单入口、订单列表、目标订单定位、复购动作触发、订单确认页就绪，而不是普通商品搜索购买路径。
+
 ## 程序化调用
 
 ```python
