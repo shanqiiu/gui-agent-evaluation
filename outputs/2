@@ -1,0 +1,252 @@
+        "source_step_index": 11,
+        "next_step_index": 12,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "664d19999b333936",
+        "phash_after": "664d19999b333936",
+        "phash_distance": 0,
+        "ssim": 1.0,
+        "pixel_diff_ratio": 0.0,
+        "changed_regions": [],
+        "ocr_fingerprint_before": "0309103742084591",
+        "ocr_fingerprint_after": "0309103742084591",
+        "ocr_text_similarity": 1.0,
+        "rawpage_changed": false,
+        "boundary_confidence": 0.0,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=0",
+          "ssim=1.000",
+          "pixel_diff_ratio=0.000",
+          "ocr_text_similarity=1.000",
+          "rawpage_changed=False"
+        ]
+      },
+      {
+        "source_step_index": 12,
+        "next_step_index": 13,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "664d19999b333936",
+        "phash_after": "664d19999b333936",
+        "phash_distance": 0,
+        "ssim": 1.0,
+        "pixel_diff_ratio": 0.0,
+        "changed_regions": [],
+        "ocr_fingerprint_before": "0309103742084591",
+        "ocr_fingerprint_after": "0309103742084591",
+        "ocr_text_similarity": 1.0,
+        "rawpage_changed": false,
+        "boundary_confidence": 0.0,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=0",
+          "ssim=1.000",
+          "pixel_diff_ratio=0.000",
+          "ocr_text_similarity=1.000",
+          "rawpage_changed=False"
+        ]
+      },
+      {
+        "source_step_index": 13,
+        "next_step_index": 14,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "664d19999b333936",
+        "phash_after": "664d19999b333936",
+        "phash_distance": 0,
+        "ssim": 1.0,
+        "pixel_diff_ratio": 0.0,
+        "changed_regions": [],
+        "ocr_fingerprint_before": "0309103742084591",
+        "ocr_fingerprint_after": "32fb4dd7b87e144c",
+        "ocr_text_similarity": 0.0,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.15,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=0",
+          "ssim=1.000",
+          "pixel_diff_ratio=0.000",
+          "ocr_text_similarity=0.000",
+          "rawpage_changed=True"
+        ]
+      },
+      {
+        "source_step_index": 14,
+        "next_step_index": 15,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "664d19999b333936",
+        "phash_after": "d72f39dd5121c492",
+        "phash_distance": 26,
+        "ssim": 0.1253,
+        "pixel_diff_ratio": 0.4893,
+        "changed_regions": [
+          {
+            "region": "top",
+            "diff_ratio": 0.2738
+          },
+          {
+            "region": "middle",
+            "diff_ratio": 0.5774
+          },
+          {
+            "region": "bottom",
+            "diff_ratio": 0.6108
+          }
+        ],
+        "ocr_fingerprint_before": "32fb4dd7b87e144c",
+        "ocr_fingerprint_after": "",
+        "ocr_text_similarity": 0.0,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.909,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=26",
+          "ssim=0.125",
+          "pixel_diff_ratio=0.489",
+          "changed_regions=top, middle, bottom",
+          "ocr_text_similarity=0.000",
+          "rawpage_changed=True"
+        ]
+      },
+      {
+        "source_step_index": 15,
+        "next_step_index": 16,
+        "has_before_image": true,
+        "has_after_image": false,
+        "phash_before": "",
+        "phash_after": "",
+        "phash_distance": null,
+        "ssim": null,
+        "pixel_diff_ratio": null,
+        "changed_regions": [],
+        "ocr_fingerprint_before": "",
+        "ocr_fingerprint_after": "",
+        "ocr_text_similarity": null,
+        "rawpage_changed": null,
+        "boundary_confidence": 0.0,
+        "evidence_quality": "missing",
+        "evidence": [
+          "screenshot decode failed",
+          "rawPage/OCR missing"
+        ]
+      }
+    ]
+  },
+  "repeated_prediction": {
+    "label": "abnormal",
+    "type": "repeated_action",
+    "severity": "low",
+    "confidence": 0.79,
+    "ranges": [
+      {
+        "start_step": 9,
+        "end_step": 10,
+        "action_type": "drag",
+        "target": "。通常情况下",
+        "repeat_type": "repeated_action",
+        "severity": "low",
+        "confidence": 0.79,
+        "evidence": [
+          "步骤9和步骤10动作等效",
+          "目标控件/动作描述相似度0.29",
+          "期间无新增检查点达成",
+          "AB单步判定结果为不符合预期"
+        ]
+      }
+    ],
+    "summary": "检测到1段重复动作异常；首段位于步骤9到步骤10，动作为drag，目标为。通常情况下。",
+    "metrics": {
+      "action_count": 16,
+      "repeated_range_count": 1
+    },
+    "task_uuid": "1b3c9d23-8b45-4c9b-8034-9c36b35aa1df"
+  },
+  "planning_failure_prediction": {
+    "label": "abnormal",
+    "type": "planning_failure",
+    "subtype": "missing_required_checkpoint",
+    "confidence": 0.9,
+    "first_error_step": 16,
+    "completion_score": 0.5,
+    "required_completion_score": 0.5,
+    "summary": {
+      "total_checkpoints": 4,
+      "required_total": 4,
+      "achieved_count": 2,
+      "required_achieved": 2
+    },
+    "missing_checkpoints": [
+      {
+        "checkpoint_index": 2,
+        "checkpoint_id": "cp_002",
+        "name": "目标商品详情页已打开",
+        "required": true,
+        "status": "not_achieved",
+        "step_index": 5
+      },
+      {
+        "checkpoint_index": 3,
+        "checkpoint_id": "cp_003",
+        "name": "订单提交页面已就绪",
+        "required": true,
+        "status": "unmatched_intent",
+        "step_index": -1
+      }
+    ],
+    "uncertain_checkpoints": [],
+    "related_anomalies": [
+      "repeated_action"
+    ],
+    "evidence": [
+      "必要 checkpoint 有意图匹配但截图/VLM 未证明达成：目标商品详情页已打开",
+      "verifier_status=未达成, confidence=1.00",
+      "必要 checkpoint 未被实际 agent_purpose 召回：订单提交页面已就绪",
+      "意图层未匹配，跳过执行层达成判定。",
+      "轨迹出现 finished/done 终止动作。",
+      "required checkpoint 完成率为 0.50。"
+    ],
+    "events": [
+      {
+        "subtype": "execution_blocked",
+        "confidence": 0.9,
+        "first_error_step": 5,
+        "checkpoint_index": 2,
+        "checkpoint_name": "目标商品详情页已打开",
+        "evidence": [
+          "必要 checkpoint 有意图匹配但截图/VLM 未证明达成：目标商品详情页已打开",
+          "verifier_status=未达成, confidence=1.00"
+        ],
+        "related_anomalies": []
+      },
+      {
+        "subtype": "missing_required_checkpoint",
+        "confidence": 0.84,
+        "first_error_step": 16,
+        "checkpoint_index": 3,
+        "checkpoint_name": "订单提交页面已就绪",
+        "evidence": [
+          "必要 checkpoint 未被实际 agent_purpose 召回：订单提交页面已就绪",
+          "意图层未匹配，跳过执行层达成判定。"
+        ],
+        "related_anomalies": []
+      },
+      {
+        "subtype": "premature_termination",
+        "confidence": 0.82,
+        "first_error_step": 16,
+        "checkpoint_index": -1,
+        "checkpoint_name": "",
+        "evidence": [
+          "轨迹出现 finished/done 终止动作。",
+          "required checkpoint 完成率为 0.50。"
+        ],
+        "related_anomalies": []
+      }
+    ],
+    "message": "检测到规划失效：missing_required_checkpoint；缺失/未达成 checkpoint：目标商品详情页已打开、订单提交页面已就绪；required 完成率 0.50。",
+    "task_uuid": "1b3c9d23-8b45-4c9b-8034-9c36b35aa1df"
+  }
+}
