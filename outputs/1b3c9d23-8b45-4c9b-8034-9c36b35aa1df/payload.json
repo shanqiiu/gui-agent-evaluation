@@ -1,0 +1,404 @@
+{
+  "instruction": "到淘宝再来一单芝华仕3m多的真皮沙发",
+  "step_level_instruction": "淘宝应用已启动->搜索关键词已输入并执行->目标商品详情页已打开->订单提交页面已就绪",
+  "agent_purposes": "打开淘宝->点击“我的淘宝”进入个人中心->点击底部“我的淘宝”按钮->点击“全部”进入全部订单列表->在“搜索订单”输入框中输入“芝华仕 真皮沙发”->将首条 3.05 米芝华仕真皮沙发订单商品加入购物车->等待验证码页面加载完成，以便后续按提示进行验证。->拖动滑块至右侧，使鱼图案完整，完成滑块验证->等待滑块验证码页面刷新加载完成，以便重新进行滑块拖动验证。->拖动滑块至拼图缺口位置，使树图案完整，完成滑块验证。->向右拖动滑块一段较长距离，使树图案与拼图缺口对齐，完成滑块验证。->等待滑块验证码页面加载完成，以便进行下一次拖动滑块验证。->等待滑块验证码页面加载完成，以便后续根据页面提示继续操作。->点击验证码页面右侧的刷新按钮重新加载验证码->返回上一页，退出异常验证码页面，准备重新从订单页进入商品复购。->等待“加购失败”提示消失，页面恢复可操作状态。",
+  "seq_info": [
+    {
+      "index": 0,
+      "image_relative_path": "",
+      "_image_source": "",
+      "_ocr_page_index": 0,
+      "action_purpose": "打开淘宝",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "open_app",
+          "start_box": [],
+          "end_box": [],
+          "text": "打开应用",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 1,
+      "image_relative_path": "catchDataTurnId1.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId1/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 1,
+      "action_purpose": "点击“我的淘宝”进入个人中心",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1090,
+            2518
+          ],
+          "end_box": [],
+          "text": "点击页面元素",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 2,
+      "image_relative_path": "catchDataTurnId2.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId2/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 2,
+      "action_purpose": "点击底部“我的淘宝”按钮",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1090,
+            2513
+          ],
+          "end_box": [],
+          "text": "点击页面元素",
+          "direction": "",
+          "content": "loading"
+        }
+      }
+    },
+    {
+      "index": 3,
+      "image_relative_path": "catchDataTurnId3.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId3/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 3,
+      "action_purpose": "点击“全部”进入全部订单列表",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1094,
+            876
+          ],
+          "end_box": [],
+          "text": "点击全部",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 4,
+      "image_relative_path": "catchDataTurnId4.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId4/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 4,
+      "action_purpose": "在“搜索订单”输入框中输入“芝华仕 真皮沙发”",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "type",
+          "start_box": [
+            348,
+            188
+          ],
+          "end_box": [],
+          "text": "输入文本",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 5,
+      "image_relative_path": "catchDataTurnId5.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId5/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 5,
+      "action_purpose": "将首条 3.05 米芝华仕真皮沙发订单商品加入购物车",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1038,
+            846
+          ],
+          "end_box": [],
+          "text": "点击加入购物车",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 6,
+      "image_relative_path": "catchDataTurnId6.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId6/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 6,
+      "action_purpose": "等待验证码页面加载完成，以便后续按提示进行验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 7,
+      "image_relative_path": "catchDataTurnId7.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId7/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 7,
+      "action_purpose": "拖动滑块至右侧，使鱼图案完整，完成滑块验证",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "drag",
+          "start_box": [
+            171,
+            1642
+          ],
+          "end_box": [
+            1118,
+            1642
+          ],
+          "text": "滑动",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 8,
+      "image_relative_path": "catchDataTurnId8.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId8/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 8,
+      "action_purpose": "等待滑块验证码页面刷新加载完成，以便重新进行滑块拖动验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 9,
+      "image_relative_path": "catchDataTurnId9.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId9/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 9,
+      "action_purpose": "拖动滑块至拼图缺口位置，使树图案完整，完成滑块验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "drag",
+          "start_box": [
+            165,
+            1647
+          ],
+          "end_box": [
+            222,
+            1647
+          ],
+          "text": "滑动",
+          "direction": "",
+          "content": "av_forward"
+        }
+      }
+    },
+    {
+      "index": 10,
+      "image_relative_path": "catchDataTurnId10.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId10/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 10,
+      "action_purpose": "向右拖动滑块一段较长距离，使树图案与拼图缺口对齐，完成滑块验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "drag",
+          "start_box": [
+            228,
+            1647
+          ],
+          "end_box": [
+            411,
+            1647
+          ],
+          "text": "滑动",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 11,
+      "image_relative_path": "catchDataTurnId11.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId11/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 11,
+      "action_purpose": "等待滑块验证码页面加载完成，以便进行下一次拖动滑块验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 12,
+      "image_relative_path": "catchDataTurnId12.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId12/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 12,
+      "action_purpose": "等待滑块验证码页面加载完成，以便后续根据页面提示继续操作。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 13,
+      "image_relative_path": "catchDataTurnId13.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId13/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 13,
+      "action_purpose": "点击验证码页面右侧的刷新按钮重新加载验证码",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1089,
+            889
+          ],
+          "end_box": [],
+          "text": "点击页面元素",
+          "direction": "",
+          "content": "refresh"
+        }
+      }
+    },
+    {
+      "index": 14,
+      "image_relative_path": "catchDataTurnId14.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId14/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 14,
+      "action_purpose": "返回上一页，退出异常验证码页面，准备重新从订单页进入商品复购。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "back",
+          "start_box": [],
+          "end_box": [],
+          "text": "返回",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 15,
+      "image_relative_path": "catchDataTurnId15.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId15/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 15,
+      "action_purpose": "等待“加购失败”提示消失，页面恢复可操作状态。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 16,
+      "image_relative_path": "",
+      "_image_source": "",
+      "_ocr_page_index": -1,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "finished",
+          "start_box": [],
+          "end_box": [],
+          "text": "任务完成",
+          "direction": "",
+          "content": ""
+        }
+      }
+    }
+  ],
+  "_image_base_dir": "D:\\Projects\\workspace\\projects\\activate\\gui-agent-evaluation\\output\\1b3c9d23-8b45-4c9b-8034-9c36b35aa1df\\1b3c9d23-8b45-4c9b-8034-9c36b35aa1df",
+  "_image_mode": "path",
+  "_action_purposes": [
+    "打开淘宝",
+    "点击“我的淘宝”进入个人中心",
+    "点击底部“我的淘宝”按钮",
+    "点击“全部”进入全部订单列表",
+    "在“搜索订单”输入框中输入“芝华仕 真皮沙发”",
+    "将首条 3.05 米芝华仕真皮沙发订单商品加入购物车",
+    "等待验证码页面加载完成，以便后续按提示进行验证。",
+    "拖动滑块至右侧，使鱼图案完整，完成滑块验证",
+    "等待滑块验证码页面刷新加载完成，以便重新进行滑块拖动验证。",
+    "拖动滑块至拼图缺口位置，使树图案完整，完成滑块验证。",
+    "向右拖动滑块一段较长距离，使树图案与拼图缺口对齐，完成滑块验证。",
+    "等待滑块验证码页面加载完成，以便进行下一次拖动滑块验证。",
+    "等待滑块验证码页面加载完成，以便后续根据页面提示继续操作。",
+    "点击验证码页面右侧的刷新按钮重新加载验证码",
+    "返回上一页，退出异常验证码页面，准备重新从订单页进入商品复购。",
+    "等待“加购失败”提示消失，页面恢复可操作状态。"
+  ],
+
+  "_decomposer": {
+    "attempted": true,
+    "status": "ok",
+    "model_name": "qwen36-27b-vl",
+    "model_url_set": true,
+    "api_key_set": true,
+    "used_vlm_url_fallback": false,
+    "used_vlm_name_fallback": false,
+    "used_vlm_key_fallback": false,
+    "checkpoint_count": 4,
+    "error": "",
+    "response_head": "[\n  {\n    \"name\": \"淘宝应用已启动\",\n    \"required\": true,\n    \"preconditions\": \"\",\n    \"expected_state\": \"屏幕显示淘宝应用的主界面，可见搜索栏、首页推荐内容或底部导航栏，确认当前处于淘宝App内。\"\n  },\n  {\n    \"name\": \"搜索关键词已输入并执行\",\n    \"required\": true,\n    \"preconditions\": \"淘宝应用已启动\",\n    \"expected_state\": \"屏幕显示搜索结果列表页，顶部搜索栏显示关键词（如“芝华仕真皮沙发”或类似组合），页面加载出多个商品卡片。\"\n  },\n  {\n    \"name\": \"目标商品详情页已打开\",\n    \"required\": true,\n    \"preconditions\": \"搜索关键词已输入并执行\",\n    \"expected_state\": \"屏幕显示单个商品的详情页面，包含商品主图、标题（含“芝华仕”、“真皮沙发”字样）、价格信息（显示3000元以上）及“立即购买”或“加入购物车”",
+    "quality_status": "ok",
+    "quality_issues": [],
+    "refinement_attempted": false,
+    "rag_app_name": "",
+    "task_graph_enabled": false,
+    "graph_status": "disabled",
+    "graph_error": "",
+    "graph_response_head": "",
+    "graph_quality_issues": [],
+    "graph_correction_attempted": false,
+    "task_graph_schema_version": "",
+    "checkpoint_source": "legacy"
+  },
+  "_checkpoints": [
+    {
+      "name": "淘宝应用已启动",
+      "required": true,
+      "preconditions": "",
+      "expected_state": "屏幕显示淘宝应用的主界面，可见搜索栏、首页推荐内容或底部导航栏，确认当前处于淘宝App内。"
+    },
+    {
+      "name": "搜索关键词已输入并执行",
+      "required": true,
+      "preconditions": "淘宝应用已启动",
+      "expected_state": "屏幕显示搜索结果列表页，顶部搜索栏显示关键词（如“芝华仕真皮沙发”或类似组合），页面加载出多个商品卡片。"
+    },
+    {
+      "name": "目标商品详情页已打开",
+      "required": true,
+      "preconditions": "搜索关键词已输入并执行",
+      "expected_state": "屏幕显示单个商品的详情页面，包含商品主图、标题（含“芝华仕”、“真皮沙发”字样）、价格信息（显示3000元以上）及“立即购买”或“加入购物车”按钮。"
+    },
+    {
+      "name": "订单提交页面已就绪",
+      "required": true,
+      "preconditions": "目标商品详情页已打开",
+      "expected_state": "屏幕显示确认订单页面，包含收货地址、商品规格、价格汇总以及“提交订单”按钮，表明已选择“再来一单”或“立即购买”路径。"
+    }
+  ]
+}
