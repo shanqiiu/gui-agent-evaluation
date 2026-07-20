@@ -1,0 +1,29 @@
+{
+  "label": "abnormal",
+  "type": "repeated_action",
+  "severity": "low",
+  "confidence": 0.79,
+  "ranges": [
+    {
+      "start_step": 9,
+      "end_step": 10,
+      "action_type": "drag",
+      "target": "。通常情况下",
+      "repeat_type": "repeated_action",
+      "severity": "low",
+      "confidence": 0.79,
+      "evidence": [
+        "步骤9和步骤10动作等效",
+        "目标控件/动作描述相似度0.29",
+        "期间无新增检查点达成",
+        "AB单步判定结果为不符合预期"
+      ]
+    }
+  ],
+  "summary": "检测到1段重复动作异常；首段位于步骤9到步骤10，动作为drag，目标为。通常情况下。",
+  "metrics": {
+    "action_count": 16,
+    "repeated_range_count": 1
+  },
+  "task_uuid": "1b3c9d23-8b45-4c9b-8034-9c36b35aa1df"
+}
