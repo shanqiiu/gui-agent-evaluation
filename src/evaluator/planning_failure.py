@@ -363,14 +363,21 @@ class PlanningFailureAggregator:
         }
 
     def _primary_event(self, events: list[PlanningFailureEvent]) -> PlanningFailureEvent:
-        priority = {
-            "missing_required_checkpoint": 0,
-            "execution_blocked": 1,
+        same_step_priority = {
+            "execution_blocked": 0,
+            "missing_required_checkpoint": 1,
             "premature_termination": 2,
             "fail_to_terminate": 3,
             "objective_or_plan_mismatch": 4,
         }
-        return sorted(events, key=lambda item: priority.get(item.subtype, 99))[0]
+        return sorted(
+            events,
+            key=lambda item: (
+                item.first_error_step if item.first_error_step >= 0 else 10**9,
+                same_step_priority.get(item.subtype, 99),
+                -item.confidence,
+            ),
+        )[0]
 
     def _related_anomalies(self, events: list[PlanningFailureEvent], repeated_prediction: Any) -> list[str]:
         related = [item for event in events for item in event.related_anomalies]

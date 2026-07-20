@@ -82,6 +82,48 @@ def test_matched_but_not_achieved_is_execution_blocked():
     assert result.missing_checkpoints[0]["status"] == "not_achieved"
 
 
+def test_earliest_blocking_event_wins_over_later_missing_checkpoint():
+    checkpoints = [
+        Checkpoint(name="目标商品详情页已打开"),
+        Checkpoint(name="订单提交页面已就绪"),
+    ]
+    result = detect_planning_failure(
+        checkpoints=checkpoints,
+        payload=_payload([(5, "click"), (16, "finished")]),
+        intent_matches=[
+            CheckpointIntentMatch(
+                checkpoint_index=0,
+                matched=True,
+                score=0.8,
+                confidence="high",
+            ),
+            CheckpointIntentMatch(
+                checkpoint_index=1,
+                matched=False,
+                score=0.0,
+                confidence="unmatched_intent",
+            ),
+        ],
+        verification_report=_report([
+            CheckpointResult(
+                checkpoint=checkpoints[0],
+                status="未达成",
+                confidence=1.0,
+                step_index=5,
+            )
+        ]),
+    )
+
+    assert result.label == "abnormal"
+    assert result.subtype == "execution_blocked"
+    assert result.first_error_step == 5
+    assert [event.subtype for event in result.events] == [
+        "execution_blocked",
+        "missing_required_checkpoint",
+        "premature_termination",
+    ]
+
+
 def test_finished_before_required_completion_is_premature_termination():
     checkpoint = Checkpoint(name="进入搜索结果页")
     result = detect_planning_failure(
