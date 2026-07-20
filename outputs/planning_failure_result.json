@@ -1,0 +1,85 @@
+{
+  "label": "abnormal",
+  "type": "planning_failure",
+  "subtype": "missing_required_checkpoint",
+  "confidence": 0.9,
+  "first_error_step": 16,
+  "completion_score": 0.5,
+  "required_completion_score": 0.5,
+  "summary": {
+    "total_checkpoints": 4,
+    "required_total": 4,
+    "achieved_count": 2,
+    "required_achieved": 2
+  },
+  "missing_checkpoints": [
+    {
+      "checkpoint_index": 2,
+      "checkpoint_id": "cp_002",
+      "name": "目标商品详情页已打开",
+      "required": true,
+      "status": "not_achieved",
+      "step_index": 5
+    },
+    {
+      "checkpoint_index": 3,
+      "checkpoint_id": "cp_003",
+      "name": "订单提交页面已就绪",
+      "required": true,
+      "status": "unmatched_intent",
+      "step_index": -1
+    }
+  ],
+  "uncertain_checkpoints": [],
+  "related_anomalies": [
+    "repeated_action"
+  ],
+  "evidence": [
+    "必要 checkpoint 有意图匹配但截图/VLM 未证明达成：目标商品详情页已打开",
+    "verifier_status=未达成, confidence=1.00",
+    "必要 checkpoint 未被实际 agent_purpose 召回：订单提交页面已就绪",
+    "意图层未匹配，跳过执行层达成判定。",
+    "轨迹出现 finished/done 终止动作。",
+    "required checkpoint 完成率为 0.50。"
+  ],
+  "events": [
+    {
+      "subtype": "execution_blocked",
+      "confidence": 0.9,
+      "first_error_step": 5,
+      "checkpoint_index": 2,
+      "checkpoint_name": "目标商品详情页已打开",
+      "evidence": [
+        "必要 checkpoint 有意图匹配但截图/VLM 未证明达成：目标商品详情页已打开",
+        "verifier_status=未达成, confidence=1.00"
+      ],
+      "related_anomalies": []
+    },
+    {
+      "subtype": "missing_required_checkpoint",
+      "confidence": 0.84,
+      "first_error_step": 16,
+      "checkpoint_index": 3,
+      "checkpoint_name": "订单提交页面已就绪",
+      "evidence": [
+        "必要 checkpoint 未被实际 agent_purpose 召回：订单提交页面已就绪",
+        "意图层未匹配，跳过执行层达成判定。"
+      ],
+      "related_anomalies": []
+    },
+    {
+      "subtype": "premature_termination",
+      "confidence": 0.82,
+      "first_error_step": 16,
+      "checkpoint_index": -1,
+      "checkpoint_name": "",
+      "evidence": [
+        "轨迹出现 finished/done 终止动作。",
+        "required checkpoint 完成率为 0.50。"
+      ],
+      "related_anomalies": []
+    }
+  ],
+  "message": "检测到规划失效：missing_required_checkpoint；缺失/未达成 checkpoint：目标商品详情页已打开、订单提交页面已就绪；required 完成率 0.50。",
+  "task_uuid": "1b3c9d23-8b45-4c9b-8034-9c36b35aa1df"
+}
