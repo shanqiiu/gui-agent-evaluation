@@ -1,0 +1,676 @@
+{
+    "instruction": "到淘宝再来一单芝华仕3m多的真皮沙发",
+    "steps": [
+        {
+            "stepId": "4",
+            "action_type": "open_app",
+            "cost_time": "13736",
+            "type": "AAS",
+            "purpose": "打开淘宝"
+        },
+        {
+            "stepId": "6",
+            "action_type": "click",
+            "start_box": [
+                1090,
+                2518
+            ],
+            "cost_time": "8760",
+            "type": "AAS",
+            "purpose": "点击“我的淘宝”进入个人中心"
+        },
+        {
+            "stepId": "7",
+            "action_type": "click",
+            "start_box": [
+                1090,
+                2513
+            ],
+            "cost_time": "8708",
+            "type": "AAS",
+            "purpose": "点击底部“我的淘宝”按钮"
+        },
+        {
+            "stepId": "8",
+            "action_type": "click",
+            "start_box": [
+                1094,
+                876
+            ],
+            "target": "全部",
+            "cost_time": "8893",
+            "type": "AAS",
+            "purpose": "点击“全部”进入全部订单列表"
+        },
+        {
+            "stepId": "9",
+            "action_type": "type",
+            "start_box": [
+                348,
+                188
+            ],
+            "cost_time": "9662",
+            "type": "AAS",
+            "purpose": "在“搜索订单”输入框中输入“芝华仕 真皮沙发”"
+        },
+        {
+            "stepId": "10",
+            "action_type": "click",
+            "start_box": [
+                1038,
+                846
+            ],
+            "target": "加入购物车",
+            "cost_time": "10779",
+            "type": "AAS",
+            "purpose": "将首条 3.05 米芝华仕真皮沙发订单商品加入购物车"
+        },
+        {
+            "stepId": "11",
+            "action_type": "do_nothing()",
+            "cost_time": "9637",
+            "type": "AAS",
+            "purpose": "等待验证码页面加载完成，以便后续按提示进行验证。"
+        },
+        {
+            "stepId": "12",
+            "action_type": "drag",
+            "start_box": [
+                171,
+                1642
+            ],
+            "end_box": [
+                1118,
+                1642
+            ],
+            "target": ">>>",
+            "cost_time": "9238",
+            "type": "AAS",
+            "purpose": "拖动滑块至右侧，使鱼图案完整，完成滑块验证"
+        },
+        {
+            "stepId": "13",
+            "action_type": "do_nothing()",
+            "cost_time": "9136",
+            "type": "AAS",
+            "purpose": "等待滑块验证码页面刷新加载完成，以便重新进行滑块拖动验证。"
+        },
+        {
+            "stepId": "14",
+            "action_type": "drag",
+            "start_box": [
+                165,
+                1647
+            ],
+            "end_box": [
+                222,
+                1647
+            ],
+            "cost_time": "10110",
+            "type": "AAS",
+            "purpose": "拖动滑块至拼图缺口位置，使树图案完整，完成滑块验证。"
+        },
+        {
+            "stepId": "15",
+            "action_type": "drag",
+            "start_box": [
+                228,
+                1647
+            ],
+            "end_box": [
+                411,
+                1647
+            ],
+            "target": ">>>",
+            "cost_time": "11363",
+            "type": "AAS",
+            "purpose": "向右拖动滑块一段较长距离，使树图案与拼图缺口对齐，完成滑块验证。"
+        },
+        {
+            "stepId": "16",
+            "action_type": "do_nothing()",
+            "cost_time": "9468",
+            "type": "AAS",
+            "purpose": "等待滑块验证码页面加载完成，以便进行下一次拖动滑块验证。"
+        },
+        {
+            "stepId": "17",
+            "action_type": "do_nothing()",
+            "cost_time": "9321",
+            "type": "AAS",
+            "purpose": "等待滑块验证码页面加载完成，以便后续根据页面提示继续操作。"
+        },
+        {
+            "stepId": "18",
+            "action_type": "click",
+            "start_box": [
+                1089,
+                889
+            ],
+            "cost_time": "23347",
+            "type": "AAS",
+            "purpose": "点击验证码页面右侧的刷新按钮重新加载验证码"
+        },
+        {
+            "stepId": "19",
+            "action_type": "back",
+            "cost_time": "8896",
+            "type": "AAS",
+            "purpose": "返回上一页，退出异常验证码页面，准备重新从订单页进入商品复购。"
+        },
+        {
+            "stepId": "20",
+            "action_type": "do_nothing()",
+            "cost_time": "9844",
+            "type": "AAS",
+            "purpose": "等待“加购失败”提示消失，页面恢复可操作状态。"
+        }
+    ],
+    "nodes": [
+        {
+            "id": 4,
+            "label": "Step4",
+            "shape": "star",
+            "actions": [
+                {
+                    "type": "open_app",
+                    "target": ""
+                }
+            ],
+            "purpose": "打开淘宝"
+        },
+        {
+            "id": 6,
+            "label": "Step6",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "",
+                    "start_box": [
+                        1090,
+                        2518
+                    ]
+                }
+            ],
+            "purpose": "点击“我的淘宝”进入个人中心"
+        },
+        {
+            "id": 7,
+            "label": "Step7",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "",
+                    "start_box": [
+                        1090,
+                        2513
+                    ]
+                }
+            ],
+            "purpose": "点击底部“我的淘宝”按钮"
+        },
+        {
+            "id": 8,
+            "label": "Step8",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "全部",
+                    "start_box": [
+                        1094,
+                        876
+                    ]
+                }
+            ],
+            "purpose": "点击“全部”进入全部订单列表"
+        },
+        {
+            "id": 9,
+            "label": "Step9",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "type",
+                    "target": "",
+                    "start_box": [
+                        348,
+                        188
+                    ]
+                }
+            ],
+            "purpose": "在“搜索订单”输入框中输入“芝华仕 真皮沙发”"
+        },
+        {
+            "id": 10,
+            "label": "Step10",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "加入购物车",
+                    "start_box": [
+                        1038,
+                        846
+                    ]
+                }
+            ],
+            "purpose": "将首条 3.05 米芝华仕真皮沙发订单商品加入购物车"
+        },
+        {
+            "id": 11,
+            "label": "Step11",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "do_nothing()",
+                    "target": ""
+                }
+            ],
+            "purpose": "等待验证码页面加载完成，以便后续按提示进行验证。"
+        },
+        {
+            "id": 12,
+            "label": "Step12",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "drag",
+                    "target": ">>>",
+                    "start_box": [
+                        171,
+                        1642
+                    ],
+                    "end_box": [
+                        1118,
+                        1642
+                    ]
+                }
+            ],
+            "purpose": "拖动滑块至右侧，使鱼图案完整，完成滑块验证"
+        },
+        {
+            "id": 13,
+            "label": "Step13",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "do_nothing()",
+                    "target": ""
+                }
+            ],
+            "purpose": "等待滑块验证码页面刷新加载完成，以便重新进行滑块拖动验证。"
+        },
+        {
+            "id": 14,
+            "label": "Step14",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "drag",
+                    "target": "",
+                    "start_box": [
+                        165,
+                        1647
+                    ],
+                    "end_box": [
+                        222,
+                        1647
+                    ]
+                }
+            ],
+            "purpose": "拖动滑块至拼图缺口位置，使树图案完整，完成滑块验证。"
+        },
+        {
+            "id": 15,
+            "label": "Step15",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "drag",
+                    "target": ">>>",
+                    "start_box": [
+                        228,
+                        1647
+                    ],
+                    "end_box": [
+                        411,
+                        1647
+                    ]
+                }
+            ],
+            "purpose": "向右拖动滑块一段较长距离，使树图案与拼图缺口对齐，完成滑块验证。"
+        },
+        {
+            "id": 16,
+            "label": "Step16",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "do_nothing()",
+                    "target": ""
+                }
+            ],
+            "purpose": "等待滑块验证码页面加载完成，以便进行下一次拖动滑块验证。"
+        },
+        {
+            "id": 17,
+            "label": "Step17",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "do_nothing()",
+                    "target": ""
+                }
+            ],
+            "purpose": "等待滑块验证码页面加载完成，以便后续根据页面提示继续操作。"
+        },
+        {
+            "id": 18,
+            "label": "Step18",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "click",
+                    "target": "",
+                    "start_box": [
+                        1089,
+                        889
+                    ]
+                }
+            ],
+            "purpose": "点击验证码页面右侧的刷新按钮重新加载验证码"
+        },
+        {
+            "id": 19,
+            "label": "Step19",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "back",
+                    "target": ""
+                }
+            ],
+            "purpose": "返回上一页，退出异常验证码页面，准备重新从订单页进入商品复购。"
+        },
+        {
+            "id": 20,
+            "label": "Step20",
+            "shape": "image",
+            "image": "[rest_image]",
+            "actions": [
+                {
+                    "type": "do_nothing()",
+                    "target": ""
+                }
+            ],
+            "purpose": "等待“加购失败”提示消失，页面恢复可操作状态。"
+        }
+    ],
+    "edges": [
+        {
+            "from": 3,
+            "to": "4",
+            "costTime": "13736ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ]
+        },
+        {
+            "from": 5,
+            "to": "6",
+            "costTime": "8760ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ]
+        },
+        {
+            "from": 6,
+            "to": "7",
+            "costTime": "8708ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发",
+                    "action": {
+                        "type": "click",
+                        "target": "",
+                        "start_box": [
+                            1090,
+                            2518
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId1/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 7,
+            "to": "8",
+            "costTime": "8893ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发",
+                    "action": {
+                        "type": "click",
+                        "target": "",
+                        "start_box": [
+                            1092,
+                            2499
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId2/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 8,
+            "to": "9",
+            "costTime": "9662ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发",
+                    "action": {
+                        "type": "click",
+                        "target": "全部",
+                        "start_box": [
+                            1087,
+                            884
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId3/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 9,
+            "to": "10",
+            "costTime": "10779ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId4/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 10,
+            "to": "11",
+            "costTime": "9637ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发",
+                    "action": {
+                        "type": "click",
+                        "target": "加入购物车",
+                        "start_box": [
+                            1038,
+                            856
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId5/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 11,
+            "to": "12",
+            "costTime": "9238ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId6/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 12,
+            "to": "13",
+            "costTime": "9136ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId7/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 13,
+            "to": "14",
+            "costTime": "10110ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId8/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 14,
+            "to": "15",
+            "costTime": "11363ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId9/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 15,
+            "to": "16",
+            "costTime": "9468ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId10/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 16,
+            "to": "17",
+            "costTime": "9321ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId11/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 17,
+            "to": "18",
+            "costTime": "23347ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId12/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 18,
+            "to": "19",
+            "costTime": "8896ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发",
+                    "action": {
+                        "type": "click",
+                        "target": "",
+                        "start_box": [
+                            1095,
+                            892
+                        ]
+                    }
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId13/temp_image-screenshot-origin.jpg"
+            ]
+        },
+        {
+            "from": 19,
+            "to": "20",
+            "costTime": "9844ms",
+            "events": [
+                {
+                    "event_str": "到淘宝再来一单芝华仕3m多的真皮沙发"
+                }
+            ],
+            "view_images": [
+                "catchDataTurnId14/temp_image-screenshot-origin.jpg"
+            ]
+        }
+    ],
+    "_meta": {
+        "output_size_bytes": 8045,
+        "node_count": 16,
+        "edge_count": 16,
+        "step_count": 16
+    }
+}
