@@ -6,6 +6,7 @@ Pipeline orchestrator: preprocess → decompose → copy screenshots → write p
     LLM_MODEL_NAME  - 模型名称
     LLM_API_KEY     - API Key（可选）
     RAG_PERSIST_DIR - ChromaDB 持久化目录（默认 src/decomposer/chroma_db/）
+    RAG_APP_NAME    - 可选 App 知识域；不设置时跨知识域检索
 
 Usage:
     # 单任务
@@ -81,6 +82,10 @@ def _run_decomposer(task: Any) -> int:
         "checkpoint_count": 0,
         "error": "",
         "response_head": "",
+        "quality_status": "not_checked",
+        "quality_issues": [],
+        "refinement_attempted": False,
+        "rag_app_name": os.environ.get("RAG_APP_NAME", ""),
     }
     task.decomposer_status = status
     if not model_url or not model_name:
@@ -100,7 +105,11 @@ def _run_decomposer(task: Any) -> int:
     d = Decomposer(model_url=model_url, model_name=model_name, api_key=api_key)
     status["attempted"] = True
     try:
-        checkpoints = d.decompose(task.instruction, app_name="settings", top_k=5)
+        checkpoints = d.decompose(
+            task.instruction,
+            app_name=os.environ.get("RAG_APP_NAME") or None,
+            top_k=5,
+        )
     except Exception as e:
         status["status"] = "exception"
         status["error"] = str(e)
@@ -108,12 +117,15 @@ def _run_decomposer(task: Any) -> int:
         return 0
 
     status["response_head"] = getattr(d, "last_response_head", "")
+    status["quality_issues"] = getattr(d, "last_quality_issues", [])
+    status["refinement_attempted"] = getattr(d, "refinement_attempted", False)
+    status["quality_status"] = "ok" if not status["quality_issues"] else "warning"
     if not checkpoints:
         status["status"] = "empty"
         status["error"] = getattr(d, "last_error", "") or "LLM returned no checkpoints"
         log.warning("  decomposer: no checkpoints generated (%s)", status["error"])
     else:
-        status["status"] = "ok"
+        status["status"] = "ok" if not status["quality_issues"] else "ok_with_warnings"
 
     task.checkpoints = checkpoints
     status["checkpoint_count"] = len(checkpoints)
