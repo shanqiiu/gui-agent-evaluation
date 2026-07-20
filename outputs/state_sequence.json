@@ -1,0 +1,1465 @@
+{
+  "task_uuid": "1b3c9d23-8b45-4c9b-8034-9c36b35aa1df",
+  "states": [
+    {
+      "state_id": "s_0",
+      "label": "淘宝App首页推荐界面。顶部导航栏中，'推荐' Tab被选中（高亮显示）；底部导航栏中，'淘宝'（首页）图标被选中（橙色高亮）。",
+      "step_range": [
+        0,
+        0
+      ],
+      "source_step_indices": [
+        0
+      ],
+      "page_description": "淘宝App首页推荐界面。顶部导航栏中，'推荐' Tab被选中（高亮显示）；底部导航栏中，'淘宝'（首页）图标被选中（橙色高亮）。",
+      "action_purposes": [
+        "打开淘宝"
+      ],
+      "action_types": [
+        "open_app"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.15,
+        "max_pixel_diff_ratio": null,
+        "min_ssim": null,
+        "rawpage_change_count": 1,
+        "changed_regions": []
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_1",
+      "label": "淘宝App首页推荐界面。顶部导航栏中，'推荐' Tab被选中（高亮显示）；底部导航栏中，'淘宝'（首页）图标被选中（橙色高亮）。",
+      "step_range": [
+        1,
+        1
+      ],
+      "source_step_indices": [
+        1
+      ],
+      "page_description": "淘宝App首页推荐界面。顶部导航栏中，'推荐'标签被选中（高亮显示）。页面主体内容包含搜索栏（显示'九号电动车'）、功能图标入口（红包签到、淘宝秒杀等）、618活动专区（淘宝直播、百亿补贴、抢先购）以及下方的商品推荐列表（如人体工学云感坐垫、石头扫地机器人等）。",
+      "action_purposes": [
+        "点击“我的淘宝”进入个人中心"
+      ],
+      "action_types": [
+        "click"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.814,
+        "max_pixel_diff_ratio": 0.3635,
+        "min_ssim": 0.4807,
+        "rawpage_change_count": 1,
+        "changed_regions": [
+          "top",
+          "middle",
+          "bottom"
+        ]
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_2",
+      "label": "淘宝App首页推荐界面。顶部导航栏中，'推荐'标签被选中（高亮显示）。页面主体内容包含搜索栏（显示'九号电动车'）、功能图标入口（红包签到、淘宝秒杀等）、618活动专区（淘宝直播、百亿补贴、抢先购）以及下方的商品推荐列表（如人体工学云感坐垫、石头扫地机器人等）。",
+      "step_range": [
+        2,
+        2
+      ],
+      "source_step_indices": [
+        2
+      ],
+      "page_description": "下一个界面是淘宝App的“我的淘宝”页面。页面顶部显示用户头像、昵称“tbNick_pggqci”及会员等级。页面中部包含“累计省钱”、“红包”、“优惠券”等资产信息，以及“我的订单”（待付款、待发货等）和“快递”、“收藏”、“关注店铺”、“足迹”等功能入口。页面底部导航栏包含“首页”、“视频”、“消息”、“购物车”、“我的淘宝”五个Tab，当前选中的是“我的淘宝”。",
+      "action_purposes": [
+        "点击底部“我的淘宝”按钮"
+      ],
+      "action_types": [
+        "click"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.976,
+        "max_pixel_diff_ratio": 0.637,
+        "min_ssim": 0.0695,
+        "rawpage_change_count": 1,
+        "changed_regions": [
+          "top",
+          "middle",
+          "bottom"
+        ]
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_3",
+      "label": "下一个界面是淘宝App的“我的淘宝”页面。页面顶部显示用户头像、昵称“tbNick_pggqci”及会员等级。页面中部包含“累计省钱”、“红包”、“优惠券”等资产信息，以及“我的订单”（待付款、待发货等）和“快递”、“收藏”、“关注店铺”、“足迹”等功能入口。页面底部导航栏包含“首页”、“视频”、“消息”、“购物车”、“我的淘宝”五个Tab，当前选中的是“我的淘宝”。",
+      "step_range": [
+        3,
+        3
+      ],
+      "source_step_indices": [
+        3
+      ],
+      "page_description": "这是一个订单列表页面。页面顶部有“全部订单”、“购物”、“闪购”、“飞猪”四个一级Tab，当前选中“全部订单”。在一级Tab下方有“全部”、“待付款”、“待发货”、“待收货”、“退款/售后”五个二级Tab，当前选中“全部”。页面主体展示了三个订单列表，包括“天猫小牛电动旗舰店”的待付款订单、“天猫超市”的交易关闭订单以及“天猫ATK数码旗舰店”的交易关闭订单。",
+      "action_purposes": [
+        "点击“全部”进入全部订单列表"
+      ],
+      "action_types": [
+        "click"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.984,
+        "max_pixel_diff_ratio": 0.4321,
+        "min_ssim": 0.0012,
+        "rawpage_change_count": 1,
+        "changed_regions": [
+          "top",
+          "middle",
+          "bottom"
+        ]
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_4",
+      "label": "这是一个订单列表页面。页面顶部有“全部订单”、“购物”、“闪购”、“飞猪”四个一级Tab，当前选中“全部订单”。在一级Tab下方有“全部”、“待付款”、“待发货”、“待收货”、“退款/售后”五个二级Tab，当前选中“全部”。页面主体展示了三个订单列表，包括“天猫小牛电动旗舰店”的待付款订单、“天猫超市”的交易关闭订单以及“天猫ATK数码旗舰店”的交易关闭订单。",
+      "step_range": [
+        4,
+        4
+      ],
+      "source_step_indices": [
+        4
+      ],
+      "page_description": "这是一个搜索结果页面，顶部搜索栏显示关键词“芝华仕 真皮沙发”。页面主体展示了两个商品列表，分别是“芝华仕敏华专卖店”的“芝华仕大黑牛真皮”沙发和“芝华仕官方旗舰店”的“芝华仕头等舱电动”沙发，状态均为“交易关闭”。",
+      "action_purposes": [
+        "在“搜索订单”输入框中输入“芝华仕 真皮沙发”"
+      ],
+      "action_types": [
+        "type"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.96,
+        "max_pixel_diff_ratio": 0.2793,
+        "min_ssim": 0.0637,
+        "rawpage_change_count": 1,
+        "changed_regions": [
+          "top",
+          "middle",
+          "bottom"
+        ]
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_5",
+      "label": "这是一个搜索结果页面，顶部搜索栏显示关键词“芝华仕 真皮沙发”。页面主体展示了两个商品列表，分别是“芝华仕敏华专卖店”的“芝华仕大黑牛真皮”沙发和“芝华仕官方旗舰店”的“芝华仕头等舱电动”沙发，状态均为“交易关闭”。",
+      "step_range": [
+        5,
+        5
+      ],
+      "source_step_indices": [
+        5
+      ],
+      "page_description": "这是一个安全验证界面，页面中央显示提示语“亲，请按照说明进行验证哦”，下方有一个橙色的滑动条控件，显示“正在加载验证码信息”，底部有一个二维码和“点我反馈”的链接。",
+      "action_purposes": [
+        "将首条 3.05 米芝华仕真皮沙发订单商品加入购物车"
+      ],
+      "action_types": [
+        "click"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.867,
+        "max_pixel_diff_ratio": 0.2834,
+        "min_ssim": 0.1455,
+        "rawpage_change_count": 1,
+        "changed_regions": [
+          "top",
+          "middle"
+        ]
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_6",
+      "label": "这是一个安全验证界面，页面中央显示提示语“亲，请按照说明进行验证哦”，下方有一个橙色的滑动条控件，显示“正在加载验证码信息”，底部有一个二维码和“点我反馈”的链接。",
+      "step_range": [
+        6,
+        6
+      ],
+      "source_step_indices": [
+        6
+      ],
+      "page_description": "这是一个滑块验证码界面。页面顶部显示提示语“亲，请按照说明进行验证哦”。中间区域是一个带有橙色背景的滑块验证框，框内显示具体的验证任务说明“拖动滑块出现完整的一个鱼后就松开”，并有一个向右的箭头指示。下方是一个带有“>>>”图标的橙色滑块按钮，按钮右侧显示文字“请按照说明拖动滑块”。页面底部有一个二维码和“点我反馈 >”的文字链接。",
+      "action_purposes": [
+        "等待验证码页面加载完成，以便后续按提示进行验证。"
+      ],
+      "action_types": [
+        "do_nothing()"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.201,
+        "max_pixel_diff_ratio": 0.0208,
+        "min_ssim": 0.9382,
+        "rawpage_change_count": 1,
+        "changed_regions": []
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_7",
+      "label": "这是一个滑块验证码界面。页面顶部显示提示语“亲，请按照说明进行验证哦”。中间区域是一个带有橙色背景的滑块验证框，框内显示具体的验证任务说明“拖动滑块出现完整的一个鱼后就松开”，并有一个向右的箭头指示。下方是一个带有“>>>”图标的橙色滑块按钮，按钮右侧显示文字“请按照说明拖动滑块”。页面底部有一个二维码和“点我反馈 >”的文字链接。",
+      "step_range": [
+        7,
+        7
+      ],
+      "source_step_indices": [
+        7
+      ],
+      "page_description": "这是一个滑块验证码失败后的反馈界面。页面顶部显示提示语“亲，请按照说明进行验证哦”。中间区域显示了一张包含海龟、鱼、向日葵等图案的图片，图片中央有一个红色的叉号图标，并配有文字“滑动位置不对哦，请再试一次”。下方有一个橙色的提示条显示“请等待题目刷新后重新尝试~”。底部是滑块控件，显示“正在加载验证码信息”，以及一个二维码和“点我反馈”的链接。",
+      "action_purposes": [
+        "拖动滑块至右侧，使鱼图案完整，完成滑块验证"
+      ],
+      "action_types": [
+        "drag"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.532,
+        "max_pixel_diff_ratio": 0.1987,
+        "min_ssim": 0.6525,
+        "rawpage_change_count": 1,
+        "changed_regions": [
+          "middle"
+        ]
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_8",
+      "label": "这是一个滑块验证码失败后的反馈界面。页面顶部显示提示语“亲，请按照说明进行验证哦”。中间区域显示了一张包含海龟、鱼、向日葵等图案的图片，图片中央有一个红色的叉号图标，并配有文字“滑动位置不对哦，请再试一次”。下方有一个橙色的提示条显示“请等待题目刷新后重新尝试~”。底部是滑块控件，显示“正在加载验证码信息”，以及一个二维码和“点我反馈”的链接。",
+      "step_range": [
+        8,
+        8
+      ],
+      "source_step_indices": [
+        8
+      ],
+      "page_description": "这是一个滑动验证码界面。页面顶部提示“亲，请按照说明进行验证哦”，中间显示验证任务“拖动滑块出现完整的一个树后就松开”，下方是一个带有向右箭头的橙色滑块轨道，底部有一个二维码和“点我反馈”链接。",
+      "action_purposes": [
+        "等待滑块验证码页面刷新加载完成，以便重新进行滑块拖动验证。"
+      ],
+      "action_types": [
+        "do_nothing()"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.468,
+        "max_pixel_diff_ratio": 0.1987,
+        "min_ssim": 0.6438,
+        "rawpage_change_count": 1,
+        "changed_regions": [
+          "middle"
+        ]
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_9",
+      "label": "这是一个滑动验证码界面。页面顶部提示“亲，请按照说明进行验证哦”，中间显示验证任务“拖动滑块出现完整的一个树后就松开”，下方是一个带有向右箭头的橙色滑块轨道，底部有一个二维码和“点我反馈”链接。",
+      "step_range": [
+        9,
+        9
+      ],
+      "source_step_indices": [
+        9
+      ],
+      "page_description": "这是一个滑块验证界面。页面顶部显示提示语“亲，请按照说明进行验证哦”。中间区域包含一个带有橙色遮罩的图片区域，提示文字为“拖动滑块出现完整的一个树后就松开”。下方是一个滑动条，左侧有一个橙色的滑块按钮，上面有三个向右的箭头“>>>”，右侧轨道显示文字“请按照说明拖动滑块”。底部有一个二维码和“点我反馈 >”的链接。",
+      "action_purposes": [
+        "拖动滑块至拼图缺口位置，使树图案完整，完成滑块验证。"
+      ],
+      "action_types": [
+        "drag"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.187,
+        "max_pixel_diff_ratio": 0.0149,
+        "min_ssim": 0.9376,
+        "rawpage_change_count": 1,
+        "changed_regions": []
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_10",
+      "label": "这是一个滑块验证界面。页面顶部显示提示语“亲，请按照说明进行验证哦”。中间区域包含一个带有橙色遮罩的图片区域，提示文字为“拖动滑块出现完整的一个树后就松开”。下方是一个滑动条，左侧有一个橙色的滑块按钮，上面有三个向右的箭头“>>>”，右侧轨道显示文字“请按照说明拖动滑块”。底部有一个二维码和“点我反馈 >”的链接。",
+      "step_range": [
+        10,
+        13
+      ],
+      "source_step_indices": [
+        10,
+        11,
+        12,
+        13
+      ],
+      "page_description": "这是一个验证码验证界面，页面顶部提示“亲，请按照说明进行验证哦”，中间显示“正在加载验证码信息，请稍等”，下方有一个橙色的滑动条控件，底部有一个二维码和“点我反馈”的链接。",
+      "action_purposes": [
+        "向右拖动滑块一段较长距离，使树图案与拼图缺口对齐，完成滑块验证。",
+        "等待滑块验证码页面加载完成，以便进行下一次拖动滑块验证。",
+        "等待滑块验证码页面加载完成，以便后续根据页面提示继续操作。",
+        "点击验证码页面右侧的刷新按钮重新加载验证码"
+      ],
+      "action_types": [
+        "drag",
+        "do_nothing()",
+        "click"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 4,
+        "usable_count": 4,
+        "max_boundary_confidence": 0.15,
+        "max_pixel_diff_ratio": 0.0244,
+        "min_ssim": 0.9286,
+        "rawpage_change_count": 1,
+        "changed_regions": []
+      },
+      "evidence": [
+        "aggregated 4 action steps"
+      ]
+    },
+    {
+      "state_id": "s_11",
+      "label": "这是一个验证码验证界面，页面顶部提示“亲，请按照说明进行验证哦”，中间显示“正在加载验证码信息，请稍等”，下方有一个橙色的滑动条控件，底部有一个二维码和“点我反馈”的链接。",
+      "step_range": [
+        14,
+        14
+      ],
+      "source_step_indices": [
+        14
+      ],
+      "page_description": "这是一个电商App的订单详情或购物车页面。页面顶部显示搜索栏内容为“芝华仕 真皮沙发”。页面主体包含两个商品列表项，分别是“芝华仕大黑牛真皮”和“芝华仕头等舱电动”，状态均显示为“交易关闭”。页面底部有推荐商品区域，展示了“小牛电动NXT2 U”和“HUAWEI Pura 90 Pro Max”等商品。",
+      "action_purposes": [
+        "返回上一页，退出异常验证码页面，准备重新从订单页进入商品复购。"
+      ],
+      "action_types": [
+        "back"
+      ],
+      "evidence_quality": "strong",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 1,
+        "max_boundary_confidence": 0.909,
+        "max_pixel_diff_ratio": 0.4893,
+        "min_ssim": 0.1253,
+        "rawpage_change_count": 1,
+        "changed_regions": [
+          "top",
+          "middle",
+          "bottom"
+        ]
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    },
+    {
+      "state_id": "s_12",
+      "label": "这是一个电商App的订单详情或购物车页面。页面顶部显示搜索栏内容为“芝华仕 真皮沙发”。页面主体包含两个商品列表项，分别是“芝华仕大黑牛真皮”和“芝华仕头等舱电动”，状态均显示为“交易关闭”。页面底部有推荐商品区域，展示了“小牛电动NXT2 U”和“HUAWEI Pura 90 Pro Max”等商品。",
+      "step_range": [
+        15,
+        15
+      ],
+      "source_step_indices": [
+        15
+      ],
+      "page_description": "这是一个电商App的订单详情或购物车页面。页面顶部显示搜索栏，内容为“芝华仕 真皮沙发”。页面主体包含两个商品订单卡片，分别是“芝华仕大黑牛真皮”和“芝华仕头等舱电动”，状态均显示为“交易关闭”。页面底部有推荐商品区域，展示了“小牛电动NXT2 U”和“HUAWEI Pura 90 Pro Max”等商品。",
+      "action_purposes": [
+        "等待“加购失败”提示消失，页面恢复可操作状态。"
+      ],
+      "action_types": [
+        "do_nothing()"
+      ],
+      "evidence_quality": "partial",
+      "visual_change_summary": {
+        "count": 1,
+        "usable_count": 0,
+        "max_boundary_confidence": 0.0,
+        "max_pixel_diff_ratio": null,
+        "min_ssim": null,
+        "rawpage_change_count": 0,
+        "changed_regions": []
+      },
+      "evidence": [
+        "aggregated 1 action steps"
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "from": "s_0",
+      "to": "s_1",
+      "trigger_step": 0,
+      "evidence": [
+        "checkpoint achieved at this step"
+      ],
+      "visual_evidence": {
+        "source_step_index": 0,
+        "next_step_index": 1,
+        "has_before_image": false,
+        "has_after_image": true,
+        "phash_before": "",
+        "phash_after": "",
+        "phash_distance": null,
+        "ssim": null,
+        "pixel_diff_ratio": null,
+        "changed_regions": [],
+        "ocr_fingerprint_before": "",
+        "ocr_fingerprint_after": "a6d5dcdafc86084d",
+        "ocr_text_similarity": 0.0,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.15,
+        "evidence_quality": "structural",
+        "evidence": [
+          "screenshot decode failed",
+          "ocr_text_similarity=0.000",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_1",
+      "to": "s_2",
+      "trigger_step": 1,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.81",
+        "pHash distance=34",
+        "ssim=0.481",
+        "pixel_diff_ratio=0.364"
+      ],
+      "visual_evidence": {
+        "source_step_index": 1,
+        "next_step_index": 2,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "c17b2d25227ad2ec",
+        "phash_after": "40dd96792d8f710e",
+        "phash_distance": 34,
+        "ssim": 0.4807,
+        "pixel_diff_ratio": 0.3635,
+        "changed_regions": [
+          {
+            "region": "top",
+            "diff_ratio": 0.1116
+          },
+          {
+            "region": "middle",
+            "diff_ratio": 0.4189
+          },
+          {
+            "region": "bottom",
+            "diff_ratio": 0.5511
+          }
+        ],
+        "ocr_fingerprint_before": "a6d5dcdafc86084d",
+        "ocr_fingerprint_after": "352e34a19f81224a",
+        "ocr_text_similarity": 0.1181,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.814,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=34",
+          "ssim=0.481",
+          "pixel_diff_ratio=0.364",
+          "changed_regions=top, middle, bottom",
+          "ocr_text_similarity=0.118",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_2",
+      "to": "s_3",
+      "trigger_step": 2,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.98",
+        "pHash distance=32",
+        "ssim=0.069",
+        "pixel_diff_ratio=0.637"
+      ],
+      "visual_evidence": {
+        "source_step_index": 2,
+        "next_step_index": 3,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "40dd96792d8f710e",
+        "phash_after": "16c163ef3c4dc9b0",
+        "phash_distance": 32,
+        "ssim": 0.0695,
+        "pixel_diff_ratio": 0.637,
+        "changed_regions": [
+          {
+            "region": "top",
+            "diff_ratio": 0.6443
+          },
+          {
+            "region": "middle",
+            "diff_ratio": 0.7381
+          },
+          {
+            "region": "bottom",
+            "diff_ratio": 0.5334
+          }
+        ],
+        "ocr_fingerprint_before": "352e34a19f81224a",
+        "ocr_fingerprint_after": "",
+        "ocr_text_similarity": 0.0,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.976,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=32",
+          "ssim=0.069",
+          "pixel_diff_ratio=0.637",
+          "changed_regions=top, middle, bottom",
+          "ocr_text_similarity=0.000",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_3",
+      "to": "s_4",
+      "trigger_step": 3,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.98",
+        "pHash distance=30",
+        "ssim=0.001",
+        "pixel_diff_ratio=0.432"
+      ],
+      "visual_evidence": {
+        "source_step_index": 3,
+        "next_step_index": 4,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "16c163ef3c4dc9b0",
+        "phash_after": "d4d4d5e16b2b2b22",
+        "phash_distance": 30,
+        "ssim": 0.0012,
+        "pixel_diff_ratio": 0.4321,
+        "changed_regions": [
+          {
+            "region": "top",
+            "diff_ratio": 0.5603
+          },
+          {
+            "region": "middle",
+            "diff_ratio": 0.3393
+          },
+          {
+            "region": "bottom",
+            "diff_ratio": 0.3984
+          }
+        ],
+        "ocr_fingerprint_before": "",
+        "ocr_fingerprint_after": "2e2e41acef49ff32",
+        "ocr_text_similarity": 0.0,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.984,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=30",
+          "ssim=0.001",
+          "pixel_diff_ratio=0.432",
+          "changed_regions=top, middle, bottom",
+          "ocr_text_similarity=0.000",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_4",
+      "to": "s_5",
+      "trigger_step": 4,
+      "evidence": [
+        "checkpoint achieved at this step"
+      ],
+      "visual_evidence": {
+        "source_step_index": 4,
+        "next_step_index": 5,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "d4d4d5e16b2b2b22",
+        "phash_after": "7e3e7ffd81818180",
+        "phash_distance": 32,
+        "ssim": 0.0637,
+        "pixel_diff_ratio": 0.2793,
+        "changed_regions": [
+          {
+            "region": "top",
+            "diff_ratio": 0.3051
+          },
+          {
+            "region": "middle",
+            "diff_ratio": 0.3289
+          },
+          {
+            "region": "bottom",
+            "diff_ratio": 0.2074
+          }
+        ],
+        "ocr_fingerprint_before": "2e2e41acef49ff32",
+        "ocr_fingerprint_after": "e81a5a20181eceed",
+        "ocr_text_similarity": 0.0,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.96,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=32",
+          "ssim=0.064",
+          "pixel_diff_ratio=0.279",
+          "changed_regions=top, middle, bottom",
+          "ocr_text_similarity=0.000",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_5",
+      "to": "s_6",
+      "trigger_step": 5,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.87",
+        "pHash distance=28",
+        "ssim=0.145",
+        "pixel_diff_ratio=0.283"
+      ],
+      "visual_evidence": {
+        "source_step_index": 5,
+        "next_step_index": 6,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "7e3e7ffd81818180",
+        "phash_after": "66e7299993333932",
+        "phash_distance": 28,
+        "ssim": 0.1455,
+        "pixel_diff_ratio": 0.2834,
+        "changed_regions": [
+          {
+            "region": "top",
+            "diff_ratio": 0.253
+          },
+          {
+            "region": "middle",
+            "diff_ratio": 0.5484
+          }
+        ],
+        "ocr_fingerprint_before": "e81a5a20181eceed",
+        "ocr_fingerprint_after": "02694fd116899703",
+        "ocr_text_similarity": 0.25,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.867,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=28",
+          "ssim=0.145",
+          "pixel_diff_ratio=0.283",
+          "changed_regions=top, middle",
+          "ocr_text_similarity=0.250",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_6",
+      "to": "s_7",
+      "trigger_step": 6,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.20",
+        "pHash distance=6",
+        "ssim=0.938",
+        "pixel_diff_ratio=0.021"
+      ],
+      "visual_evidence": {
+        "source_step_index": 6,
+        "next_step_index": 7,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "66e7299993333932",
+        "phash_after": "66cd19999b333932",
+        "phash_distance": 6,
+        "ssim": 0.9382,
+        "pixel_diff_ratio": 0.0208,
+        "changed_regions": [],
+        "ocr_fingerprint_before": "02694fd116899703",
+        "ocr_fingerprint_after": "f9599ca060ca1610",
+        "ocr_text_similarity": 0.2308,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.201,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=6",
+          "ssim=0.938",
+          "pixel_diff_ratio=0.021",
+          "ocr_text_similarity=0.231",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_7",
+      "to": "s_8",
+      "trigger_step": 7,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.53",
+        "pHash distance=18",
+        "ssim=0.653",
+        "pixel_diff_ratio=0.199"
+      ],
+      "visual_evidence": {
+        "source_step_index": 7,
+        "next_step_index": 8,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "66cd19999b333932",
+        "phash_after": "6727191d999938da",
+        "phash_distance": 18,
+        "ssim": 0.6525,
+        "pixel_diff_ratio": 0.1987,
+        "changed_regions": [
+          {
+            "region": "middle",
+            "diff_ratio": 0.6057
+          }
+        ],
+        "ocr_fingerprint_before": "f9599ca060ca1610",
+        "ocr_fingerprint_after": "3981122d863d2fa9",
+        "ocr_text_similarity": 0.3077,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.532,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=18",
+          "ssim=0.653",
+          "pixel_diff_ratio=0.199",
+          "changed_regions=middle",
+          "ocr_text_similarity=0.308",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_8",
+      "to": "s_9",
+      "trigger_step": 8,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.47",
+        "pHash distance=18",
+        "ssim=0.644",
+        "pixel_diff_ratio=0.199"
+      ],
+      "visual_evidence": {
+        "source_step_index": 8,
+        "next_step_index": 9,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "6727191d999938da",
+        "phash_after": "66cd19999b133936",
+        "phash_distance": 18,
+        "ssim": 0.6438,
+        "pixel_diff_ratio": 0.1987,
+        "changed_regions": [
+          {
+            "region": "middle",
+            "diff_ratio": 0.6057
+          }
+        ],
+        "ocr_fingerprint_before": "3981122d863d2fa9",
+        "ocr_fingerprint_after": "dabab2d813178c1b",
+        "ocr_text_similarity": 0.75,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.468,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=18",
+          "ssim=0.644",
+          "pixel_diff_ratio=0.199",
+          "changed_regions=middle",
+          "ocr_text_similarity=0.750",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_9",
+      "to": "s_10",
+      "trigger_step": 9,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.19",
+        "pHash distance=8",
+        "ssim=0.938",
+        "pixel_diff_ratio=0.015"
+      ],
+      "visual_evidence": {
+        "source_step_index": 9,
+        "next_step_index": 10,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "66cd19999b133936",
+        "phash_after": "66cd199993373466",
+        "phash_distance": 8,
+        "ssim": 0.9376,
+        "pixel_diff_ratio": 0.0149,
+        "changed_regions": [],
+        "ocr_fingerprint_before": "dabab2d813178c1b",
+        "ocr_fingerprint_after": "0309103742084591",
+        "ocr_text_similarity": 0.4,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.187,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=8",
+          "ssim=0.938",
+          "pixel_diff_ratio=0.015",
+          "ocr_text_similarity=0.400",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_10",
+      "to": "s_11",
+      "trigger_step": 13,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.15",
+        "pHash distance=0",
+        "ssim=1.000",
+        "pixel_diff_ratio=0.000"
+      ],
+      "visual_evidence": {
+        "source_step_index": 13,
+        "next_step_index": 14,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "664d19999b333936",
+        "phash_after": "664d19999b333936",
+        "phash_distance": 0,
+        "ssim": 1.0,
+        "pixel_diff_ratio": 0.0,
+        "changed_regions": [],
+        "ocr_fingerprint_before": "0309103742084591",
+        "ocr_fingerprint_after": "32fb4dd7b87e144c",
+        "ocr_text_similarity": 0.0,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.15,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=0",
+          "ssim=1.000",
+          "pixel_diff_ratio=0.000",
+          "ocr_text_similarity=0.000",
+          "rawpage_changed=True"
+        ]
+      }
+    },
+    {
+      "from": "s_11",
+      "to": "s_12",
+      "trigger_step": 14,
+      "evidence": [
+        "visual/rawPage boundary confidence=0.91",
+        "pHash distance=26",
+        "ssim=0.125",
+        "pixel_diff_ratio=0.489"
+      ],
+      "visual_evidence": {
+        "source_step_index": 14,
+        "next_step_index": 15,
+        "has_before_image": true,
+        "has_after_image": true,
+        "phash_before": "664d19999b333936",
+        "phash_after": "d72f39dd5121c492",
+        "phash_distance": 26,
+        "ssim": 0.1253,
+        "pixel_diff_ratio": 0.4893,
+        "changed_regions": [
+          {
+            "region": "top",
+            "diff_ratio": 0.2738
+          },
+          {
+            "region": "middle",
+            "diff_ratio": 0.5774
+          },
+          {
+            "region": "bottom",
+            "diff_ratio": 0.6108
+          }
+        ],
+        "ocr_fingerprint_before": "32fb4dd7b87e144c",
+        "ocr_fingerprint_after": "",
+        "ocr_text_similarity": 0.0,
+        "rawpage_changed": true,
+        "boundary_confidence": 0.909,
+        "evidence_quality": "strong",
+        "evidence": [
+          "pHash distance=26",
+          "ssim=0.125",
+          "pixel_diff_ratio=0.489",
+          "changed_regions=top, middle, bottom",
+          "ocr_text_similarity=0.000",
+          "rawpage_changed=True"
+        ]
+      }
+    }
+  ],
+  "progress_steps": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    13,
+    14
+  ],
+  "evidence_quality": "strong",
+  "visual_evidence": [
+    {
+      "source_step_index": 0,
+      "next_step_index": 1,
+      "has_before_image": false,
+      "has_after_image": true,
+      "phash_before": "",
+      "phash_after": "",
+      "phash_distance": null,
+      "ssim": null,
+      "pixel_diff_ratio": null,
+      "changed_regions": [],
+      "ocr_fingerprint_before": "",
+      "ocr_fingerprint_after": "a6d5dcdafc86084d",
+      "ocr_text_similarity": 0.0,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.15,
+      "evidence_quality": "structural",
+      "evidence": [
+        "screenshot decode failed",
+        "ocr_text_similarity=0.000",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 1,
+      "next_step_index": 2,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "c17b2d25227ad2ec",
+      "phash_after": "40dd96792d8f710e",
+      "phash_distance": 34,
+      "ssim": 0.4807,
+      "pixel_diff_ratio": 0.3635,
+      "changed_regions": [
+        {
+          "region": "top",
+          "diff_ratio": 0.1116
+        },
+        {
+          "region": "middle",
+          "diff_ratio": 0.4189
+        },
+        {
+          "region": "bottom",
+          "diff_ratio": 0.5511
+        }
+      ],
+      "ocr_fingerprint_before": "a6d5dcdafc86084d",
+      "ocr_fingerprint_after": "352e34a19f81224a",
+      "ocr_text_similarity": 0.1181,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.814,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=34",
+        "ssim=0.481",
+        "pixel_diff_ratio=0.364",
+        "changed_regions=top, middle, bottom",
+        "ocr_text_similarity=0.118",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 2,
+      "next_step_index": 3,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "40dd96792d8f710e",
+      "phash_after": "16c163ef3c4dc9b0",
+      "phash_distance": 32,
+      "ssim": 0.0695,
+      "pixel_diff_ratio": 0.637,
+      "changed_regions": [
+        {
+          "region": "top",
+          "diff_ratio": 0.6443
+        },
+        {
+          "region": "middle",
+          "diff_ratio": 0.7381
+        },
+        {
+          "region": "bottom",
+          "diff_ratio": 0.5334
+        }
+      ],
+      "ocr_fingerprint_before": "352e34a19f81224a",
+      "ocr_fingerprint_after": "",
+      "ocr_text_similarity": 0.0,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.976,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=32",
+        "ssim=0.069",
+        "pixel_diff_ratio=0.637",
+        "changed_regions=top, middle, bottom",
+        "ocr_text_similarity=0.000",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 3,
+      "next_step_index": 4,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "16c163ef3c4dc9b0",
+      "phash_after": "d4d4d5e16b2b2b22",
+      "phash_distance": 30,
+      "ssim": 0.0012,
+      "pixel_diff_ratio": 0.4321,
+      "changed_regions": [
+        {
+          "region": "top",
+          "diff_ratio": 0.5603
+        },
+        {
+          "region": "middle",
+          "diff_ratio": 0.3393
+        },
+        {
+          "region": "bottom",
+          "diff_ratio": 0.3984
+        }
+      ],
+      "ocr_fingerprint_before": "",
+      "ocr_fingerprint_after": "2e2e41acef49ff32",
+      "ocr_text_similarity": 0.0,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.984,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=30",
+        "ssim=0.001",
+        "pixel_diff_ratio=0.432",
+        "changed_regions=top, middle, bottom",
+        "ocr_text_similarity=0.000",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 4,
+      "next_step_index": 5,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "d4d4d5e16b2b2b22",
+      "phash_after": "7e3e7ffd81818180",
+      "phash_distance": 32,
+      "ssim": 0.0637,
+      "pixel_diff_ratio": 0.2793,
+      "changed_regions": [
+        {
+          "region": "top",
+          "diff_ratio": 0.3051
+        },
+        {
+          "region": "middle",
+          "diff_ratio": 0.3289
+        },
+        {
+          "region": "bottom",
+          "diff_ratio": 0.2074
+        }
+      ],
+      "ocr_fingerprint_before": "2e2e41acef49ff32",
+      "ocr_fingerprint_after": "e81a5a20181eceed",
+      "ocr_text_similarity": 0.0,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.96,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=32",
+        "ssim=0.064",
+        "pixel_diff_ratio=0.279",
+        "changed_regions=top, middle, bottom",
+        "ocr_text_similarity=0.000",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 5,
+      "next_step_index": 6,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "7e3e7ffd81818180",
+      "phash_after": "66e7299993333932",
+      "phash_distance": 28,
+      "ssim": 0.1455,
+      "pixel_diff_ratio": 0.2834,
+      "changed_regions": [
+        {
+          "region": "top",
+          "diff_ratio": 0.253
+        },
+        {
+          "region": "middle",
+          "diff_ratio": 0.5484
+        }
+      ],
+      "ocr_fingerprint_before": "e81a5a20181eceed",
+      "ocr_fingerprint_after": "02694fd116899703",
+      "ocr_text_similarity": 0.25,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.867,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=28",
+        "ssim=0.145",
+        "pixel_diff_ratio=0.283",
+        "changed_regions=top, middle",
+        "ocr_text_similarity=0.250",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 6,
+      "next_step_index": 7,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "66e7299993333932",
+      "phash_after": "66cd19999b333932",
+      "phash_distance": 6,
+      "ssim": 0.9382,
+      "pixel_diff_ratio": 0.0208,
+      "changed_regions": [],
+      "ocr_fingerprint_before": "02694fd116899703",
+      "ocr_fingerprint_after": "f9599ca060ca1610",
+      "ocr_text_similarity": 0.2308,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.201,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=6",
+        "ssim=0.938",
+        "pixel_diff_ratio=0.021",
+        "ocr_text_similarity=0.231",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 7,
+      "next_step_index": 8,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "66cd19999b333932",
+      "phash_after": "6727191d999938da",
+      "phash_distance": 18,
+      "ssim": 0.6525,
+      "pixel_diff_ratio": 0.1987,
+      "changed_regions": [
+        {
+          "region": "middle",
+          "diff_ratio": 0.6057
+        }
+      ],
+      "ocr_fingerprint_before": "f9599ca060ca1610",
+      "ocr_fingerprint_after": "3981122d863d2fa9",
+      "ocr_text_similarity": 0.3077,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.532,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=18",
+        "ssim=0.653",
+        "pixel_diff_ratio=0.199",
+        "changed_regions=middle",
+        "ocr_text_similarity=0.308",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 8,
+      "next_step_index": 9,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "6727191d999938da",
+      "phash_after": "66cd19999b133936",
+      "phash_distance": 18,
+      "ssim": 0.6438,
+      "pixel_diff_ratio": 0.1987,
+      "changed_regions": [
+        {
+          "region": "middle",
+          "diff_ratio": 0.6057
+        }
+      ],
+      "ocr_fingerprint_before": "3981122d863d2fa9",
+      "ocr_fingerprint_after": "dabab2d813178c1b",
+      "ocr_text_similarity": 0.75,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.468,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=18",
+        "ssim=0.644",
+        "pixel_diff_ratio=0.199",
+        "changed_regions=middle",
+        "ocr_text_similarity=0.750",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 9,
+      "next_step_index": 10,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "66cd19999b133936",
+      "phash_after": "66cd199993373466",
+      "phash_distance": 8,
+      "ssim": 0.9376,
+      "pixel_diff_ratio": 0.0149,
+      "changed_regions": [],
+      "ocr_fingerprint_before": "dabab2d813178c1b",
+      "ocr_fingerprint_after": "0309103742084591",
+      "ocr_text_similarity": 0.4,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.187,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=8",
+        "ssim=0.938",
+        "pixel_diff_ratio=0.015",
+        "ocr_text_similarity=0.400",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 10,
+      "next_step_index": 11,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "66cd199993373466",
+      "phash_after": "664d19999b333936",
+      "phash_distance": 8,
+      "ssim": 0.9286,
+      "pixel_diff_ratio": 0.0244,
+      "changed_regions": [],
+      "ocr_fingerprint_before": "0309103742084591",
+      "ocr_fingerprint_after": "0309103742084591",
+      "ocr_text_similarity": 1.0,
+      "rawpage_changed": false,
+      "boundary_confidence": 0.108,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=8",
+        "ssim=0.929",
+        "pixel_diff_ratio=0.024",
+        "ocr_text_similarity=1.000",
+        "rawpage_changed=False"
+      ]
+    },
+    {
+      "source_step_index": 11,
+      "next_step_index": 12,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "664d19999b333936",
+      "phash_after": "664d19999b333936",
+      "phash_distance": 0,
+      "ssim": 1.0,
+      "pixel_diff_ratio": 0.0,
+      "changed_regions": [],
+      "ocr_fingerprint_before": "0309103742084591",
+      "ocr_fingerprint_after": "0309103742084591",
+      "ocr_text_similarity": 1.0,
+      "rawpage_changed": false,
+      "boundary_confidence": 0.0,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=0",
+        "ssim=1.000",
+        "pixel_diff_ratio=0.000",
+        "ocr_text_similarity=1.000",
+        "rawpage_changed=False"
+      ]
+    },
+    {
+      "source_step_index": 12,
+      "next_step_index": 13,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "664d19999b333936",
+      "phash_after": "664d19999b333936",
+      "phash_distance": 0,
+      "ssim": 1.0,
+      "pixel_diff_ratio": 0.0,
+      "changed_regions": [],
+      "ocr_fingerprint_before": "0309103742084591",
+      "ocr_fingerprint_after": "0309103742084591",
+      "ocr_text_similarity": 1.0,
+      "rawpage_changed": false,
+      "boundary_confidence": 0.0,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=0",
+        "ssim=1.000",
+        "pixel_diff_ratio=0.000",
+        "ocr_text_similarity=1.000",
+        "rawpage_changed=False"
+      ]
+    },
+    {
+      "source_step_index": 13,
+      "next_step_index": 14,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "664d19999b333936",
+      "phash_after": "664d19999b333936",
+      "phash_distance": 0,
+      "ssim": 1.0,
+      "pixel_diff_ratio": 0.0,
+      "changed_regions": [],
+      "ocr_fingerprint_before": "0309103742084591",
+      "ocr_fingerprint_after": "32fb4dd7b87e144c",
+      "ocr_text_similarity": 0.0,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.15,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=0",
+        "ssim=1.000",
+        "pixel_diff_ratio=0.000",
+        "ocr_text_similarity=0.000",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 14,
+      "next_step_index": 15,
+      "has_before_image": true,
+      "has_after_image": true,
+      "phash_before": "664d19999b333936",
+      "phash_after": "d72f39dd5121c492",
+      "phash_distance": 26,
+      "ssim": 0.1253,
+      "pixel_diff_ratio": 0.4893,
+      "changed_regions": [
+        {
+          "region": "top",
+          "diff_ratio": 0.2738
+        },
+        {
+          "region": "middle",
+          "diff_ratio": 0.5774
+        },
+        {
+          "region": "bottom",
+          "diff_ratio": 0.6108
+        }
+      ],
+      "ocr_fingerprint_before": "32fb4dd7b87e144c",
+      "ocr_fingerprint_after": "",
+      "ocr_text_similarity": 0.0,
+      "rawpage_changed": true,
+      "boundary_confidence": 0.909,
+      "evidence_quality": "strong",
+      "evidence": [
+        "pHash distance=26",
+        "ssim=0.125",
+        "pixel_diff_ratio=0.489",
+        "changed_regions=top, middle, bottom",
+        "ocr_text_similarity=0.000",
+        "rawpage_changed=True"
+      ]
+    },
+    {
+      "source_step_index": 15,
+      "next_step_index": 16,
+      "has_before_image": true,
+      "has_after_image": false,
+      "phash_before": "",
+      "phash_after": "",
+      "phash_distance": null,
+      "ssim": null,
+      "pixel_diff_ratio": null,
+      "changed_regions": [],
+      "ocr_fingerprint_before": "",
+      "ocr_fingerprint_after": "",
+      "ocr_text_similarity": null,
+      "rawpage_changed": null,
+      "boundary_confidence": 0.0,
+      "evidence_quality": "missing",
+      "evidence": [
+        "screenshot decode failed",
+        "rawPage/OCR missing"
+      ]
+    }
+  ]
+}
