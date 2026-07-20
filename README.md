@@ -70,12 +70,15 @@ VLM_API_KEY=...
 LLM_MODEL_URL=http://host/v1/chat/completions
 LLM_MODEL_NAME=qwen3-8b
 LLM_API_KEY=...
+
+TASK_GRAPH_ENABLED=0
 ```
 
 规则：
 
 - `VLM_*` 用于 AB 判定和检查点截图验证。
 - `LLM_*` 用于 decomposer 和可选的意图重排。
+- `TASK_GRAPH_ENABLED=1` 时，预处理阶段会生成 TaskGraph，并同步输出兼容 `_checkpoints`。
 - 如果 `LLM_*` 未配置，基线会回退复用 `VLM_*` 做意图重排。
 - 不要提交 `.env`。
 
@@ -99,10 +102,14 @@ output/<task_uuid>/
 | `instruction` | 用户任务 |
 | `step_level_instruction` | 可读检查点序列 |
 | `_checkpoints` | 结构化检查点列表 |
+| `_task_graph` | TaskGraph v1 结构；开启 `TASK_GRAPH_ENABLED=1` 时写出 |
+| `_task_graph_schema_version` | `_task_graph` 的 schema 版本，当前为 `task_graph.v1` |
 | `agent_purposes` / `_action_purposes` | Agent 每步自述意图 |
 | `_ocr_pages` / `_ocr_page_index` | rawPage/OCR 证据 |
 | `seq_info` | 实际动作和截图序列 |
 | `_image_base_dir` | 截图路径解析基准目录 |
+
+当 `TASK_GRAPH_ENABLED=1` 且图生成失败时，预处理链会回退到旧 checkpoint 拆解，并将其迁移为兼容 TaskGraph 写入 `_task_graph`。这保证旧 verifier 仍消费 `_checkpoints`，新链可读取图结构。
 
 ## 基线输出
 
@@ -115,6 +122,16 @@ output/<task_uuid>/
 | `state_sequence.json` | 状态、OCR 和视觉证据 |
 | `repeated_prediction.json` | 重复操作基线结果 |
 | `baseline_result.json` | 全量汇总结果 |
+
+## Benchmark 对比
+
+离线 benchmark 只读取已有产物，不触发 LLM/VLM 调用：
+
+```bash
+python -m src.evaluator.benchmark D:\path\to\benchmark_samples --output D:\path\to\benchmark_result.json --feature-flag TASK_GRAPH_ENABLED=1
+```
+
+每个样本目录可包含 `task_annotation.json`、`payload.json`、`baseline_result.json`、`planning_evaluation.json` 和 `legacy_result.json`。报告会输出样本数、解析失败数、schema 不兼容数、v1/v2 差异和模型调用统计。
 
 ## 模块状态
 
@@ -141,6 +158,8 @@ python -m pytest src\verifier src\evaluator src\common\test_common.py
 | 文档 | 用途 |
 |---|---|
 | `docs/01-技术方案.md` | 当前唯一规范性技术方案 |
+| `docs/04-当前进展与开发计划.md` | 当前唯一可执行 TODO 清单 |
+| `docs/07-人工标注契约与TaskGraph-Schema.md` | TaskGraph 与远程人工标注数据契约 |
 | `docs/重复动作异常判定技术方案.md` | 重复操作专题方案 |
 | `docs/规划失效异常判定技术方案.md` | 规划失效专题方案 |
 | `docs/02-论文调研.md` | 研究背景，不作为实现规范 |

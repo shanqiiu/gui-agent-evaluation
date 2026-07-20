@@ -24,6 +24,14 @@ class Checkpoint:
     preconditions: str = ""                      # "已进入设置首页"
     expected_state: str = ""                     # "进入隐私设置页面"
     checkpoint_id: str = ""                      # unique identifier (optional)
+    subtask_id: str = ""
+    depends_on: list[str] = field(default_factory=list)
+    success_criteria: list[str] = field(default_factory=list)
+    forbidden_states: list[str] = field(default_factory=list)
+    risk_level: str = "low"
+    reversible: bool = True
+    allowed_reorder: bool = False
+    alternative_group_id: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -32,6 +40,14 @@ class Checkpoint:
             "preconditions": self.preconditions,
             "expected_state": self.expected_state,
             "checkpoint_id": self.checkpoint_id,
+            "subtask_id": self.subtask_id,
+            "depends_on": self.depends_on,
+            "success_criteria": self.success_criteria,
+            "forbidden_states": self.forbidden_states,
+            "risk_level": self.risk_level,
+            "reversible": self.reversible,
+            "allowed_reorder": self.allowed_reorder,
+            "alternative_group_id": self.alternative_group_id,
         }
 
     @classmethod
@@ -42,6 +58,14 @@ class Checkpoint:
             preconditions=d.get("preconditions", ""),
             expected_state=d.get("expected_state", ""),
             checkpoint_id=d.get("checkpoint_id", ""),
+            subtask_id=d.get("subtask_id", ""),
+            depends_on=list(d.get("depends_on", [])),
+            success_criteria=list(d.get("success_criteria", [])),
+            forbidden_states=list(d.get("forbidden_states", [])),
+            risk_level=d.get("risk_level", "low"),
+            reversible=d.get("reversible", True),
+            allowed_reorder=d.get("allowed_reorder", False),
+            alternative_group_id=d.get("alternative_group_id", ""),
         )
 
 

@@ -10,7 +10,9 @@ from __future__ import annotations
 import base64
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Optional
+
+from src.decomposer.schema import TASK_GRAPH_SCHEMA_VERSION
 
 from .models import NormalizedTask
 
@@ -110,6 +112,15 @@ def write_payload(
     decomposer_status = getattr(task, "decomposer_status", None)
     if decomposer_status:
         payload["_decomposer"] = decomposer_status
+    if task.task_graph:
+        schema_version = task.task_graph.get("schema_version", "")
+        if schema_version != TASK_GRAPH_SCHEMA_VERSION:
+            raise ValueError(
+                "task_graph schema_version must be "
+                f"{TASK_GRAPH_SCHEMA_VERSION}, got {schema_version!r}"
+            )
+        payload["_task_graph"] = task.task_graph
+        payload["_task_graph_schema_version"] = schema_version
     if task.checkpoints:
         payload["_checkpoints"] = task.checkpoints
 

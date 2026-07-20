@@ -33,13 +33,12 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import os
 import shutil
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Auto-load .env from project root (if available)
 try:
@@ -58,8 +57,15 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 log = logging.getLogger(__name__)
 
 
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _run_decomposer(task: Any) -> int:
-    """Run LLM+RAG decomposition on task instruction. Populates task.checkpoints.
+    """Run LLM+RAG decomposition and populate compatibility planning outputs.
     
     Requires environment variables:
         LLM_MODEL_URL  - OpenAI-compatible API endpoint
@@ -70,6 +76,7 @@ def _run_decomposer(task: Any) -> int:
     model_url = os.environ.get("LLM_MODEL_URL") or os.environ.get("VLM_MODEL_URL", "")
     model_name = os.environ.get("LLM_MODEL_NAME") or os.environ.get("VLM_MODEL_NAME", "")
     api_key = os.environ.get("LLM_API_KEY") or os.environ.get("VLM_API_KEY", "")
+    task_graph_enabled = _env_flag("TASK_GRAPH_ENABLED")
     status = {
         "attempted": False,
         "status": "not_started",
@@ -86,16 +93,31 @@ def _run_decomposer(task: Any) -> int:
         "quality_issues": [],
         "refinement_attempted": False,
         "rag_app_name": os.environ.get("RAG_APP_NAME", ""),
+        "task_graph_enabled": task_graph_enabled,
+        "graph_status": "not_started" if task_graph_enabled else "disabled",
+        "graph_error": "",
+        "graph_response_head": "",
+        "graph_quality_issues": [],
+        "graph_correction_attempted": False,
+        "task_graph_schema_version": "",
+        "checkpoint_source": "legacy",
     }
     task.decomposer_status = status
     if not model_url or not model_name:
         status["status"] = "skipped_missing_config"
+        if task_graph_enabled:
+            status["graph_status"] = "skipped_missing_config"
         status["error"] = "LLM_MODEL_URL/LLM_MODEL_NAME or VLM fallback not set"
         log.info("  decomposer: skipped (%s)", status["error"])
         return 0
 
     try:
         from src.decomposer.decomposer import Decomposer
+        from src.decomposer.projection import (
+            migrate_checkpoints_to_task_graph,
+            project_checkpoints,
+        )
+        from src.decomposer.schema import encode_task_graph
     except ImportError:
         status["status"] = "import_failed"
         status["error"] = "src.decomposer not importable"
@@ -104,17 +126,68 @@ def _run_decomposer(task: Any) -> int:
 
     d = Decomposer(model_url=model_url, model_name=model_name, api_key=api_key)
     status["attempted"] = True
-    try:
-        checkpoints = d.decompose(
-            task.instruction,
-            app_name=os.environ.get("RAG_APP_NAME") or None,
-            top_k=5,
-        )
-    except Exception as e:
-        status["status"] = "exception"
-        status["error"] = str(e)
-        log.warning("  decomposer: LLM call failed (%s)", e)
-        return 0
+    app_name = os.environ.get("RAG_APP_NAME") or None
+    graph = None
+    checkpoints: list[dict[str, Any]] = []
+
+    if task_graph_enabled:
+        try:
+            graph = d.decompose_graph(
+                task.instruction,
+                app_name=app_name,
+                top_k=5,
+            )
+        except Exception as exc:
+            status["graph_status"] = "exception"
+            status["graph_error"] = str(exc)
+            log.warning("  decomposer: TaskGraph generation failed (%s)", exc)
+        else:
+            status["graph_response_head"] = getattr(d, "last_response_head", "")
+            status["graph_quality_issues"] = list(
+                getattr(d, "last_quality_issues", [])
+            )
+            status["graph_correction_attempted"] = getattr(
+                d, "refinement_attempted", False
+            )
+            if graph is None:
+                status["graph_status"] = "invalid"
+                status["graph_error"] = getattr(d, "last_error", "")
+
+        if graph is not None:
+            task.task_graph = encode_task_graph(graph)
+            checkpoints = project_checkpoints(graph)
+            status["graph_status"] = "ok"
+            status["task_graph_schema_version"] = graph.schema_version
+            status["checkpoint_source"] = "graph_projection"
+
+    if not checkpoints:
+        try:
+            checkpoints = d.decompose(
+                task.instruction,
+                app_name=app_name,
+                top_k=5,
+            )
+        except Exception as exc:
+            status["status"] = "exception"
+            status["error"] = str(exc)
+            log.warning("  decomposer: LLM call failed (%s)", exc)
+            return 0
+
+        if task_graph_enabled and checkpoints:
+            try:
+                graph = migrate_checkpoints_to_task_graph(
+                    task.instruction,
+                    checkpoints,
+                )
+            except Exception as exc:
+                status["graph_status"] = "migration_failed"
+                status["graph_error"] = str(exc)
+                log.warning("  decomposer: checkpoint migration failed (%s)", exc)
+            else:
+                task.task_graph = encode_task_graph(graph)
+                status["graph_status"] = "fallback_migrated"
+                status["task_graph_schema_version"] = graph.schema_version
+                status["checkpoint_source"] = "legacy_fallback"
 
     status["response_head"] = getattr(d, "last_response_head", "")
     status["quality_issues"] = getattr(d, "last_quality_issues", [])

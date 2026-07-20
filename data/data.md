@@ -653,3 +653,15 @@ python -m src.evaluator.repeated_baseline --batch <preprocess_out> --output-dir 
 | `baseline_result.json` | 全量汇总报告 |
 
 `src/oracle` 和 `/check_e2e` 仅作为 legacy 兼容参考，不是当前项目默认基线。
+
+---
+## 附录 E：保密数据与标注开发约束
+
+本文描述的真实轨迹保留在远程服务器，不下载或提交到本地仓库。本地开发只使用：
+
+- `src/decomposer/models.py` 中的数据模型；
+- `src/decomposer/schema.py` 中的严格解析与校验；
+- `src/decomposer/test_schema.py` 中的纯合成 fixture；
+- 不包含服务器路径、URL、凭据或原始内容的不透明证据引用。
+
+远程原始数据到 TaskGraph 和人工标注字段的映射见 `docs/07-人工标注契约与TaskGraph-Schema.md`。

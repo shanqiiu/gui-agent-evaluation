@@ -6,8 +6,10 @@ from typing import Any
 
 __all__ = [
     "RepeatedBaselineConfig",
+    "BenchmarkConfig",
     "run_repeated_baseline",
     "run_repeated_baseline_batch",
+    "run_benchmark",
     "StateSegment",
     "StateSequence",
     "StateTransition",
@@ -17,6 +19,7 @@ __all__ = [
 
 def __getattr__(name: str) -> Any:
     if name in __all__:
+        from .benchmark import BenchmarkConfig, run_benchmark
         from .repeated_baseline import (
             RepeatedBaselineConfig,
             run_repeated_baseline,
@@ -31,8 +34,10 @@ def __getattr__(name: str) -> Any:
 
         exports = {
             "RepeatedBaselineConfig": RepeatedBaselineConfig,
+            "BenchmarkConfig": BenchmarkConfig,
             "run_repeated_baseline": run_repeated_baseline,
             "run_repeated_baseline_batch": run_repeated_baseline_batch,
+            "run_benchmark": run_benchmark,
             "StateSegment": StateSegment,
             "StateSequence": StateSequence,
             "StateTransition": StateTransition,

@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 
 from src.decomposer.decomposer import Decomposer
+from src.decomposer.test_schema import valid_task_graph_data
 
 
 class StubDecomposer(Decomposer):
@@ -101,3 +103,35 @@ def test_quality_validation_rejects_missing_observable_state():
 
     assert checkpoints == []
     assert any("缺少 expected_state" in issue for issue in issues)
+
+
+def test_task_graph_invalid_dependency_is_corrected_once():
+    invalid = deepcopy(valid_task_graph_data())
+    invalid["subtasks"][2]["depends_on"] = ["st_missing"]
+    decomposer = StubDecomposer([
+        json.dumps(invalid, ensure_ascii=False),
+        json.dumps(valid_task_graph_data(), ensure_ascii=False),
+    ])
+
+    graph = decomposer.decompose_graph("Enable the sample feature", top_k=0)
+
+    assert graph is not None
+    assert graph.metadata.source == "llm_rag"
+    assert graph.metadata.quality_status == "ok_after_correction"
+    assert decomposer.refinement_attempted is True
+    assert len(decomposer.prompts) == 2
+    assert "unknown_dependency" in decomposer.prompts[1]
+
+
+def test_task_graph_generation_stops_after_one_failed_correction():
+    invalid = deepcopy(valid_task_graph_data())
+    invalid["subtasks"] = invalid["subtasks"][:2]
+    invalid["edges"] = invalid["edges"][:1]
+    response = json.dumps(invalid, ensure_ascii=False)
+    decomposer = StubDecomposer([response, response])
+
+    graph = decomposer.decompose_graph("Enable the sample feature", top_k=0)
+
+    assert graph is None
+    assert len(decomposer.prompts) == 2
+    assert any("invalid_subtask_count" in issue for issue in decomposer.last_quality_issues)

@@ -74,6 +74,7 @@ class NormalizedTask:
 
     # ── Module A checkpoints (optional) ──
     checkpoints: list[dict] = field(default_factory=list)
+    task_graph: dict[str, Any] = field(default_factory=dict)
 
     @property
     def action_purposes(self) -> list[str]:

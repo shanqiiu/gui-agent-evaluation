@@ -12,9 +12,12 @@ from __future__ import annotations
 
 import json
 import re
+from dataclasses import replace
 from typing import Any, Optional
 
 from .knowledge_store import query_knowledge
+from .models import TaskGraph, TaskGraphMetadata
+from .schema import TaskGraphSchemaError, decode_task_graph
 
 
 _DECOMPOSE_PROMPT = """你是 GUI Agent 执行评测中的任务分解专家。请将用户任务分解为最小且必要的关键可观察子状态。checkpoint 只描述必须达到什么状态，不限定点击、输入、滑动等具体操作路径。
@@ -71,6 +74,50 @@ _REFINE_DECOMPOSE_PROMPT = """你生成的 checkpoint 粒度不符合 GUI Agent 
 - 保留任务完成所需的最小状态集合，通常为 1 到 5 项，最多 8 项。
 - 字段固定为 name、required、preconditions、expected_state。
 - 只输出 JSON 数组，不要 Markdown 或额外文字。"""
+
+_TASK_GRAPH_PROMPT = """你是 GUI Agent 执行评测中的任务规划专家。请把用户任务分解为可验证的 TaskGraph。
+
+## 参考知识
+{knowledge}
+
+## 用户指令
+{instruction}
+
+## 输出要求
+只输出一个 JSON 对象，结构必须严格符合 task_graph.v1：
+- schema_version: 固定为 "task_graph.v1"
+- goal: description 和 success_criteria
+- constraints: 可观察的 must/must_not/prefer 约束数组
+- subtasks: 3-8 个语义子任务
+- edges: 与每个 subtask.depends_on 完全一致的 requires/recommended 边
+- alternative_groups: 可替代路径分组；没有则为空数组
+- metadata: 可省略
+
+每个 success_criteria 元素必须包含 criterion_id、description、evidence_types、required；evidence_types 只能使用 screenshot、ocr、ui_tree、action_log、system_state。
+每个 subtask 必须包含 subtask_id、name、description、required、depends_on、preconditions、success_criteria、forbidden_states、risk_level、reversible、allowed_reorder、alternative_group_id、checkpoint_ids。
+每条 edge 必须包含 from、to、type、condition，type 只能是 requires 或 recommended。
+
+约束：
+- 子任务描述可观察状态边界，不要描述点击、输入、滑动等具体操作步骤。
+- required 子任务必须至少有一个可观察成功条件。
+- requires 依赖必须构成 DAG，且 depends_on 与 requires edge 双向一致。
+- 可交换的子任务设置 allowed_reorder=true，不要添加虚假依赖。
+- 替代路径成员必须填写 alternative_group_id，并在 alternative_groups 中声明。
+- ID 必须稳定且唯一，建议 st_001、vc_st_001_01、constraint_001、alt_001。
+- 不要输出未知字段、Markdown 或额外文字。"""
+
+_REFINE_TASK_GRAPH_PROMPT = """上一次 TaskGraph 输出未通过 task_graph.v1 的确定性校验。请根据错误修正，并重新输出完整 JSON 对象。
+
+## 用户指令
+{instruction}
+
+## 上一次输出
+{response}
+
+## 校验错误
+{issues}
+
+只允许修正结构、引用、依赖、可验证性和 3-8 个语义子任务约束。只输出严格的 task_graph.v1 JSON 对象，不要 Markdown 或额外文字。"""
 
 _ACTION_NAME_PREFIXES = (
     "点击", "输入", "滑动", "滚动", "长按", "双击", "拖动", "返回",
@@ -133,6 +180,107 @@ class Decomposer:
             checkpoints,
             instruction=instruction,
             allow_refinement=True,
+        )
+
+    def decompose_graph(
+        self,
+        instruction: str,
+        app_name: str | None = None,
+        top_k: int = 5,
+    ) -> TaskGraph | None:
+        """Generate a validated TaskGraph, with at most one correction call."""
+
+        self.last_quality_issues = []
+        self.refinement_attempted = False
+        docs = query_knowledge(instruction, app_name=app_name, top_k=top_k)
+        knowledge = "\n\n".join(docs) if docs else "（无相关 App 知识）"
+        prompt = _TASK_GRAPH_PROMPT.format(
+            knowledge=knowledge,
+            instruction=instruction,
+        )
+
+        response = self._call_graph(prompt)
+        graph = self._parse_task_graph(response)
+        if graph is not None:
+            return self._with_graph_metadata(graph, quality_status="ok")
+
+        initial_issues = list(self.last_quality_issues)
+        initial_error = self.last_error
+        self.refinement_attempted = True
+        correction_prompt = _REFINE_TASK_GRAPH_PROMPT.format(
+            instruction=instruction,
+            response=response[:6000],
+            issues="；".join(initial_issues) or initial_error,
+        )
+        corrected_response = self._call_graph(correction_prompt)
+        corrected = self._parse_task_graph(corrected_response)
+        if corrected is not None:
+            return self._with_graph_metadata(
+                corrected,
+                quality_status="ok_after_correction",
+            )
+        return None
+
+    def _call_graph(self, prompt: str) -> str:
+        self.last_error = ""
+        self.last_response_head = ""
+        response = self._call_llm(prompt)
+        self.last_response_head = response[:500] if response else ""
+        if not response and not self.last_error:
+            self.last_error = "empty LLM response"
+        return response
+
+    def _parse_task_graph(self, response: str) -> TaskGraph | None:
+        if not response:
+            self.last_quality_issues = [self.last_error or "empty LLM response"]
+            return None
+        try:
+            data = json.loads(response)
+        except json.JSONDecodeError:
+            match = re.search(r"\{.*\}", response, re.DOTALL)
+            if not match:
+                self.last_error = "LLM response did not contain a JSON object"
+                self.last_quality_issues = [self.last_error]
+                return None
+            try:
+                data = json.loads(match.group())
+            except json.JSONDecodeError as exc:
+                self.last_error = f"invalid TaskGraph JSON: {exc}"
+                self.last_quality_issues = [self.last_error]
+                return None
+        if not isinstance(data, dict):
+            self.last_error = "LLM TaskGraph response was not a JSON object"
+            self.last_quality_issues = [self.last_error]
+            return None
+        try:
+            graph = decode_task_graph(data)
+        except TaskGraphSchemaError as exc:
+            self.last_quality_issues = [
+                f"{issue.code} at {issue.path}: {issue.message}"
+                for issue in exc.issues
+            ]
+            self.last_error = "TaskGraph schema validation failed: " + "; ".join(
+                self.last_quality_issues
+            )
+            return None
+        self.last_error = ""
+        self.last_quality_issues = []
+        return graph
+
+    def _with_graph_metadata(
+        self,
+        graph: TaskGraph,
+        *,
+        quality_status: str,
+    ) -> TaskGraph:
+        return replace(
+            graph,
+            metadata=TaskGraphMetadata(
+                source="llm_rag",
+                model=self.model_name,
+                rag_hits=graph.metadata.rag_hits,
+                quality_status=quality_status,
+            ),
         )
 
     def _finalize_checkpoints(
