@@ -1,0 +1,18 @@
+{
+  "purpose_llm": {
+    "llm_configured": true,
+    "llm_attempted": true,
+    "mock_mode": false,
+    "model_url_set": true,
+    "model_name": "qwen36-27b-vl",
+    "api_key_set": true,
+    "purpose_feature_count": 16,
+    "checkpoint_count": 4,
+    "returned_match_count": 4,
+    "status": "ok",
+    "error": "",
+    "response_head": "{\"matches\":[[0,0,0,\"matched\",1.0,\"直接对应\"],[1,1,4,\"matched\",0.9,\"搜索订单关键词\"],[2,5,5,\"matched\",0.8,\"加购即进入详情\"],[3,-1,-1,\"missing\",0.0,\"未达提交订单页\"]]}",
+    "response_tail": "{\"matches\":[[0,0,0,\"matched\",1.0,\"直接对应\"],[1,1,4,\"matched\",0.9,\"搜索订单关键词\"],[2,5,5,\"matched\",0.8,\"加购即进入详情\"],[3,-1,-1,\"missing\",0.0,\"未达提交订单页\"]]}",
+    "response_length": 140
+  }
+}
