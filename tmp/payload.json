@@ -1,207 +1,579 @@
 {
-  "task_uuid": "0ceb35a6-605e-47d1-b90e-0ae4f52669a4",
-  "instruction": "拼多多上查看一款价格在100元以上孕妇可用的隔离霜",
-  "results": [
+  "instruction": "到淘宝再来一单芝华仕3m多的真皮沙发",
+  "step_level_instruction": "进入历史订单列表->定位到芝华仕沙发订单->触发复购操作->进入确认订单页面",
+  "agent_purposes": "打开淘宝->点击“我的淘宝”进入个人中心->点击底部“我的淘宝”按钮->点击“全部”进入全部订单列表->在“搜索订单”输入框中输入“芝华仕 真皮沙发”->将首条 3.05 米芝华仕真皮沙发订单商品加入购物车->等待验证码页面加载完成，以便后续按提示进行验证。->拖动滑块至右侧，使鱼图案完整，完成滑块验证->等待滑块验证码页面刷新加载完成，以便重新进行滑块拖动验证。->拖动滑块至拼图缺口位置，使树图案完整，完成滑块验证。->向右拖动滑块一段较长距离，使树图案与拼图缺口对齐，完成滑块验证。->等待滑块验证码页面加载完成，以便进行下一次拖动滑块验证。->等待滑块验证码页面加载完成，以便后续根据页面提示继续操作。->点击验证码页面右侧的刷新按钮重新加载验证码->返回上一页，退出异常验证码页面，准备重新从订单页进入商品复购。->等待“加购失败”提示消失，页面恢复可操作状态。",
+  "seq_info": [
     {
-      "checkpoint": {
-        "name": "打开拼多多应用并进入搜索界面",
-        "required": true,
-        "preconditions": "用户已安装并登录拼多多App",
-        "expected_state": "页面显示搜索框，且光标位于搜索框内或已自动弹出键盘",
-        "checkpoint_id": "cp_000"
-      },
-      "status": "未达成",
-      "confidence": 0.95,
-      "evidence": "[操作后页面]: 当前页面是拼多多App的首页（推荐页）。页面顶部包含一个搜索框，下方有分类导航栏（推荐、百货等）、拼小圈入口、功能图标（限时秒杀等）以及商品推荐列表。\n检查点要求是'打开拼多多应用并进入搜索界面'，且预期状态明确指出'光标位于搜索框内或已自动弹出键盘'。虽然操作后页面确实显示了拼多多App的首页，且顶部有搜索框，但页面处于默认的浏览状态，搜索框并未被激活（无光标），键盘也未弹出。这属于'打开应用'的状态，而非'进入搜索界面'的交互状态。\n[不符合原因]: 页面停留在首页，搜索框未被激活，光标未聚焦，键盘未弹出，不符合'进入搜索界面'的预期状态。",
-      "step_index": 0,
-      "image_context": {
-        "step_index": 0,
-        "before_step_index": 0,
-        "after_step_index": 1,
-        "before_image_available": false,
-        "after_image_available": true,
-        "image_available": true,
-        "before_image_ref": "",
-        "after_image_ref": "catchDataTurnId1.jpg",
-        "alignment": {
-          "checkpoint_index": 0,
-          "step_index": 0,
-          "score": 1.0,
-          "confidence": "high",
-          "evidence": [
-            "intent recall matched candidate",
-            "purpose_llm_status=matched",
-            "purpose_index=0"
-          ]
+      "index": 0,
+      "image_relative_path": "",
+      "_image_source": "",
+      "_ocr_page_index": 0,
+      "action_purpose": "打开淘宝",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "open_app",
+          "start_box": [],
+          "end_box": [],
+          "text": "打开应用",
+          "direction": "",
+          "content": ""
         }
-      },
-      "action_description": "open_app: 打开应用",
-      "fallback": false
+      }
     },
     {
-      "checkpoint": {
-        "name": "搜索隔离霜产品",
-        "required": true,
-        "preconditions": "搜索框处于可输入状态",
-        "expected_state": "已输入关键词“隔离霜”并点击搜索，页面跳转至搜索结果列表页",
-        "checkpoint_id": "cp_001"
-      },
-      "status": "未达成",
-      "confidence": 1.0,
-      "evidence": "[操作后页面]: 操作后页面仍停留在首页，搜索框内的文字变为“海飞丝洗发水80g”，页面下方展示了相关的推荐商品（如海飞丝洗发水、掏耳勺等），并未跳转到搜索结果列表页。\n检查点要求输入关键词“隔离霜”并点击搜索，最终页面应跳转至搜索结果列表页。然而，观察操作后的页面截图，搜索框内显示的文字是“海飞丝洗发水80g”，且页面布局依然是首页推荐流，并没有发生页面跳转。这说明Agent不仅输入了错误的关键词，而且没有执行点击搜索的操作，导致页面状态完全不符合预期。\n[不符合原因]: 1. 搜索框内输入的内容是“海飞丝洗发水80g”，而非预期的“隔离霜”。\n2. 页面未跳转至搜索结果列表页，仍停留在首页。",
-      "step_index": 1,
-      "image_context": {
-        "step_index": 1,
-        "before_step_index": 1,
-        "after_step_index": 2,
-        "before_image_available": true,
-        "after_image_available": true,
-        "image_available": true,
-        "before_image_ref": "catchDataTurnId1.jpg",
-        "after_image_ref": "catchDataTurnId2.jpg",
-        "alignment": {
-          "checkpoint_index": 1,
-          "step_index": 1,
-          "score": 0.95,
-          "confidence": "high",
-          "evidence": [
-            "intent recall matched candidate",
-            "purpose_llm_status=matched",
-            "purpose_index=1"
-          ]
+      "index": 1,
+      "image_relative_path": "catchDataTurnId1.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId1/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 1,
+      "action_purpose": "点击“我的淘宝”进入个人中心",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1090,
+            2518
+          ],
+          "end_box": [],
+          "text": "点击页面元素",
+          "direction": "",
+          "content": ""
         }
-      },
-      "action_description": "type: 输入文本",
-      "fallback": false
+      }
     },
     {
-      "checkpoint": {
-        "name": "筛选价格区间",
-        "required": true,
-        "preconditions": "处于搜索结果列表页",
-        "expected_state": "已点击筛选/排序按钮，设置价格下限为100元（或选择100-200元等包含100元以上的区间），并应用筛选，页面刷新显示符合价格条件的商品",
-        "checkpoint_id": "cp_002"
-      },
-      "status": "未达成",
-      "confidence": 1.0,
-      "evidence": "[操作后页面]: 操作后页面显示为筛选功能面板（Filter Panel），包含价格区间、精选服务、商品发货地等筛选选项。当前处于未选择任何具体筛选条件的初始状态，底部显示'确认 (1万+件商品)'。\n1. **操作前状态**：用户处于搜索结果列表页，搜索词为'孕妇 可用 隔离霜'。\n2. **执行动作**：用户点击了'筛选'按钮。\n3. **操作后状态**：页面弹出了筛选面板，展示了价格区间（0-28, 28-43等）、精选服务、发货地等选项。\n4. **对比预期**：检查点要求'设置价格下限为100元（或选择100-200元等包含100元以上的区间），并应用筛选'。然而，操作后的截图显示筛选面板刚刚打开，用户尚未点击任何价格区间选项，也没有点击'确认'按钮应用筛选。页面仍然停留在筛选设置界面，且未进行任何具体的价格筛选操作。\n5. **结论**：虽然进入了筛选界面，但未完成'设置价格'和'应用筛选'这两个关键步骤，因此检查点未达成。\n[不符合原因]: 操作仅打开了筛选面板，并未执行检查点要求的'设置价格下限为100元'或'选择包含100元以上的区间'的操作，也未点击确认应用筛选。",
-      "step_index": 3,
-      "image_context": {
-        "step_index": 3,
-        "before_step_index": 3,
-        "after_step_index": 4,
-        "before_image_available": true,
-        "after_image_available": true,
-        "image_available": true,
-        "before_image_ref": "catchDataTurnId3.jpg",
-        "after_image_ref": "catchDataTurnId4.jpg",
-        "alignment": {
-          "checkpoint_index": 2,
-          "step_index": 3,
-          "score": 0.9,
-          "confidence": "high",
-          "evidence": [
-            "intent recall matched candidate",
-            "purpose_llm_status=matched",
-            "purpose_index=3"
-          ]
+      "index": 2,
+      "image_relative_path": "catchDataTurnId2.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId2/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 2,
+      "action_purpose": "点击底部“我的淘宝”按钮",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1090,
+            2513
+          ],
+          "end_box": [],
+          "text": "点击页面元素",
+          "direction": "",
+          "content": "loading"
         }
-      },
-      "action_description": "click: 点击筛选",
-      "fallback": false
+      }
     },
     {
-      "checkpoint": {
-        "name": "筛选或查找孕妇可用标识",
-        "required": true,
-        "preconditions": "已应用价格筛选",
-        "expected_state": "通过筛选标签（如“孕妇可用”、“温和”、“无添加”）或浏览商品标题/详情，确认当前展示的商品包含“孕妇可用”相关描述或标识",
-        "checkpoint_id": "cp_003"
-      },
-      "status": "未达成",
-      "confidence": 0.95,
-      "evidence": "[操作后页面]: 操作后页面显示为电商APP的搜索结果页，搜索关键词为'海飞丝洗发水80g'。页面顶部有搜索栏，下方展示了推荐商品列表，包括海飞丝洗发水、掏耳勺套装等商品，以及百亿补贴、多多买菜等板块。\n1. **分析检查点要求**：检查点名称为'筛选或查找孕妇可用标识'，预期状态是确认当前展示的商品包含'孕妇可用'相关描述或标识。这通常意味着用户应该搜索'孕妇可用'、'孕妇洗发水'等关键词，或者在筛选器中勾选'孕妇可用'标签。\n2. **分析操作动作**：用户执行了'输入文本'操作。对比操作前后的截图，操作前搜索框为空（或显示默认提示），操作后搜索框显示'海飞丝洗发水80g'，且页面内容变为该关键词的搜索结果。\n3. **对比结果与预期**：用户搜索的是具体的品牌和产品'海飞丝洗发水'，而不是'孕妇可用'相关的关键词。虽然海飞丝可能有孕妇可用的产品，但当前的搜索行为并没有直接针对'孕妇可用'这一属性进行筛选或查找。页面展示的是通用的海飞丝洗发水搜索结果，并没有体现出'孕妇可用'的筛选逻辑或特定标识的查找过程。因此，该操作没有达成'查找孕妇可用标识'的检查点目标。\n[不符合原因]: 用户搜索的关键词是'海飞丝洗发水80g'，而非'孕妇可用'或相关筛选条件。页面展示的是普通商品搜索结果，未体现针对'孕妇可用'属性的查找或筛选。",
-      "step_index": 1,
-      "image_context": {
-        "step_index": 1,
-        "before_step_index": 1,
-        "after_step_index": 2,
-        "before_image_available": true,
-        "after_image_available": true,
-        "image_available": true,
-        "before_image_ref": "catchDataTurnId1.jpg",
-        "after_image_ref": "catchDataTurnId2.jpg",
-        "alignment": {
-          "checkpoint_index": 3,
-          "step_index": 1,
-          "score": 0.85,
-          "confidence": "high",
-          "evidence": [
-            "intent recall matched candidate",
-            "purpose_llm_status=implicit",
-            "purpose_index=1"
-          ]
+      "index": 3,
+      "image_relative_path": "catchDataTurnId3.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId3/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 3,
+      "action_purpose": "点击“全部”进入全部订单列表",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1094,
+            876
+          ],
+          "end_box": [],
+          "text": "点击全部",
+          "direction": "",
+          "content": ""
         }
-      },
-      "action_description": "type: 输入文本",
-      "fallback": false
+      }
     },
     {
-      "checkpoint": {
-        "name": "查看具体商品详情",
-        "required": true,
-        "preconditions": "在筛选后的列表中选中一款符合条件的隔离霜",
-        "expected_state": "进入商品详情页，页面显示商品图片、价格（>100元）、标题及“孕妇可用”或相关安全认证信息",
-        "checkpoint_id": "cp_004"
-      },
-      "status": "达成",
-      "confidence": 1.0,
-      "evidence": "[操作后页面]: 操作后页面为“简缇水光素颜隔离霜”的商品详情页。页面顶部展示商品大图，中部显示价格（¥102）、促销标签（2件8.8折）、预计送达时间，以及包含“孕妇哺乳期可用”字样的商品标题。下方还有店铺信息、拼单状态和底部购买栏。\n1. **操作前状态**：用户处于商品列表页，搜索关键词包含“孕妇 可用 隔离霜”。\n2. **执行动作**：用户点击了列表中右上角的“简缇水光素颜隔离霜”商品卡片（具体点击位置在商品图片区域）。\n3. **操作后状态**：页面跳转至该商品的详情页。页面清晰展示了商品图片、价格（102元，符合>100元的要求）、标题（明确包含“孕妇哺乳期可用”字样）。\n4. **对比预期**：检查点要求进入商品详情页，显示图片、价格>100元、标题及孕妇可用信息。当前页面完全满足所有条件。",
-      "step_index": 6,
-      "image_context": {
-        "step_index": 6,
-        "before_step_index": 6,
-        "after_step_index": 7,
-        "before_image_available": true,
-        "after_image_available": true,
-        "image_available": true,
-        "before_image_ref": "catchDataTurnId6.jpg",
-        "after_image_ref": "catchDataTurnId7.jpg",
-        "alignment": {
-          "checkpoint_index": 4,
-          "step_index": 6,
-          "score": 1.0,
-          "confidence": "high",
-          "evidence": [
-            "intent recall matched candidate",
-            "purpose_llm_status=matched",
-            "purpose_index=6"
-          ]
+      "index": 4,
+      "image_relative_path": "catchDataTurnId4.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId4/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 4,
+      "action_purpose": "在“搜索订单”输入框中输入“芝华仕 真皮沙发”",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "type",
+          "start_box": [
+            348,
+            188
+          ],
+          "end_box": [],
+          "text": "输入文本",
+          "direction": "",
+          "content": ""
         }
-      },
-      "action_description": "click: 点击适量隔离于面部，用手指轻柔地涂抹于全",
-      "fallback": false
+      }
+    },
+    {
+      "index": 5,
+      "image_relative_path": "catchDataTurnId5.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId5/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 5,
+      "action_purpose": "将首条 3.05 米芝华仕真皮沙发订单商品加入购物车",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1038,
+            846
+          ],
+          "end_box": [],
+          "text": "点击加入购物车",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 6,
+      "image_relative_path": "catchDataTurnId6.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId6/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 6,
+      "action_purpose": "等待验证码页面加载完成，以便后续按提示进行验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 7,
+      "image_relative_path": "catchDataTurnId7.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId7/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 7,
+      "action_purpose": "拖动滑块至右侧，使鱼图案完整，完成滑块验证",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "drag",
+          "start_box": [
+            171,
+            1642
+          ],
+          "end_box": [
+            1118,
+            1642
+          ],
+          "text": "滑动",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 8,
+      "image_relative_path": "catchDataTurnId8.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId8/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 8,
+      "action_purpose": "等待滑块验证码页面刷新加载完成，以便重新进行滑块拖动验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 9,
+      "image_relative_path": "catchDataTurnId9.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId9/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 9,
+      "action_purpose": "拖动滑块至拼图缺口位置，使树图案完整，完成滑块验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "drag",
+          "start_box": [
+            165,
+            1647
+          ],
+          "end_box": [
+            222,
+            1647
+          ],
+          "text": "滑动",
+          "direction": "",
+          "content": "av_forward"
+        }
+      }
+    },
+    {
+      "index": 10,
+      "image_relative_path": "catchDataTurnId10.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId10/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 10,
+      "action_purpose": "向右拖动滑块一段较长距离，使树图案与拼图缺口对齐，完成滑块验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "drag",
+          "start_box": [
+            228,
+            1647
+          ],
+          "end_box": [
+            411,
+            1647
+          ],
+          "text": "滑动",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 11,
+      "image_relative_path": "catchDataTurnId11.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId11/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 11,
+      "action_purpose": "等待滑块验证码页面加载完成，以便进行下一次拖动滑块验证。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 12,
+      "image_relative_path": "catchDataTurnId12.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId12/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 12,
+      "action_purpose": "等待滑块验证码页面加载完成，以便后续根据页面提示继续操作。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 13,
+      "image_relative_path": "catchDataTurnId13.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId13/temp_image-screenshot-drawRect.jpg",
+      "_ocr_page_index": 13,
+      "action_purpose": "点击验证码页面右侧的刷新按钮重新加载验证码",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "click",
+          "start_box": [
+            1089,
+            889
+          ],
+          "end_box": [],
+          "text": "点击页面元素",
+          "direction": "",
+          "content": "refresh"
+        }
+      }
+    },
+    {
+      "index": 14,
+      "image_relative_path": "catchDataTurnId14.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId14/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 14,
+      "action_purpose": "返回上一页，退出异常验证码页面，准备重新从订单页进入商品复购。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "back",
+          "start_box": [],
+          "end_box": [],
+          "text": "返回",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 15,
+      "image_relative_path": "catchDataTurnId15.jpg",
+      "_image_source": "/rest/analyzeResult/stream/download?taskId=d39fee2ee4494ec2b9de5a98bae3b330&address=6f720daf-f143-43a4-8c51-1419a1d1a830/1b3c9d23-8b45-4c9b-8034-9c36b35aa1df/catchDataTurnId15/temp_image-screenshot-origin.jpg",
+      "_ocr_page_index": 15,
+      "action_purpose": "等待“加购失败”提示消失，页面恢复可操作状态。",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "do_nothing()",
+          "start_box": [],
+          "end_box": [],
+          "text": "do_nothing()",
+          "direction": "",
+          "content": ""
+        }
+      }
+    },
+    {
+      "index": 16,
+      "image_relative_path": "",
+      "_image_source": "",
+      "_ocr_page_index": -1,
+      "action_purpose": "",
+      "planning_output": {
+        "parsed_action": {
+          "action_type": "finished",
+          "start_box": [],
+          "end_box": [],
+          "text": "任务完成",
+          "direction": "",
+          "content": ""
+        }
+      }
     }
   ],
-  "summary": {
-    "total_checkpoints": 5,
-    "achieved": 1,
-    "not_achieved": 4,
-    "uncertain": 0,
-    "required_total": 5,
-    "required_achieved": 1
-  },
-  "completion_score": 0.2,
-  "required_completion_score": 0.2,
-  "overall_status": "失败",
-  "evidence": [
-    "[FAIL] [打开拼多多应用并进入搜索界面] → 未达成 (confidence=0.95)",
-    "[FAIL] [搜索隔离霜产品] → 未达成 (confidence=1.00)",
-    "[FAIL] [筛选价格区间] → 未达成 (confidence=1.00)",
-    "[FAIL] [筛选或查找孕妇可用标识] → 未达成 (confidence=0.95)",
-    "[OK] [查看具体商品详情] → 达成 (confidence=1.00)"
+  "_image_base_dir": "D:\\Projects\\workspace\\projects\\activate\\gui-agent-evaluation\\outputs\\1b3c9d23-8b45-4c9b-8034-9c36b35aa1df\\1b3c9d23-8b45-4c9b-8034-9c36b35aa1df",
+  "_image_mode": "path",
+  "_action_purposes": [
+    "打开淘宝",
+    "点击“我的淘宝”进入个人中心",
+    "点击底部“我的淘宝”按钮",
+    "点击“全部”进入全部订单列表",
+    "在“搜索订单”输入框中输入“芝华仕 真皮沙发”",
+    "将首条 3.05 米芝华仕真皮沙发订单商品加入购物车",
+    "等待验证码页面加载完成，以便后续按提示进行验证。",
+    "拖动滑块至右侧，使鱼图案完整，完成滑块验证",
+    "等待滑块验证码页面刷新加载完成，以便重新进行滑块拖动验证。",
+    "拖动滑块至拼图缺口位置，使树图案完整，完成滑块验证。",
+    "向右拖动滑块一段较长距离，使树图案与拼图缺口对齐，完成滑块验证。",
+    "等待滑块验证码页面加载完成，以便进行下一次拖动滑块验证。",
+    "等待滑块验证码页面加载完成，以便后续根据页面提示继续操作。",
+    "点击验证码页面右侧的刷新按钮重新加载验证码",
+    "返回上一页，退出异常验证码页面，准备重新从订单页进入商品复购。",
+    "等待“加购失败”提示消失，页面恢复可操作状态。"
   ],
-  "model_used": "qwen36-27b-vl",
-  "total_vlm_calls": 5,
-  "fallback_count": 0
+  "_decomposer": {
+    "attempted": true,
+    "status": "ok",
+    "model_name": "qwen36-27b-vl",
+    "model_url_set": true,
+    "api_key_set": true,
+    "used_vlm_url_fallback": false,
+    "used_vlm_name_fallback": false,
+    "used_vlm_key_fallback": false,
+    "checkpoint_count": 4,
+    "error": "",
+    "response_head": "[\n  {\n    \"name\": \"进入历史订单列表\",\n    \"required\": true,\n    \"preconditions\": \"\",\n    \"expected_state\": \"页面显示'我的淘宝'中的'全部'或'待收货'等订单列表，且列表中可见历史购买记录\"\n  },\n  {\n    \"name\": \"定位到芝华仕沙发订单\",\n    \"required\": true,\n    \"preconditions\": \"进入历史订单列表\",\n    \"expected_state\": \"在订单列表中可见包含'芝华仕'、'真皮沙发'关键词的订单条目，且价格区间符合'3m多'（3000-3999元）特征\"\n  },\n  {\n    \"name\": \"触发复购操作\",\n    \"required\": true,\n    \"preconditions\": \"定位到芝华仕沙发订单\",\n    \"expected_state\": \"点击该订单下的'再来一单'或'复购'按钮，页面跳转至商品详情页或确认订单页，且商品SKU与历史订单一致\"\n  },\n  {\n    \"name\": \"",
+    "quality_status": "ok",
+    "quality_issues": [],
+    "refinement_attempted": false,
+    "rag_app_name": "",
+    "task_graph_enabled": true,
+    "graph_status": "fallback_migrated",
+    "graph_error": "TaskGraph schema validation failed: missing_field at $.edges: field is required; missing_field at $.goal: field is required; missing_field at $.schema_version: field is required; missing_field at $.subtasks: field is required; unknown_field at $.end_task: field is not part of the schema; unknown_field at $.start_task: field is not part of the schema; unknown_field at $.tasks: field is not part of the schema",
+    "graph_response_head": "{\n  \"tasks\": [\n    {\n      \"id\": \"task_1\",\n      \"name\": \"search_zuivip_sofa\",\n      \"description\": \"在淘宝搜索'芝华仕真皮沙发'，筛选价格区间为3000-4000元的商品，并识别出支持'再来一单'功能的历史订单或相似推荐商品。\",\n      \"type\": \"search\",\n      \"parameters\": {\n        \"platform\": \"taobao\",\n        \"keywords\": \"芝华仕 真皮沙发\",\n        \"price_range\": [3000, 4000],\n        \"filter\": \"再来一单\"\n      },\n      \"dependencies\": []\n    },\n    {\n      \"id\": \"task_2\",\n      \"name\": \"verify_product_details\",\n      \"description\": \"获取task_1中筛选出的目标商品详情，确认材质为真皮、品牌为芝",
+    "graph_quality_issues": [
+      "missing_field at $.edges: field is required",
+      "missing_field at $.goal: field is required",
+      "missing_field at $.schema_version: field is required",
+      "missing_field at $.subtasks: field is required",
+      "unknown_field at $.end_task: field is not part of the schema",
+      "unknown_field at $.start_task: field is not part of the schema",
+      "unknown_field at $.tasks: field is not part of the schema"
+    ],
+    "graph_correction_attempted": true,
+    "task_graph_schema_version": "task_graph.v1",
+    "checkpoint_source": "legacy_fallback"
+  },
+  "_task_graph": {
+    "schema_version": "task_graph.v1",
+    "goal": {
+      "description": "到淘宝再来一单芝华仕3m多的真皮沙发",
+      "success_criteria": [
+        {
+          "criterion_id": "vc_goal_001",
+          "description": "页面显示'确认订单'标题，且订单明细中正确显示芝华仕真皮沙发商品、数量及价格",
+          "evidence_types": [
+            "screenshot",
+            "ocr"
+          ],
+          "required": true
+        }
+      ]
+    },
+    "constraints": [],
+    "subtasks": [
+      {
+        "subtask_id": "st_001",
+        "name": "进入历史订单列表",
+        "description": "页面显示'我的淘宝'中的'全部'或'待收货'等订单列表，且列表中可见历史购买记录",
+        "required": true,
+        "depends_on": [],
+        "preconditions": [],
+        "success_criteria": [
+          {
+            "criterion_id": "vc_st_001_01",
+            "description": "页面显示'我的淘宝'中的'全部'或'待收货'等订单列表，且列表中可见历史购买记录",
+            "evidence_types": [
+              "screenshot",
+              "ocr"
+            ],
+            "required": true
+          }
+        ],
+        "forbidden_states": [],
+        "risk_level": "low",
+        "reversible": true,
+        "allowed_reorder": false,
+        "alternative_group_id": "",
+        "checkpoint_ids": [
+          "cp_001"
+        ]
+      },
+      {
+        "subtask_id": "st_002",
+        "name": "定位到芝华仕沙发订单",
+        "description": "在订单列表中可见包含'芝华仕'、'真皮沙发'关键词的订单条目，且价格区间符合'3m多'（3000-3999元）特征",
+        "required": true,
+        "depends_on": [
+          "st_001"
+        ],
+        "preconditions": [
+          "进入历史订单列表"
+        ],
+        "success_criteria": [
+          {
+            "criterion_id": "vc_st_002_01",
+            "description": "在订单列表中可见包含'芝华仕'、'真皮沙发'关键词的订单条目，且价格区间符合'3m多'（3000-3999元）特征",
+            "evidence_types": [
+              "screenshot",
+              "ocr"
+            ],
+            "required": true
+          }
+        ],
+        "forbidden_states": [],
+        "risk_level": "low",
+        "reversible": true,
+        "allowed_reorder": false,
+        "alternative_group_id": "",
+        "checkpoint_ids": [
+          "cp_002"
+        ]
+      },
+      {
+        "subtask_id": "st_003",
+        "name": "触发复购操作",
+        "description": "点击该订单下的'再来一单'或'复购'按钮，页面跳转至商品详情页或确认订单页，且商品SKU与历史订单一致",
+        "required": true,
+        "depends_on": [
+          "st_002"
+        ],
+        "preconditions": [
+          "定位到芝华仕沙发订单"
+        ],
+        "success_criteria": [
+          {
+            "criterion_id": "vc_st_003_01",
+            "description": "点击该订单下的'再来一单'或'复购'按钮，页面跳转至商品详情页或确认订单页，且商品SKU与历史订单一致",
+            "evidence_types": [
+              "screenshot",
+              "ocr"
+            ],
+            "required": true
+          }
+        ],
+        "forbidden_states": [],
+        "risk_level": "low",
+        "reversible": true,
+        "allowed_reorder": false,
+        "alternative_group_id": "",
+        "checkpoint_ids": [
+          "cp_003"
+        ]
+      },
+      {
+        "subtask_id": "st_004",
+        "name": "进入确认订单页面",
+        "description": "页面显示'确认订单'标题，且订单明细中正确显示芝华仕真皮沙发商品、数量及价格",
+        "required": true,
+        "depends_on": [
+          "st_003"
+        ],
+        "preconditions": [
+          "触发复购操作"
+        ],
+        "success_criteria": [
+          {
+            "criterion_id": "vc_st_004_01",
+            "description": "页面显示'确认订单'标题，且订单明细中正确显示芝华仕真皮沙发商品、数量及价格",
+            "evidence_types": [
+              "screenshot",
+              "ocr"
+            ],
+            "required": true
+          }
+        ],
+        "forbidden_states": [],
+        "risk_level": "low",
+        "reversible": true,
+        "allowed_reorder": false,
+        "alternative_group_id": "",
+        "checkpoint_ids": [
+          "cp_004"
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "from": "st_001",
+        "to": "st_002",
+        "type": "requires",
+        "condition": "进入历史订单列表"
+      },
+      {
+        "from": "st_002",
+        "to": "st_003",
+        "type": "requires",
+        "condition": "定位到芝华仕沙发订单"
+      },
+      {
+        "from": "st_003",
+        "to": "st_004",
+        "type": "requires",
+        "condition": "触发复购操作"
+      }
+    ],
+    "alternative_groups": [],
+    "metadata": {
+      "source": "checkpoint_migration",
+      "model": "",
+      "rag_hits": [],
+      "quality_status": "compatibility_projection"
+    }
+  },
+  "_task_graph_schema_version": "task_graph.v1",
+  "_checkpoints": [
+    {
+      "name": "进入历史订单列表",
+      "required": true,
+      "preconditions": "",
+      "expected_state": "页面显示'我的淘宝'中的'全部'或'待收货'等订单列表，且列表中可见历史购买记录"
+    },
+    {
+      "name": "定位到芝华仕沙发订单",
+      "required": true,
+      "preconditions": "进入历史订单列表",
+      "expected_state": "在订单列表中可见包含'芝华仕'、'真皮沙发'关键词的订单条目，且价格区间符合'3m多'（3000-3999元）特征"
+    },
+    {
+      "name": "触发复购操作",
+      "required": true,
+      "preconditions": "定位到芝华仕沙发订单",
+      "expected_state": "点击该订单下的'再来一单'或'复购'按钮，页面跳转至商品详情页或确认订单页，且商品SKU与历史订单一致"
+    },
+    {
+      "name": "进入确认订单页面",
+      "required": true,
+      "preconditions": "触发复购操作",
+      "expected_state": "页面显示'确认订单'标题，且订单明细中正确显示芝华仕真皮沙发商品、数量及价格"
+    }
+  ]
 }
