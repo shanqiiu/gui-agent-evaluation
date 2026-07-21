@@ -97,7 +97,111 @@ _TASK_GRAPH_PROMPT = """你是 GUI Agent 执行评测中的任务规划专家。
 每个 subtask 必须包含 subtask_id、name、description、required、depends_on、preconditions、success_criteria、forbidden_states、risk_level、reversible、allowed_reorder、alternative_group_id、checkpoint_ids。
 每条 edge 必须包含 from、to、type、condition，type 只能是 requires 或 recommended。
 
+## 合法 JSON 示例
+以下只展示格式，实际内容必须根据用户指令生成：
+{
+  "schema_version": "task_graph.v1",
+  "goal": {
+    "description": "完成用户请求的 GUI 任务",
+    "success_criteria": [
+      {
+        "criterion_id": "vc_goal_001",
+        "description": "最终目标状态在页面中可见",
+        "evidence_types": ["screenshot", "ocr"],
+        "required": true
+      }
+    ]
+  },
+  "constraints": [],
+  "subtasks": [
+    {
+      "subtask_id": "st_001",
+      "name": "入口页面已打开",
+      "description": "页面显示任务相关入口或列表",
+      "required": true,
+      "depends_on": [],
+      "preconditions": [],
+      "success_criteria": [
+        {
+          "criterion_id": "vc_st_001_01",
+          "description": "任务相关入口或列表在页面中可见",
+          "evidence_types": ["screenshot", "ocr"],
+          "required": true
+        }
+      ],
+      "forbidden_states": [],
+      "risk_level": "low",
+      "reversible": true,
+      "allowed_reorder": false,
+      "alternative_group_id": "",
+      "checkpoint_ids": ["cp_001"]
+    },
+    {
+      "subtask_id": "st_002",
+      "name": "目标状态已达成",
+      "description": "页面显示用户请求的目标状态",
+      "required": true,
+      "depends_on": ["st_001"],
+      "preconditions": ["入口页面已打开"],
+      "success_criteria": [
+        {
+          "criterion_id": "vc_st_002_01",
+          "description": "用户请求的目标状态在页面中可见",
+          "evidence_types": ["screenshot", "ocr"],
+          "required": true
+        }
+      ],
+      "forbidden_states": [],
+      "risk_level": "low",
+      "reversible": true,
+      "allowed_reorder": false,
+      "alternative_group_id": "",
+      "checkpoint_ids": ["cp_002"]
+    },
+    {
+      "subtask_id": "st_003",
+      "name": "任务完成状态已确认",
+      "description": "页面显示任务最终完成状态",
+      "required": true,
+      "depends_on": ["st_002"],
+      "preconditions": ["目标状态已达成"],
+      "success_criteria": [
+        {
+          "criterion_id": "vc_st_003_01",
+          "description": "任务最终完成状态在页面中可见",
+          "evidence_types": ["screenshot", "ocr"],
+          "required": true
+        }
+      ],
+      "forbidden_states": [],
+      "risk_level": "low",
+      "reversible": true,
+      "allowed_reorder": false,
+      "alternative_group_id": "",
+      "checkpoint_ids": ["cp_003"]
+    }
+  ],
+  "edges": [
+    {
+      "from": "st_001",
+      "to": "st_002",
+      "type": "requires",
+      "condition": "入口页面已打开"
+    },
+    {
+      "from": "st_002",
+      "to": "st_003",
+      "type": "requires",
+      "condition": "目标状态已达成"
+    }
+  ],
+  "alternative_groups": [],
+  "metadata": {}
+}
+
 约束：
+- 顶层字段只能是 schema_version、goal、constraints、subtasks、edges、alternative_groups、metadata。
+- 禁止输出 tasks、start_task、end_task、dependencies、nodes 等未知顶层字段。
 - 子任务描述可观察状态边界，不要描述点击、输入、滑动等具体操作步骤。
 - required 子任务必须至少有一个可观察成功条件。
 - requires 依赖必须构成 DAG，且 depends_on 与 requires edge 双向一致。
@@ -117,7 +221,14 @@ _REFINE_TASK_GRAPH_PROMPT = """上一次 TaskGraph 输出未通过 task_graph.v1
 ## 校验错误
 {issues}
 
-只允许修正结构、引用、依赖、可验证性和 3-8 个语义子任务约束。只输出严格的 task_graph.v1 JSON 对象，不要 Markdown 或额外文字。"""
+修正要求：
+- 必须把任何 tasks/start_task/end_task/dependencies/nodes 风格输出转换为 task_graph.v1。
+- 顶层字段只能是 schema_version、goal、constraints、subtasks、edges、alternative_groups、metadata。
+- schema_version 必须是 "task_graph.v1"。
+- subtasks 必须是 3-8 个语义子任务，每个子任务字段完整。
+- edges 必须与每个 subtask.depends_on 完全一致。
+- 只允许修正结构、引用、依赖、可验证性和 3-8 个语义子任务约束。
+- 只输出严格的 task_graph.v1 JSON 对象，不要 Markdown 或额外文字。"""
 
 _ACTION_NAME_PREFIXES = (
     "点击", "输入", "滑动", "滚动", "长按", "双击", "拖动", "返回",
@@ -194,9 +305,10 @@ class Decomposer:
         self.refinement_attempted = False
         docs = query_knowledge(instruction, app_name=app_name, top_k=top_k)
         knowledge = "\n\n".join(docs) if docs else "（无相关 App 知识）"
-        prompt = _TASK_GRAPH_PROMPT.format(
-            knowledge=knowledge,
-            instruction=instruction,
+        prompt = (
+            _TASK_GRAPH_PROMPT
+            .replace("{knowledge}", knowledge)
+            .replace("{instruction}", instruction)
         )
 
         response = self._call_graph(prompt)

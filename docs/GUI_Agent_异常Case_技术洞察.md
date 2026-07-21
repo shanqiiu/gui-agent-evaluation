@@ -1,13 +1,16 @@
 # GUI Agent 异常 Case 技术洞察说明
 
-状态：异常 taxonomy 和研究洞察材料，不是实现规范。当前实现规范以 `docs/01-技术方案.md` 为准。
+状态：异常 taxonomy 和研究洞察材料；其中 1.2 “异常 case 的定义边界”作为当前实现采用的顶层异常分类来源。具体字段、输出和工程实现规范以 `docs/01-技术方案.md` 为准。
 
 与当前实现的对应关系：
 
-- 重复动作 -> `src.common.repeated_action_detector`
-- 状态循环 -> `src.evaluator.state_evidence` + 重复检测器
-- 目标缺失 -> 后续基于 `intent_matches` 和 `verification_report` 的规划失效聚合
-- 执行失败 -> `ab_report` 和 `verification_report` 中的 AB/VLM 证据
+- 循环/死循环 -> `src.evaluator.state_evidence` + 重复检测器，后续统一输出 `loop` 事件。
+- 重复动作 -> `src.common.repeated_action_detector`，后续映射为顶层 `repeated_action` 事件。
+- Grounding 错误 -> 待补齐，需结合动作目标、坐标、页面变化和 OCR/UI 证据。
+- 规划失效 -> 当前由 `src.evaluator.planning_failure` 第一版聚合，后续接入 TaskGraph/TaskProgress。
+- Hallucination -> 待补齐，需对比 agent 描述、action purpose、页面描述和 OCR/UI 证据。
+- 异常中断响应 -> 待补齐，验证码、登录、权限弹窗、Crash、网络加载等作为 subtype。
+- 提前终止 -> 当前是 planning failure 子类型，后续提升为顶层 `premature_termination` 事件。
 
 ---
 # GUI Agent 异常Case 技术洞察文档

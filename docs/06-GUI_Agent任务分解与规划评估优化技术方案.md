@@ -736,10 +736,24 @@ RAG 内容不能直接作为任务已完成的证据。
 目标：在继续增加规则前建立定量依据。
 
 - [ ] 建立 100-300 条跨 App 标注集。
-- [ ] 标注 TaskGraph、subtask span、完成状态、首错步骤和恢复结果。
+- [ ] 标注 TaskGraph、subtask span、完成状态、首错步骤、恢复结果、异常顶层标签、subtype 和证据引用。
 - [ ] 新增 `src/evaluator/benchmark.py`。
 - [ ] 输出分解、对齐、验证、规划失效和恢复指标。
-- [ ] 按任务长度、App 和异常类型分桶。
+- [ ] 按任务长度、App、1.2 顶层异常类型和 subtype 分桶。
+
+### P1：按 1.2 七类异常补齐 taxonomy
+
+目标：异常事件的顶层分类与 `docs/GUI_Agent_异常Case_技术洞察.md` 1.2 保持一致。
+
+- [ ] 循环/死循环：复用 state sequence、页面签名、动作循环和无进展证据。
+- [ ] 重复动作：复用现有 repeated detector，并输出统一事件。
+- [ ] Grounding 错误：结合动作目标、坐标、页面变化和 OCR/UI 证据。
+- [ ] 规划失效：由 TaskGraph/TaskProgress 驱动，不只依赖 flat checkpoint。
+- [ ] Hallucination：对比 agent 描述、action purpose、页面描述和 OCR/UI 证据。
+- [ ] 异常中断响应：覆盖验证码、登录、权限弹窗、Crash、网络加载等中断状态。
+- [ ] 提前终止：从 planning failure 子类型提升为顶层事件。
+
+执行阻塞、恢复失败、错误级联、效率、证据完整度和高风险操作只作为 subtype、recovery outcome、impact、report metric 或 risk attribute，不作为新的顶层异常分类。
 
 ### P1：任务进度跟踪与经验数据飞轮
 

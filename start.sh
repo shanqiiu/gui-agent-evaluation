@@ -4,6 +4,8 @@ set -e
 # MODE=single: run one raw task directory and one baseline.
 # MODE=batch: run all task directories under RAW_BASE_DIR, then baseline all payload.json files.
 MODE="${MODE:-batch}"
+TASK_GRAPH_ENABLED="${TASK_GRAPH_ENABLED:-0}"
+export TASK_GRAPH_ENABLED
 
 # Edit these paths on the server before running.
 RAW_TASK_DIR="D:\path\to\raw_task_dir"

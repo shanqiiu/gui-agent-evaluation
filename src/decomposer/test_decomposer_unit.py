@@ -123,6 +123,29 @@ def test_task_graph_invalid_dependency_is_corrected_once():
     assert "unknown_dependency" in decomposer.prompts[1]
 
 
+def test_task_graph_tasks_style_response_is_corrected_to_schema_object():
+    invalid = {
+        "tasks": [
+            {"id": "task_1", "name": "search", "dependencies": []},
+            {"id": "task_2", "name": "verify", "dependencies": ["task_1"]},
+        ],
+        "start_task": "task_1",
+        "end_task": "task_2",
+    }
+    decomposer = StubDecomposer([
+        json.dumps(invalid, ensure_ascii=False),
+        json.dumps(valid_task_graph_data(), ensure_ascii=False),
+    ])
+
+    graph = decomposer.decompose_graph("Enable the sample feature", top_k=0)
+
+    assert graph is not None
+    assert graph.metadata.quality_status == "ok_after_correction"
+    assert "禁止输出 tasks" in decomposer.prompts[0]
+    assert "unknown_field at $.tasks" in decomposer.prompts[1]
+    assert "转换为 task_graph.v1" in decomposer.prompts[1]
+
+
 def test_task_graph_generation_stops_after_one_failed_correction():
     invalid = deepcopy(valid_task_graph_data())
     invalid["subtasks"] = invalid["subtasks"][:2]
