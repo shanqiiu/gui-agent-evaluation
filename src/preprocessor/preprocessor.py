@@ -117,7 +117,7 @@ def _coords_to_list(s: str) -> list[int]:
 def _parse_directives(raw_directives: str) -> dict:
     result: dict = {
         "action_type": "", "start_box": [], "end_box": [],
-        "element_text": "", "content": "",
+        "element_text": "", "content": "", "message": "",
     }
     if not raw_directives or raw_directives in ("{}", ""):
         return result
@@ -138,6 +138,10 @@ def _parse_directives(raw_directives: str) -> dict:
                 result["action_type"] = _ACTION_NORMALIZE.get(act_type, act_type)
 
             params = action.get("params", {})
+            for key in ("text", "setText", "message"):
+                if params.get(key):
+                    result["message"] = str(params.get(key))
+                    break
             points = params.get("points")
             if isinstance(points, list) and len(points) >= 2:
                 result["start_box"] = [int(points[0]), int(points[1])]
@@ -282,9 +286,10 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
     last_kept_action_type = ""
 
     steps: list[NormalizedStep] = []
+    interruption_events: list[dict[str, Any]] = []
     last_screenshot = ""
 
-    for sd in utg.get("stepData", []):
+    for raw_step_index, sd in enumerate(utg.get("stepData", [])):
         sid = str(sd.get("stepId", ""))
         if sid in ("home", "end"):
             continue
@@ -312,6 +317,16 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
 
         # Filter thinking/reflection, conversation/system messages and terminal records.
         if _is_non_executable_action(action_type):
+            continue
+        if action_type == "clarify":
+            interruption_events.append({
+                "type": "clarify",
+                "message": dir_info.get("message") or _extract_clarify_message(at_str),
+                "source_step_id": sid,
+                "source_action": at_str,
+                "raw_step_index": raw_step_index,
+                "cost_time_ms": int(sd.get("cost_time", "0") or "0"),
+            })
             continue
 
         # Action purpose: image always consumes; open_app (star) consumes with merge
@@ -392,11 +407,19 @@ def preprocess(task_dir: str | Path) -> NormalizedTask:
         task_uuid=task_uuid,
         instruction=instruction,
         steps=steps,
+        interruption_events=interruption_events,
         ocr_pages=ocr_pages,
         total_raw_steps=len(utg.get("stepData", [])),
         total_action_steps=len(steps),
         total_duration_ms=sum(s.cost_time_ms for s in steps),
     )
+
+
+def _extract_clarify_message(action_str: str) -> str:
+    match = re.search(r"clarify\((.*?)\)", action_str or "")
+    if not match:
+        return ""
+    return match.group(1).strip()
 
 
 def _extract_instruction(utg: dict) -> str:

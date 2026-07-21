@@ -45,7 +45,18 @@ def test_preprocessor_with_mock():
         assert "unknown" not in action_types[:5], "Thinking steps should be filtered"
         assert "CheckAppExist" not in action_types, "System check steps should be filtered"
         assert "finished" not in action_types, "Raw terminal records should be filtered before payload writing"
+        assert "clarify" not in action_types, "Clarify/manual intervention should not occupy executable steps"
         assert not any("用户回复" in a or "播报" in a for a in action_types), "Conversation records should be filtered"
+        assert task.interruption_events == [
+            {
+                "type": "clarify",
+                "message": "当前页面需要你手动操作",
+                "source_step_id": "12",
+                "source_action": "clarify(当前页面需要你手动操作);",
+                "raw_step_index": 12,
+                "cost_time_ms": 702,
+            }
+        ]
         print(f"  PASS: non-executable steps filtered, action types: {action_types[:5]}")
 
         # Check coordinates
@@ -97,8 +108,11 @@ def test_payload_writer():
         ]
         assert payload_action_types.count("finished") == 1
         assert payload_action_types[-1] == "finished"
+        assert "clarify" not in payload_action_types
         assert "CheckAppExist" not in payload_action_types
         assert not any("用户回复" in a or "播报" in a for a in payload_action_types)
+        assert payload["_interruption_events"][0]["type"] == "clarify"
+        assert payload["_interruption_events"][0]["message"] == "当前页面需要你手动操作"
         print(f"  PASS: payload.json generated with {len(payload['seq_info'])} seq_info entries")
         print(f"  instruction: {payload['instruction']}")
         print(f"  step_level_instruction: {payload.get('step_level_instruction', '')[:80]}")

@@ -109,6 +109,8 @@ def write_payload(
         payload["_action_purposes"] = task.action_purposes
     if task.ocr_pages:
         payload["_ocr_pages"] = task.ocr_pages
+    if task.interruption_events:
+        payload["_interruption_events"] = task.interruption_events
     decomposer_status = getattr(task, "decomposer_status", None)
     if decomposer_status:
         payload["_decomposer"] = decomposer_status

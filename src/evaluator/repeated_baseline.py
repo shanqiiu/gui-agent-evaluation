@@ -25,6 +25,7 @@ from src.verifier import (
 )
 from src.evaluator.planning_failure import detect_planning_failure
 from src.evaluator.state_evidence import build_state_sequence
+from src.evaluator.anomaly_events import build_anomaly_events
 
 
 @dataclass
@@ -125,6 +126,10 @@ def run_repeated_baseline(
     )
     planning_failure_prediction = planning_failure.to_dict()
     planning_failure_prediction["task_uuid"] = task_uuid
+    anomaly_events = build_anomaly_events(
+        hydrated,
+        planning_failure_prediction=planning_failure_prediction,
+    )
 
     result = {
         "schema_version": "repeated_baseline.v1",
@@ -141,6 +146,7 @@ def run_repeated_baseline(
         "state_sequence": state_sequence.to_dict(),
         "repeated_prediction": repeated_prediction,
         "planning_failure_prediction": planning_failure_prediction,
+        "anomaly_events": anomaly_events,
     }
 
     output_base = Path(output_dir) if output_dir else payload_path.parent / "repeated_baseline"
@@ -154,6 +160,7 @@ def run_repeated_baseline(
     _write_json(output_base / "state_sequence.json", result["state_sequence"])
     _write_json(output_base / "repeated_prediction.json", result["repeated_prediction"])
     _write_json(output_base / "planning_failure_result.json", result["planning_failure_prediction"])
+    _write_json(output_base / "anomaly_events.json", result["anomaly_events"])
     _write_json(output_base / "baseline_result.json", result)
     return result
 
@@ -195,6 +202,7 @@ def run_repeated_baseline_batch(
                 "planning_failure_label": result["planning_failure_prediction"]["label"],
                 "planning_failure_subtype": result["planning_failure_prediction"]["subtype"],
                 "planning_failure_confidence": result["planning_failure_prediction"].get("confidence", 0.0),
+                "anomaly_event_count": len(result.get("anomaly_events") or []),
             })
         except Exception as exc:
             errors.append({

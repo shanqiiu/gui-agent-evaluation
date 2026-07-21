@@ -750,7 +750,8 @@ RAG 内容不能直接作为任务已完成的证据。
 - [ ] Grounding 错误：结合动作目标、坐标、页面变化和 OCR/UI 证据。
 - [ ] 规划失效：由 TaskGraph/TaskProgress 驱动，不只依赖 flat checkpoint。
 - [ ] Hallucination：对比 agent 描述、action purpose、页面描述和 OCR/UI 证据。
-- [ ] 异常中断响应：覆盖验证码、登录、权限弹窗、Crash、网络加载等中断状态。
+- [x] 异常中断响应第一步：`clarify` 从主执行轨迹剥离，写入 `_interruption_events`，并映射为 `anomaly_events` 中的 `abnormal_interruption_response/manual_clarification_required`。
+- [ ] 异常中断响应后续：覆盖验证码、登录、权限弹窗、Crash、网络加载等中断状态。
 - [ ] 提前终止：从 planning failure 子类型提升为顶层事件。
 
 执行阻塞、恢复失败、错误级联、效率、证据完整度和高风险操作只作为 subtype、recovery outcome、impact、report metric 或 risk attribute，不作为新的顶层异常分类。

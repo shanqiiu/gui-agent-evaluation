@@ -20,7 +20,7 @@ class NormalizedStep:
     step_index: int                     # 0-based in action sequence
 
     # ── Action (from directives + stepData) ──
-    action_type: str                    # "click" | "scroll" | "type" | "open_app" | "clarify" | "finished"
+    action_type: str                    # "click" | "scroll" | "type" | "open_app" | "finished"
     action_start_box: list[int]         # [x, y] from params.points or node.bounds center
     action_end_box: list[int]           # [x, y] for multi-point gestures (scroll/swipe)
     action_target: str                  # resolved control name (from rawPage fallback if directives empty)
@@ -62,6 +62,9 @@ class NormalizedTask:
 
     # All action steps (thinking/reflection steps filtered out)
     steps: list[NormalizedStep] = field(default_factory=list)
+
+    # Non-GUI interruption records stripped from the executable trajectory.
+    interruption_events: list[dict[str, Any]] = field(default_factory=list)
 
     # OCR tree snapshots (one per page/screen state)
     ocr_pages: list[dict] = field(default_factory=list)
