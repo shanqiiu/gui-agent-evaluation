@@ -5,3 +5,4 @@ __pycache__/
 FuncOracleCheck/
 .env
 chroma_db/
+start.sh
