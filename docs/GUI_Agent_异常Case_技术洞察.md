@@ -9,7 +9,7 @@
 - Grounding 错误 -> 待补齐，需结合动作目标、坐标、页面变化和 OCR/UI 证据。
 - 规划失效 -> 当前由 `src.evaluator.planning_failure` 第一版聚合，后续接入 TaskGraph/TaskProgress。
 - Hallucination -> 待补齐，需对比 agent 描述、action purpose、页面描述和 OCR/UI 证据。
-- 异常中断响应 -> `clarify` 已剥离为 `_interruption_events` 并映射到 `anomaly_events`；验证码、登录、权限弹窗、Crash、网络加载等 subtype 待补齐。
+- 异常中断响应 -> `clarify` 已剥离为 `_interruption_events` 并映射到 `anomaly_events`；验证码/安全验证、登录、权限弹窗、Crash/App 异常、网络/加载异常已接入 state keyword scan 第一版。
 - 提前终止 -> 当前是 planning failure 子类型，后续提升为顶层 `premature_termination` 事件。
 
 ---

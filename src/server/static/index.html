@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUI Agent Evaluation</title>
+<style>
+  :root {
+    --primary: #3ecf8e; --primary-deep: #24b47e; --ink: #171717;
+    --ink-mute: #707070; --ink-mute-2: #9a9a9a; --ink-faint: #b2b2b2;
+    --on-primary: #171717; --on-dark: #ffffff; --canvas: #ffffff;
+    --canvas-soft: #fafafa; --canvas-night: #1c1c1c;
+    --hairline: #dfdfdf; --hairline-strong: #c7c7c7; --hairline-cool: #ededed;
+    --tomato: #ff2201; --yellow: #ffdb13; --purple: #6b01c2;
+    --s-sm: 8px; --s-md: 12px; --s-lg: 16px; --s-xl: 24px; --s-xxl: 32px;
+    --r-sm: 6px; --r-md: 8px; --r-lg: 12px; --r-full: 9999px;
+    --font: 'Circular','Inter','Helvetica Neue',Helvetica,Arial,sans-serif;
+    --mono: ui-monospace,Menlo,Monaco,Consolas,monospace;
+    --shadow-1: 0 1px 3px rgba(0,0,0,0.06);
+    --cat-loop:#ff2201;--cat-repeated:#ffdb13;--cat-grounding:#e2005a;
+    --cat-planning:#6b01c2;--cat-hallucination:#644fc1;--cat-interruption:#054cff;--cat-preterm:#c7007e;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);font-size:14px;color:var(--ink);background:var(--canvas);-webkit-font-smoothing:antialiased}
+  .app{max-width:1440px;margin:0 auto;padding:var(--s-xl)}
+  .header{display:flex;align-items:center;justify-content:space-between;padding-bottom:var(--s-lg);margin-bottom:var(--s-xl);border-bottom:1px solid var(--hairline);flex-wrap:wrap;gap:var(--s-md)}
+  .header-brand{display:flex;align-items:center;gap:var(--s-md)}
+  .header-dot{width:10px;height:10px;background:var(--primary);border-radius:var(--r-full)}
+  .header-title{font-size:22px;font-weight:500;color:var(--ink)}
+  .header-ver{font-size:12px;color:var(--ink-mute);background:var(--canvas-soft);padding:2px 8px;border-radius:var(--r-full)}
+  .status-dot{width:8px;height:8px;border-radius:var(--r-full);display:inline-block;margin-right:6px}
+  .status-dot.idle{background:var(--ink-faint)}.status-dot.running{background:var(--primary);animation:pulse 1s infinite}
+  .status-dot.completed{background:var(--primary)}.status-dot.failed{background:var(--tomato)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+
+  .layout{display:grid;grid-template-columns:340px 1fr;gap:var(--s-xl);min-height:70vh}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+  /* ── Sidebar ── */
+  .sidebar{border-right:1px solid var(--hairline);padding-right:var(--s-xl)}
+  @media(max-width:900px){.sidebar{border-right:none;padding-right:0}}
+  .section-label{font-size:12px;font-weight:500;color:var(--ink-mute);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:var(--s-md);margin-top:var(--s-xl)}
+  .section-label:first-child{margin-top:0}
+  .field-group{display:flex;flex-direction:column;gap:var(--s-sm);margin-bottom:var(--s-lg)}
+  .field-label{font-size:13px;font-weight:500;color:var(--ink-mute)}
+  .field-input{font-family:var(--mono);font-size:13px;padding:var(--s-sm) var(--s-md);border:1px solid var(--hairline);border-radius:var(--r-sm);background:var(--canvas);color:var(--ink);outline:none;width:100%}
+  .field-input:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(62,207,142,0.15)}
+  .field-row{display:flex;align-items:center;gap:var(--s-sm)}
+  .field-row input[type=checkbox]{accent-color:var(--primary)}
+  .field-hint{font-size:12px;color:var(--ink-mute-2)}
+
+  .btn{font-family:var(--font);font-size:14px;font-weight:500;line-height:1;padding:var(--s-sm) var(--s-lg);border-radius:var(--r-sm);cursor:pointer;border:none;transition:background 0.15s,opacity 0.15s;white-space:nowrap}
+  .btn:disabled{opacity:0.5;cursor:not-allowed}
+  .btn-primary{background:var(--primary);color:var(--on-primary);width:100%}
+  .btn-primary:hover:not(:disabled){background:var(--primary-deep)}
+  .btn-outline{background:var(--canvas);color:var(--ink);border:1px solid var(--hairline-strong);width:100%}
+  .btn-outline:hover:not(:disabled){background:var(--canvas-soft)}
+  .btn-sm{padding:var(--s-sm) var(--s-md);font-size:13px;width:auto}
+  .btn-row{display:flex;gap:var(--s-sm);margin-top:var(--s-sm)}
+
+  /* ── Log Viewer ── */
+  .log-viewer{background:var(--canvas-night);border-radius:var(--r-sm);padding:var(--s-md);height:300px;overflow-y:auto;font-family:var(--mono);font-size:12px;line-height:1.6;color:#c0c0c0;margin-bottom:var(--s-lg)}
+  .log-viewer .line{white-space:pre-wrap;word-break:break-all}
+  .log-viewer .line.stderr{color:var(--tomato)}
+  .log-viewer .line.info{color:#80cbc4}
+  .log-viewer .empty-log{color:var(--ink-mute-2);font-style:italic;text-align:center;padding-top:120px}
+
+  /* ── Tabs ── */
+  .tabs{display:flex;gap:0;margin-bottom:var(--s-xl);border-bottom:1px solid var(--hairline)}
+  .tab{padding:var(--s-md) var(--s-lg);font-size:14px;font-weight:500;cursor:pointer;color:var(--ink-mute);border-bottom:2px solid transparent;transition:color 0.15s,border-color 0.15s}
+  .tab:hover{color:var(--ink)}
+  .tab.active{color:var(--ink);border-bottom-color:var(--primary)}
+
+  /* ── Summary Cards ── */
+  .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:var(--s-md);margin-bottom:var(--s-xl)}
+  .stat-card{border:1px solid var(--hairline);border-radius:var(--r-lg);padding:var(--s-lg);box-shadow:var(--shadow-1)}
+  .stat-label{font-size:12px;color:var(--ink-mute);margin-bottom:var(--s-xs)}
+  .stat-value{font-size:28px;font-weight:500;letter-spacing:-0.42px;line-height:1.2}
+  .stat-sub{font-size:12px;color:var(--ink-mute-2);margin-top:var(--s-xxs)}
+
+  /* ── Anomaly Chart ── */
+  .anomaly-chart{display:flex;flex-direction:column;gap:var(--s-sm);margin-bottom:var(--s-xl);max-width:800px}
+  .bar-row{display:flex;align-items:center;gap:var(--s-md)}
+  .bar-label{width:180px;font-size:13px;color:var(--ink-mute);text-align:right;flex-shrink:0}
+  .bar-track{flex:1;height:22px;background:var(--canvas-soft);border-radius:var(--r-xs);overflow:hidden}
+  .bar-fill{height:100%;border-radius:var(--r-xs);transition:width 0.4s ease;display:flex;align-items:center;padding-left:8px}
+  .bar-count{font-size:11px;font-weight:500;color:var(--on-dark)}
+  .bar-pill{font-size:11px;padding:1px 8px;border-radius:var(--r-full);font-weight:500;flex-shrink:0}
+
+  /* ── Task Table ── */
+  .table-wrap{overflow-x:auto;border:1px solid var(--hairline);border-radius:var(--r-lg);margin-bottom:var(--s-xl)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{padding:var(--s-md) var(--s-lg);font-weight:500;font-size:12px;color:var(--ink-mute);background:var(--canvas-soft);border-bottom:1px solid var(--hairline);cursor:pointer;user-select:none;white-space:nowrap;text-align:left}
+  th:hover{color:var(--ink)}
+  td{padding:var(--s-md) var(--s-lg);border-bottom:1px solid var(--hairline-cool);vertical-align:middle}
+  tr.task-row{cursor:pointer;transition:background 0.1s}
+  tr.task-row:hover{background:var(--canvas-soft)}
+  tr.task-row.expanded{background:var(--canvas-soft)}
+  tr.detail-row{display:none}
+  tr.detail-row.show{display:table-row}
+  td.detail-cell{padding:0}
+
+  .badge{display:inline-block;font-size:11px;font-weight:500;padding:2px 8px;border-radius:var(--r-full);white-space:nowrap}
+  .badge-normal{background:var(--primary);color:var(--on-primary)}
+  .badge-abnormal{background:var(--tomato);color:var(--on-dark)}
+  .badge-uncertain{background:var(--yellow);color:var(--ink)}
+  .badge-neutral{background:var(--canvas-soft);color:var(--ink-mute);border:1px solid var(--hairline)}
+  .cat-pill{font-size:11px;font-weight:500;padding:1px 8px;border-radius:var(--r-full);white-space:nowrap;display:inline-block;margin:1px}
+
+  /* ── Detail Panel ── */
+  .detail-panel{padding:var(--s-xl);border-top:1px solid var(--hairline-strong);display:grid;grid-template-columns:1fr 1fr;gap:var(--s-xl)}
+  @media(max-width:900px){.detail-panel{grid-template-columns:1fr}}
+  .detail-heading{font-size:13px;font-weight:500;color:var(--ink-mute);margin-bottom:var(--s-md);text-transform:uppercase;letter-spacing:0.5px}
+  .event-item{background:var(--canvas-soft);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-md);font-size:13px;margin-bottom:var(--s-sm)}
+  .event-item-header{display:flex;align-items:center;gap:var(--s-sm);margin-bottom:var(--s-xs);flex-wrap:wrap}
+  .event-meta{display:flex;gap:var(--s-lg);flex-wrap:wrap;margin-top:var(--s-xs)}
+  .event-meta-item{font-size:11px;color:var(--ink-mute)}
+  .event-meta-item strong{color:var(--ink);font-weight:500}
+  .event-message{font-size:12px;color:var(--ink);margin-top:var(--s-xs);line-height:1.5;word-break:break-word}
+  .pf-stat{background:var(--canvas-soft);border:1px solid var(--hairline);border-radius:var(--r-md);padding:var(--s-md);min-width:90px;text-align:center}
+  .pf-stat-val{font-size:20px;font-weight:500}
+  .pf-stat-lbl{font-size:11px;color:var(--ink-mute);margin-top:2px}
+  .missing-cp-item{padding:var(--s-xs)0;border-bottom:1px solid var(--hairline-cool);font-size:12px;color:var(--ink-mute)}
+
+  .hidden{display:none!important}
+  .mt-lg{margin-top:var(--s-lg)}
+  .mono{font-family:var(--mono);font-size:12px}
+  .text-mute{color:var(--ink-mute);font-size:12px}
+  .flex-wrap{display:flex;gap:var(--s-md);flex-wrap:wrap}
+  .empty-state{padding:var(--s-huge,64px)var(--s-xl);text-align:center;color:var(--ink-mute)}
+  .tag{font-size:12px;font-weight:500;padding:2px 10px;border-radius:var(--r-full);border:1px solid var(--hairline-strong);background:var(--canvas);color:var(--ink-mute);cursor:pointer;transition:all 0.15s}
+  .tag.active{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-brand">
+      <div class="header-dot"></div>
+      <span class="header-title">GUI Agent Evaluation</span>
+      <span class="header-ver" id="serverStatus">idle</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:var(--s-md)">
+      <span id="jobCount" style="font-size:13px;color:var(--ink-mute)"></span>
+      <span id="logBtn" class="tag" onclick="toggleLog()">Log</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- Sidebar Config -->
+    <div class="sidebar">
+      <div class="section-label">Preprocess</div>
+      <div class="field-group">
+        <div class="field-label">Input Path</div>
+        <input class="field-input" id="ppInput" placeholder="D:\data\tasks" value="">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Output Dir</div>
+        <input class="field-input" id="ppOutput" placeholder="D:\output\preprocess" value="">
+      </div>
+      <div class="field-row" style="margin-bottom:var(--s-sm)">
+        <input type="checkbox" id="ppBatch" checked><label for="ppBatch" style="font-size:13px;cursor:pointer">Batch mode</label>
+      </div>
+      <div class="field-row" style="margin-bottom:var(--s-sm)">
+        <input type="checkbox" id="ppTG"><label for="ppTG" style="font-size:13px;cursor:pointer">Task Graph enabled</label>
+      </div>
+      <button class="btn btn-primary" id="btnPP" onclick="runPreprocess()">Run Preprocess</button>
+
+      <div class="section-label">Evaluate</div>
+      <div class="field-group">
+        <div class="field-label">Input Path</div>
+        <input class="field-input" id="evInput" placeholder="D:\output\preprocess" value="">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Output Dir</div>
+        <input class="field-input" id="evOutput" placeholder="D:\output\baseline" value="">
+      </div>
+      <div class="field-row" style="margin-bottom:var(--s-sm)">
+        <input type="checkbox" id="evBatch" checked><label for="evBatch" style="font-size:13px;cursor:pointer">Batch mode</label>
+      </div>
+      <div class="field-row" style="margin-bottom:var(--s-sm)">
+        <input type="checkbox" id="evMock"><label for="evMock" style="font-size:13px;cursor:pointer">Mock mode (no VLM)</label>
+      </div>
+      <div class="field-row" style="margin-bottom:var(--s-sm)">
+        <input type="checkbox" id="evSkipV"><label for="evSkipV" style="font-size:13px;cursor:pointer">Skip checkpoint verify</label>
+      </div>
+      <button class="btn btn-primary" id="btnEV" onclick="runEvaluate()">Run Evaluate</button>
+
+      <div class="section-label">Quick Load</div>
+      <div class="btn-row">
+        <button class="btn btn-outline btn-sm" onclick="loadResultFile()">Load batch_result.json</button>
+        <input type="file" id="fileInput" style="display:none" accept=".json" onchange="handleFileLoad(event)">
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main">
+      <!-- Log Viewer -->
+      <div class="log-viewer" id="logViewer"><div class="empty-log">Run a job to see logs here</div></div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('overview',this)">Overview</div>
+        <div class="tab" onclick="switchTab('tasks',this)">Tasks</div>
+      </div>
+
+      <!-- Overview Tab -->
+      <div id="tab-overview">
+        <div id="overviewContent" class="empty-state" style="padding-top:60px;padding-bottom:60px">
+          <div style="font-size:36px;margin-bottom:16px;opacity:0.3">—</div>
+          <div style="font-size:16px;margin-bottom:8px">No results loaded</div>
+          <div class="text-mute">Run an evaluation job or load a batch_result.json file</div>
+        </div>
+        <div id="summaryCards" class="hidden"></div>
+        <div id="anomalyChart" class="hidden"></div>
+      </div>
+
+      <!-- Tasks Tab -->
+      <div id="tab-tasks" class="hidden">
+        <div id="taskTableWrap"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Categories ── */
+const CATS={loop:{l:'Loop',c:'#ff2201'},repeated_action:{l:'Repeated',c:'#ffdb13'},grounding_error:{l:'Grounding',c:'#e2005a'},planning_failure:{l:'Planning',c:'#6b01c2'},hallucination:{l:'Hallucination',c:'#644fc1'},abnormal_interruption_response:{l:'Interruption',c:'#054cff'},premature_termination:{l:'Pre-term',c:'#c7007e'}};
+
+let state={jobs:{},currentLogJob:null,es:null,batchData:null,taskDetails:{},sortCol:'task_uuid',sortAsc:true,logVisible:true};
+
+/* ── API ── */
+async function api(url,opts){const r=await fetch(url,opts);return r.json()}
+async function apiPost(url,body){const f=new FormData();for(const[k,v]of Object.entries(body))f.append(k,v);return api(url,{method:'POST',body:f})}
+
+/* ── Run Actions ── */
+async function runPreprocess(){
+  const btn=document.getElementById('btnPP');btn.disabled=true;btn.textContent='Running...';
+  const r=await apiPost('/api/run/preprocess',{input_path:document.getElementById('ppInput').value,output_dir:document.getElementById('ppOutput').value,batch:document.getElementById('ppBatch').checked,task_graph:document.getElementById('ppTG').checked,mock:false});
+  if(r.job_id){streamJob(r.job_id);state.currentLogJob=r.job_id}
+  btn.disabled=false;btn.textContent='Run Preprocess';
+}
+async function runEvaluate(){
+  const btn=document.getElementById('btnEV');btn.disabled=true;btn.textContent='Running...';
+  const r=await apiPost('/api/run/evaluate',{input_path:document.getElementById('evInput').value,output_dir:document.getElementById('evOutput').value,batch:document.getElementById('evBatch').checked,mock:document.getElementById('evMock').checked,skip_checkpoint_verify:document.getElementById('evSkipV').checked});
+  if(r.job_id){streamJob(r.job_id);state.currentLogJob=r.job_id}
+  btn.disabled=false;btn.textContent='Run Evaluate';
+}
+
+/* ── Log Streaming (SSE) ── */
+let logQueue=[],logTimer=null;
+function streamJob(jobId){
+  if(state.es){state.es.close();state.es=null}
+  const logViewer=document.getElementById('logViewer');
+  logViewer.innerHTML='';
+  logQueue=[];
+  if(logTimer)clearInterval(logTimer);
+  const appendLine=(text,cls='')=>{logQueue.push({text,cls})};
+  logTimer=setInterval(()=>{while(logQueue.length>0){const{text,cls}=logQueue.shift();const div=document.createElement('div');div.className='line '+cls;div.textContent=text;logViewer.appendChild(div);logViewer.scrollTop=logViewer.scrollHeight}},50);
+
+  state.es=new EventSource('/api/jobs/'+jobId+'/stream');
+  state.es.onmessage=e=>{
+    try{const d=JSON.parse(e.data);
+      if(d.type==='log')appendLine(d.line);
+      else if(d.type==='status'){
+        appendLine('── '+(d.status==='completed'?'COMPLETED':d.status==='failed'?'FAILED':d.status).toUpperCase()+' ──','info');
+        if(d.result&&Object.keys(d.result).length>0){state.batchData=d.result;taskDetails={};renderAll()}
+        if(d.error)appendLine('ERROR: '+d.error,'stderr');
+        document.getElementById('serverStatus').textContent=d.status;
+        document.getElementById('serverStatus').className='header-ver';
+      }
+    }catch(ex){appendLine(e.data)}
+  };
+  state.es.onerror=()=>{if(state.es&&state.es.readyState===2){state.es.close();state.es=null;if(logTimer)clearInterval(logTimer);logTimer=null;while(logQueue.length>0){const{text,cls}=logQueue.shift();const div=document.createElement('div');div.className='line '+cls;div.textContent=text;logViewer.appendChild(div)}document.getElementById('serverStatus').textContent='idle'}};
+  document.getElementById('serverStatus').textContent='running';
+  document.getElementById('serverStatus').style.color='var(--primary)';
+}
+
+function toggleLog(){
+  const lv=document.getElementById('logViewer');
+  state.logVisible=!state.logVisible;lv.style.display=state.logVisible?'block':'none';
+  document.getElementById('logBtn').classList.toggle('active',state.logVisible);
+}
+
+/* ── Load Result File ── */
+function loadResultFile(){document.getElementById('fileInput').click()}
+function handleFileLoad(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{try{state.batchData=JSON.parse(ev.target.result);taskDetails={};renderAll()}catch(ex){alert('Invalid JSON: '+ex.message)}};r.readAsText(f);
+}
+
+/* ── Render ── */
+function renderAll(){
+  if(!state.batchData){return}
+  document.getElementById('overviewContent').classList.add('hidden');
+  renderSummary();renderChart();renderTable();
+  document.getElementById('summaryCards').classList.remove('hidden');
+  document.getElementById('anomalyChart').classList.remove('hidden');
+}
+function renderSummary(){
+  const{total,ok,error,results}=state.batchData;
+  const abnormal=(results||[]).filter(r=>r.label==='abnormal').length;
+  const pfAbnormal=(results||[]).filter(r=>r.planning_failure_label==='abnormal').length;
+  document.getElementById('summaryCards').innerHTML=`<div class="summary-grid"><div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" style="color:var(--ink)">${total}</div><div class="stat-sub">Tasks</div></div><div class="stat-card"><div class="stat-label">OK</div><div class="stat-value" style="color:var(--primary)">${ok}</div><div class="stat-sub">${(ok/total*100).toFixed(0)}%</div></div><div class="stat-card"><div class="stat-label">Errors</div><div class="stat-value" style="color:var(--tomato)">${error}</div><div class="stat-sub">Processing</div></div><div class="stat-card"><div class="stat-label">Abnormal</div><div class="stat-value" style="color:var(--yellow)">${abnormal}</div><div class="stat-sub">Repeated action</div></div><div class="stat-card"><div class="stat-label">Plan Fail</div><div class="stat-value" style="color:var(--purple)">${pfAbnormal}</div><div class="stat-sub">Planning failure</div></div></div>`;
+}
+function renderChart(){
+  const cnts={};for(const k of Object.keys(CATS))cnts[k]=0;
+  for(const r of(state.batchData.results||[])){const ae=(taskDetails[r.task_uuid]||{}).anomalyEvents||[];for(const ev of ae){if(cnts.hasOwnProperty(ev.category))cnts[ev.category]++}}
+  const total=Object.values(cnts).reduce((a,b)=>a+b,0);const max=Math.max(...Object.values(cnts),1);
+  let h='';for(const[k,cat]of Object.entries(CATS)){const n=cnts[k];const pct=total>0?n/total*100:0;h+=`<div class="bar-row"><span class="bar-label">${cat.l}</span><div class="bar-track"><div class="bar-fill" style="width:${n/max*100}%;background:${cat.c}">${n>0?`<span class="bar-count">${n}</span>`:''}</div></div><span class="bar-pill" style="background:${cat.c}20;color:${cat.c}">${pct.toFixed(0)}%</span></div>`}
+  document.getElementById('anomalyChart').innerHTML=h;
+}
+function renderTable(){
+  const results=[...(state.batchData.results||[])];sortRes(results);
+  document.getElementById('taskTableWrap').innerHTML=`<div class="table-wrap"><table><thead><tr><th onclick="sortCol='task_uuid';renderTable()">Task</th><th onclick="sortCol='label';renderTable()">Label</th><th onclick="sortCol='pf_label';renderTable()">Planning</th><th onclick="sortCol='anomaly';renderTable()">Anomalies</th><th onclick="sortCol='conf';renderTable()">Conf</th></tr></thead><tbody>${results.map((r,i)=>{const ae=(taskDetails[r.task_uuid]||{}).anomalyEvents||[];const cnts={};for(const ev of ae)cnts[ev.category]=(cnts[ev.category]||0)+1;const pills=Object.entries(cnts).slice(0,3).map(([c,n])=>{const cat=CATS[c]||{l:c,c:'#999'};return`<span class="cat-pill" style="background:${cat.c}20;color:${cat.c}">${cat.l}${n>1?n:''}</span>`}).join('');
+  return`<tr class="task-row" onclick="toggleDetail('${r.task_uuid}','${i}',this)"><td class="mono">${esc(r.task_uuid).substring(0,14)}</td><td><span class="badge badge-${r.label==='abnormal'?'abnormal':'normal'}">${r.label}</span></td><td><span class="badge badge-${r.planning_failure_label==='abnormal'?'abnormal':r.planning_failure_label==='uncertain'?'uncertain':'normal'}">${r.planning_failure_label||'normal'}</span></td><td>${r.anomaly_event_count>0?`<span style="font-weight:500;color:var(--tomato)">${r.anomaly_event_count}</span>`:'0'}<div style="margin-top:3px">${pills}</div></td><td class="mono">${r.confidence?r.confidence.toFixed(2):'-'}</td></tr><tr class="detail-row" id="dtl-${i}"><td colspan="5" class="detail-cell"><div class="detail-panel"><div><div class="detail-heading">Events (${ae.length})</div>${renderEvents(ae)}</div><div><div class="detail-heading">Planning</div>${renderPF(taskDetails[r.task_uuid]||{})}</div></div></td></tr>`}).join('')}</tbody></table></div>`;
+}
+function renderEvents(evts){if(!evts||!evts.length)return'<div class="text-mute">No events</div>';return evts.map(e=>{const cat=CATS[e.category]||{l:e.category,c:'#999'};return`<div class="event-item"><div class="event-item-header"><span class="cat-pill" style="background:${cat.c}20;color:${cat.c}">${cat.l}</span><span class="badge badge-neutral">${e.subtype||'-'}</span><span class="mono" style="font-size:11px;color:var(--ink-mute)">${(e.confidence||0).toFixed(2)}</span></div><div class="event-message">${esc(e.message||'')}</div><div class="event-meta"><span>Step: ${e.first_error_step>=0?e.first_error_step:'-'}</span><span>Recovery: ${e.recovery_outcome||'-'}</span><span>Impact: ${e.impact||'-'}</span></div></div>`}).join('')}
+function renderPF(d){const pf=d.planningFailure||{};if(!pf||!Object.keys(pf).length)return'<div class="text-mute">No data</div>';const sc=pf.required_completion_score;const scC=sc>=0.95?'var(--primary)':sc>=0.7?'var(--yellow)':'var(--tomato)';return`<div class="flex-wrap" style="margin-bottom:var(--s-md)"><div class="pf-stat"><div class="pf-stat-val" style="color:${scC}">${((sc||0)*100).toFixed(0)}%</div><div class="pf-stat-lbl">Completion</div></div><div class="pf-stat"><div class="pf-stat-val">${pf.required_achieved||pf.summary?.required_achieved||'-'}/${pf.required_total||pf.summary?.required_total||'-'}</div><div class="pf-stat-lbl">Required</div></div></div>${pf.subtype&&pf.subtype!=='none'?`<span class="badge badge-abnormal">${pf.subtype}</span> `:''}${pf.summary&&typeof pf.summary==='string'?`<div class="text-mute mt-lg">${esc(pf.summary)}</div>`:''}${(pf.missing_checkpoints||[]).length>0?`<div style="margin-top:8px"><strong style="font-size:12px">Missing:</strong>${pf.missing_checkpoints.map(c=>`<div class="missing-cp-item">${esc(c.name)} <span class="text-mute">(${c.status})</span></div>`).join('')}</div>`:''}`}
+
+/* ── Detail Toggle ── */
+async function toggleDetail(uuid,idx,row){
+  const dr=document.getElementById('dtl-'+idx);const isOpen=dr&&dr.classList.contains('show');
+  document.querySelectorAll('.detail-row.show').forEach(r=>r.classList.remove('show'));
+  document.querySelectorAll('.task-row.expanded').forEach(r=>r.classList.remove('expanded'));
+  if(isOpen)return;
+  if(!taskDetails[uuid]){const r=state.batchData.results.find(r=>r.task_uuid===uuid);
+    if(r&&r.output_dir){try{const[ae,pf]=await Promise.all([fetch(r.output_dir+'/anomaly_events.json').then(x=>x.ok?x.json():null).catch(()=>null),fetch(r.output_dir+'/planning_failure_result.json').then(x=>x.ok?x.json():null).catch(()=>null)]);taskDetails[uuid]={anomalyEvents:ae||[],planningFailure:pf||{}}}catch(e){taskDetails[uuid]={anomalyEvents:[],planningFailure:{}}}
+    }else taskDetails[uuid]={anomalyEvents:[],planningFailure:{}};
+    renderTable();setTimeout(()=>{const d2=document.getElementById('dtl-'+idx);if(d2)d2.classList.add('show')},10);return
+  }
+  if(dr)dr.classList.add('show');if(row)row.classList.add('expanded')
+}
+function sortRes(arr){arr.sort((a,b)=>{let va,vb;switch(state.sortCol){case'task_uuid':va=a.task_uuid||'';vb=b.task_uuid||'';break;case'label':va=a.label||'';vb=b.label||'';break;case'pf_label':va=a.planning_failure_label||'';vb=b.planning_failure_label||'';break;case'anomaly':va=a.anomaly_event_count||0;vb=b.anomaly_event_count||0;break;case'conf':va=a.confidence||0;vb=b.confidence||0;break;default:va=a.task_uuid||'';vb=b.task_uuid||''}return typeof va==='number'?state.sortAsc?va-vb:vb-va:state.sortAsc?String(va).localeCompare(String(vb)):String(vb).localeCompare(String(va))})}
+function switchTab(tab,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('tab-overview').classList.toggle('hidden',tab!=='overview');document.getElementById('tab-tasks').classList.toggle('hidden',tab!=='tasks')}
+function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+</script>
+</body>
+</html>

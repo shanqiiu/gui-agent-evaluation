@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GUI Agent Evaluation — Batch Dashboard</title>
+<style>
+  /* ── DESIGN.md Design System Tokens ── */
+  :root {
+    --primary: #3ecf8e;
+    --primary-deep: #24b47e;
+    --primary-soft: #4ade80;
+    --ink: #171717;
+    --ink-secondary: #212121;
+    --ink-mute: #707070;
+    --ink-mute-2: #9a9a9a;
+    --ink-faint: #b2b2b2;
+    --on-primary: #171717;
+    --on-dark: #ffffff;
+    --canvas: #ffffff;
+    --canvas-soft: #fafafa;
+    --canvas-night: #1c1c1c;
+    --canvas-night-soft: #202020;
+    --hairline: #dfdfdf;
+    --hairline-strong: #c7c7c7;
+    --hairline-cool: #ededed;
+    --accent-purple: #6b01c2;
+    --accent-violet: #644fc1;
+    --accent-yellow: #ffdb13;
+    --accent-tomato: #ff2201;
+    --accent-pink: #c7007e;
+    --accent-indigo: #054cff;
+    --accent-crimson: #e2005a;
+
+    /* Anomaly category → accent mapping */
+    --cat-loop: #ff2201;
+    --cat-repeated: #ffdb13;
+    --cat-grounding: #e2005a;
+    --cat-planning: #6b01c2;
+    --cat-hallucination: #644fc1;
+    --cat-interruption: #054cff;
+    --cat-preterm: #c7007e;
+
+    /* Spacing (8px base) */
+    --s-xxs: 2px;
+    --s-xs: 4px;
+    --s-sm: 8px;
+    --s-md: 12px;
+    --s-lg: 16px;
+    --s-xl: 24px;
+    --s-xxl: 32px;
+    --s-huge: 64px;
+
+    /* Rounded */
+    --r-xs: 4px;
+    --r-sm: 6px;
+    --r-md: 8px;
+    --r-lg: 12px;
+    --r-full: 9999px;
+
+    /* Typography */
+    --font-display: 'Circular', 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font-code: ui-monospace, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+
+    /* Shadows (DESIGN.md elevation) */
+    --shadow-0: none;
+    --shadow-1: 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-2: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  /* ── Reset ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--ink);
+    background: var(--canvas);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ── */
+  .app { max-width: 1440px; margin: 0 auto; padding: var(--s-xxl) var(--s-xl); }
+
+  /* ── Header ── */
+  .header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: var(--s-xl);
+    border-bottom: 1px solid var(--hairline);
+    margin-bottom: var(--s-xxl);
+    flex-wrap: wrap; gap: var(--s-md);
+  }
+  .header-brand {
+    display: flex; align-items: center; gap: var(--s-md);
+  }
+  .header-logo {
+    width: 10px; height: 10px; background: var(--primary); border-radius: var(--r-full);
+  }
+  .header-title {
+    font-size: 22px; font-weight: 500; letter-spacing: 0; color: var(--ink);
+  }
+  .header-version {
+    font-size: 12px; font-weight: 400; color: var(--ink-mute);
+    background: var(--canvas-soft); padding: var(--s-xxs) var(--s-sm); border-radius: var(--r-full);
+  }
+
+  /* ── File Picker ── */
+  .file-picker {
+    display: flex; align-items: center; gap: var(--s-sm);
+  }
+  .file-input { display: none; }
+  .btn {
+    font-family: var(--font-display); font-size: 14px; font-weight: 500; line-height: 1.0;
+    padding: var(--s-sm) var(--s-lg); border-radius: var(--r-sm); cursor: pointer;
+    border: none; transition: background 0.15s ease; white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--primary); color: var(--on-primary);
+  }
+  .btn-primary:hover { background: var(--primary-deep); }
+  .btn-outline {
+    background: var(--canvas); color: var(--ink);
+    border: 1px solid var(--hairline-strong);
+  }
+  .btn-outline:hover { background: var(--canvas-soft); }
+  .btn-sm { padding: var(--s-xs) var(--s-md); font-size: 13px; }
+
+  /* ── Empty State ── */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: var(--s-huge) var(--s-xl); text-align: center; min-height: 60vh;
+  }
+  .empty-icon {
+    width: 64px; height: 64px; border-radius: var(--r-full);
+    background: var(--canvas-soft); display: flex; align-items: center; justify-content: center;
+    margin-bottom: var(--s-xl);
+  }
+  .empty-icon svg { width: 28px; height: 28px; color: var(--ink-mute); }
+  .empty-title { font-size: 28px; font-weight: 500; letter-spacing: -0.42px; margin-bottom: var(--s-sm); }
+  .empty-desc { font-size: 16px; color: var(--ink-mute); margin-bottom: var(--s-xl); max-width: 480px; }
+  .empty-hint { font-size: 13px; color: var(--ink-mute-2); margin-top: var(--s-lg); }
+
+  /* ── Summary Cards ── */
+  .summary-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--s-lg); margin-bottom: var(--s-xxl);
+  }
+  .stat-card {
+    background: var(--canvas); border: 1px solid var(--hairline);
+    border-radius: var(--r-lg); padding: var(--s-xl);
+    box-shadow: var(--shadow-0);
+  }
+  .stat-label { font-size: 13px; font-weight: 400; color: var(--ink-mute); margin-bottom: var(--s-xs); }
+  .stat-value { font-size: 36px; font-weight: 500; letter-spacing: -0.72px; line-height: 1.15; }
+  .stat-sub { font-size: 13px; color: var(--ink-mute-2); margin-top: var(--s-xs); }
+  .stat-card.ok .stat-value { color: var(--primary); }
+  .stat-card.warn .stat-value { color: var(--accent-yellow); }
+  .stat-card.err .stat-value { color: var(--accent-tomato); }
+
+  /* ── Anomaly Distribution ── */
+  .section-title {
+    font-size: 18px; font-weight: 500; letter-spacing: 0;
+    margin-bottom: var(--s-lg); color: var(--ink);
+  }
+  .anomaly-chart {
+    display: flex; flex-direction: column; gap: var(--s-sm);
+    margin-bottom: var(--s-xxl); max-width: 900px;
+  }
+  .anomaly-bar-row {
+    display: flex; align-items: center; gap: var(--s-md);
+  }
+  .anomaly-bar-label {
+    width: 200px; font-size: 13px; color: var(--ink-mute); text-align: right; flex-shrink: 0;
+  }
+  .anomaly-bar-track {
+    flex: 1; height: 24px; background: var(--canvas-soft); border-radius: var(--r-xs);
+    overflow: hidden; position: relative;
+  }
+  .anomaly-bar-fill {
+    height: 100%; border-radius: var(--r-xs); transition: width 0.4s ease;
+    display: flex; align-items: center; padding-left: var(--s-sm);
+  }
+  .anomaly-bar-count {
+    font-size: 12px; font-weight: 500; color: var(--on-dark); white-space: nowrap;
+  }
+  .anomaly-bar-row .pill {
+    flex-shrink: 0; font-size: 11px; padding: 1px 8px;
+    border-radius: var(--r-full); font-weight: 500;
+  }
+
+  /* ── Task Table ── */
+  .table-wrap {
+    overflow-x: auto; border: 1px solid var(--hairline);
+    border-radius: var(--r-lg); margin-bottom: var(--s-xxl);
+  }
+  table {
+    width: 100%; border-collapse: collapse; font-size: 14px;
+  }
+  th {
+    text-align: left; padding: var(--s-md) var(--s-lg); font-weight: 500;
+    font-size: 13px; color: var(--ink-mute); background: var(--canvas-soft);
+    border-bottom: 1px solid var(--hairline); cursor: pointer; user-select: none; white-space: nowrap;
+  }
+  th:hover { color: var(--ink); }
+  th .sort-arrow { font-size: 10px; margin-left: 4px; opacity: 0.4; }
+  th.sorted .sort-arrow { opacity: 1; }
+  td {
+    padding: var(--s-md) var(--s-lg); border-bottom: 1px solid var(--hairline-cool);
+    vertical-align: middle;
+  }
+  tr.task-row { cursor: pointer; transition: background 0.1s; }
+  tr.task-row:hover { background: var(--canvas-soft); }
+  tr.task-row.expanded { background: var(--canvas-soft); }
+  tr.detail-row { display: none; }
+  tr.detail-row.show { display: table-row; }
+  td.detail-cell { padding: 0; }
+
+  /* Status badges */
+  .badge {
+    display: inline-block; font-size: 12px; font-weight: 500; padding: var(--s-xxs) var(--s-sm);
+    border-radius: var(--r-full); white-space: nowrap;
+  }
+  .badge-normal { background: var(--primary); color: var(--on-primary); }
+  .badge-abnormal { background: var(--accent-tomato); color: var(--on-dark); }
+  .badge-uncertain { background: var(--accent-yellow); color: var(--ink); }
+  .badge-neutral { background: var(--canvas-soft); color: var(--ink-mute); border: 1px solid var(--hairline); }
+
+  /* Anomaly category pills */
+  .cat-pill {
+    font-size: 11px; font-weight: 500; padding: 1px 8px; border-radius: var(--r-full);
+    white-space: nowrap; display: inline-block; margin: 1px;
+  }
+
+  /* ── Detail Panel ── */
+  .detail-panel {
+    padding: var(--s-xl); border-top: 1px solid var(--hairline-strong);
+    display: grid; grid-template-columns: 1fr 1fr; gap: var(--s-xl);
+  }
+  @media (max-width: 900px) { .detail-panel { grid-template-columns: 1fr; } }
+  .detail-section { min-width: 0; }
+  .detail-heading {
+    font-size: 14px; font-weight: 500; color: var(--ink-mute);
+    margin-bottom: var(--s-md); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .event-list { display: flex; flex-direction: column; gap: var(--s-sm); }
+  .event-item {
+    background: var(--canvas-soft); border: 1px solid var(--hairline);
+    border-radius: var(--r-md); padding: var(--s-md);
+    font-size: 14px;
+  }
+  .event-item-header {
+    display: flex; align-items: center; gap: var(--s-sm); margin-bottom: var(--s-xs);
+    flex-wrap: wrap;
+  }
+  .event-meta {
+    display: flex; gap: var(--s-lg); flex-wrap: wrap; margin-top: var(--s-xs);
+  }
+  .event-meta-item { font-size: 12px; color: var(--ink-mute); }
+  .event-meta-item strong { color: var(--ink); font-weight: 500; }
+  .event-message { font-size: 13px; color: var(--ink-secondary); margin-top: var(--s-xs); line-height: 1.5; word-break: break-word; }
+
+  /* ── PF Detail ── */
+  .pf-summary {
+    display: flex; gap: var(--s-lg); flex-wrap: wrap; margin-bottom: var(--s-md);
+  }
+  .pf-stat {
+    background: var(--canvas-soft); border: 1px solid var(--hairline);
+    border-radius: var(--r-md); padding: var(--s-md);
+    min-width: 100px; text-align: center;
+  }
+  .pf-stat-val { font-size: 22px; font-weight: 500; }
+  .pf-stat-lbl { font-size: 12px; color: var(--ink-mute); margin-top: var(--s-xxs); }
+  .missing-cp-list { font-size: 13px; color: var(--ink-mute); margin-top: var(--s-sm); }
+  .missing-cp-item {
+    padding: var(--s-xs) 0; border-bottom: 1px solid var(--hairline-cool);
+  }
+
+  /* ── Code block styling ── */
+  .code-block {
+    background: var(--canvas-night); color: var(--on-dark);
+    font-family: var(--font-code); font-size: 14px; line-height: 1.5;
+    padding: var(--s-lg); border-radius: var(--r-sm); overflow-x: auto;
+    white-space: pre-wrap; word-break: break-all; margin-top: var(--s-sm);
+    max-height: 300px; overflow-y: auto;
+  }
+  .code-block .key { color: #80cbc4; }
+  .code-block .str { color: #c3e88d; }
+  .code-block .num { color: #f78c6c; }
+  .code-block .bool { color: #ff5370; }
+
+  /* ── Errors Section ── */
+  .error-list { margin-bottom: var(--s-xxl); }
+  .error-item {
+    display: flex; align-items: flex-start; gap: var(--s-md);
+    padding: var(--s-md); border: 1px solid var(--hairline); border-radius: var(--r-md);
+    margin-bottom: var(--s-sm); background: var(--canvas-soft);
+  }
+  .error-dot {
+    width: 8px; height: 8px; border-radius: var(--r-full);
+    background: var(--accent-tomato); margin-top: 5px; flex-shrink: 0;
+  }
+  .error-msg { font-size: 13px; color: var(--ink-mute); word-break: break-all; }
+
+  /* ── File Info ── */
+  .file-info {
+    font-size: 12px; color: var(--ink-mute-2); margin-bottom: var(--s-xl);
+  }
+
+  /* ── Utility ── */
+  .hidden { display: none !important; }
+  .mt-lg { margin-top: var(--s-lg); }
+  .mono { font-family: var(--font-code); font-size: 13px; }
+  .text-mute { color: var(--ink-mute); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-brand">
+      <div class="header-logo"></div>
+      <span class="header-title">GUI Agent Evaluation</span>
+      <span class="header-version">repeated_baseline.v1</span>
+    </div>
+    <div class="file-picker">
+      <button class="btn btn-outline btn-sm" id="demoBtn" title="Load demo data">Demo</button>
+      <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+        Open batch_result.json
+      </button>
+      <input type="file" id="fileInput" class="file-input" accept=".json" onchange="handleFile(event)">
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div id="emptyState" class="empty-state">
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14,2 14,8 20,8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+    </div>
+    <div class="empty-title">No batch data loaded</div>
+    <div class="empty-desc">
+      Open a <code class="mono" style="background:var(--canvas-soft);padding:1px 6px;border-radius:var(--r-xs);">batch_result.json</code>
+      file to visualize evaluation results. The file is generated by
+      <code class="mono" style="background:var(--canvas-soft);padding:1px 6px;border-radius:var(--r-xs);">run_repeated_baseline_batch</code>.
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+      Select File
+    </button>
+    <div class="empty-hint">Or click <strong>Demo</strong> to see example data</div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div id="dashboard" class="hidden">
+    <div class="file-info" id="fileInfo"></div>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid" id="summaryCards"></div>
+
+    <!-- Anomaly Distribution -->
+    <div class="section-title">Anomaly Distribution</div>
+    <div class="anomaly-chart" id="anomalyChart"></div>
+
+    <!-- Errors -->
+    <div id="errorSection" class="hidden">
+      <div class="section-title">Errors</div>
+      <div class="error-list" id="errorList"></div>
+    </div>
+
+    <!-- Results Table -->
+    <div class="section-title">Task Results</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortTable('task_uuid')" id="th-uuid">Task UUID <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('label')" id="th-label">Label <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('pf_label')" id="th-pflabel">Planning <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('anomaly_count')" id="th-anomaly">Anomalies <span class="sort-arrow">&#9650;</span></th>
+            <th onclick="sortTable('confidence')" id="th-conf">Confidence <span class="sort-arrow">&#9650;</span></th>
+          </tr>
+        </thead>
+        <tbody id="taskTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Anomaly category definitions ── */
+const CATEGORIES = {
+  loop:                 { label: 'Loop',                 color: '#ff2201', desc: '循环/死循环' },
+  repeated_action:      { label: 'Repeated Action',      color: '#ffdb13', desc: '重复动作' },
+  grounding_error:      { label: 'Grounding Error',      color: '#e2005a', desc: 'Grounding 错误' },
+  planning_failure:     { label: 'Planning Failure',     color: '#6b01c2', desc: '规划失效' },
+  hallucination:        { label: 'Hallucination',        color: '#644fc1', desc: 'Hallucination' },
+  abnormal_interruption_response: { label: 'Interruption', color: '#054cff', desc: '异常中断响应' },
+  premature_termination: { label: 'Premature Term.',     color: '#c7007e', desc: '提前终止' }
+};
+
+/* ── State ── */
+let batchData = null;
+let taskDetails = {};  // task_uuid → { anomalyEvents, planningFailure }
+let sortCol = 'task_uuid';
+let sortAsc = true;
+
+/* ── File Handling ── */
+function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      batchData = JSON.parse(e.target.result);
+      taskDetails = {};
+      document.getElementById('fileInfo').textContent =
+        `Loaded: ${file.name} (${(file.size/1024).toFixed(1)} KB)`;
+      renderAll();
+    } catch (err) {
+      alert('Invalid JSON file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ── Render All ── */
+function renderAll() {
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('dashboard').classList.remove('hidden');
+  renderSummaryCards();
+  renderAnomalyChart();
+  renderErrors();
+  renderTable();
+}
+
+/* ── Summary Cards ── */
+function renderSummaryCards() {
+  const { total, ok, error, results } = batchData;
+  const abnormal = (results||[]).filter(r => r.label === 'abnormal').length;
+  const pfAbnormal = (results||[]).filter(r => r.planning_failure_label === 'abnormal').length;
+
+  document.getElementById('summaryCards').innerHTML = `
+    <div class="stat-card"><div class="stat-label">Total Tasks</div><div class="stat-value" style="color:var(--ink)">${total}</div><div class="stat-sub">All payloads processed</div></div>
+    <div class="stat-card ok"><div class="stat-label">OK</div><div class="stat-value">${ok}</div><div class="stat-sub">${(ok/total*100).toFixed(1)}% success rate</div></div>
+    <div class="stat-card err"><div class="stat-label">Errors</div><div class="stat-value">${error}</div><div class="stat-sub">Failed during processing</div></div>
+    <div class="stat-card warn"><div class="stat-label">Abnormal (Repeated)</div><div class="stat-value">${abnormal}</div><div class="stat-sub">${(abnormal/(results||[]).length*100).toFixed(1)}% of results</div></div>
+    <div class="stat-card" style="border-left:3px solid var(--accent-purple)"><div class="stat-label">Planning Failure</div><div class="stat-value" style="color:var(--accent-purple)">${pfAbnormal}</div><div class="stat-sub">${(pfAbnormal/(results||[]).length*100).toFixed(1)}% of results</div></div>
+  `;
+}
+
+/* ── Anomaly Distribution Bar Chart ── */
+function renderAnomalyChart() {
+  const counts = {};
+  for (const key of Object.keys(CATEGORIES)) counts[key] = 0;
+  for (const result of (batchData.results||[])) {
+    const evts = taskDetails[result.task_uuid]?.anomalyEvents || [];
+    for (const evt of evts) {
+      const cat = evt.category;
+      if (counts.hasOwnProperty(cat)) counts[cat]++;
+    }
+  }
+  const totalAnomalies = Object.values(counts).reduce((a,b)=>a+b, 0);
+  const maxCount = Math.max(...Object.values(counts), 1);
+
+  let html = '';
+  for (const [key, cat] of Object.entries(CATEGORIES)) {
+    const count = counts[key];
+    const pct = totalAnomalies > 0 ? (count / totalAnomalies * 100) : 0;
+    const barPct = (count / maxCount * 100);
+    html += `
+      <div class="anomaly-bar-row">
+        <span class="anomaly-bar-label">${cat.desc}</span>
+        <div class="anomaly-bar-track">
+          <div class="anomaly-bar-fill" style="width:${barPct}%;background:${cat.color}">
+            ${count > 0 ? `<span class="anomaly-bar-count">${count}</span>` : ''}
+          </div>
+        </div>
+        <span class="pill" style="background:${cat.color}20;color:${cat.color}">${pct.toFixed(1)}%</span>
+      </div>`;
+  }
+  document.getElementById('anomalyChart').innerHTML = html;
+}
+
+/* ── Errors Section ── */
+function renderErrors() {
+  const errors = batchData.errors || [];
+  const section = document.getElementById('errorSection');
+  if (errors.length === 0) { section.classList.add('hidden'); return; }
+  section.classList.remove('hidden');
+  document.getElementById('errorList').innerHTML = errors.map(e => `
+    <div class="error-item">
+      <div class="error-dot"></div>
+      <div>
+        <div style="font-size:14px;font-weight:500">${escHtml(e.task_uuid)}</div>
+        <div class="error-msg">${escHtml(e.error)}</div>
+        <div class="text-mute" style="margin-top:4px">${escHtml(e.payload_path)}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ── Table ── */
+function renderTable() {
+  const results = [...(batchData.results||[])];
+  sortResults(results);
+  document.getElementById('taskTableBody').innerHTML = results.map((r, idx) => {
+    const detail = taskDetails[r.task_uuid];
+    const anomalyEvents = detail?.anomalyEvents || [];
+    const pf = detail?.planningFailure || {};
+    const catCounts = {};
+    for (const evt of anomalyEvents) {
+      catCounts[evt.category] = (catCounts[evt.category] || 0) + 1;
+    }
+    const catPills = Object.entries(catCounts).slice(0,4).map(([cat, n]) => {
+      const cfg = CATEGORIES[cat] || { label: cat, color: '#9a9a9a' };
+      return `<span class="cat-pill" style="background:${cfg.color}20;color:${cfg.color}">${cfg.label} ${n}</span>`;
+    }).join('');
+
+    return `
+      <tr class="task-row" onclick="toggleDetail('${escAttr(r.task_uuid)}', ${idx}, this)" id="row-${idx}">
+        <td><span class="mono" style="font-size:13px">${escHtml(r.task_uuid).substring(0,12)}...</span></td>
+        <td><span class="badge badge-${r.label === 'abnormal' ? 'abnormal' : 'normal'}">${r.label}</span></td>
+        <td>
+          <span class="badge badge-${r.planning_failure_label === 'abnormal' ? 'abnormal' : r.planning_failure_label === 'uncertain' ? 'uncertain' : 'normal'}">
+            ${r.planning_failure_label || 'normal'}
+          </span>
+          ${r.planning_failure_subtype && r.planning_failure_subtype !== 'none' ? `<span class="text-mute" style="margin-left:4px">${r.planning_failure_subtype}</span>` : ''}
+        </td>
+        <td>
+          ${r.anomaly_event_count > 0 ? `<span style="font-weight:500;color:var(--accent-tomato)">${r.anomaly_event_count}</span>` : `<span style="color:var(--ink-faint)">0</span>`}
+          ${catPills ? `<div style="margin-top:4px">${catPills}</div>` : ''}
+        </td>
+        <td style="font-family:var(--font-code);font-size:13px">${r.confidence ? r.confidence.toFixed(2) : '-'}</td>
+      </tr>
+      <tr class="detail-row" id="detail-${idx}">
+        <td colspan="5" class="detail-cell">
+          <div class="detail-panel">
+            <div class="detail-section">
+              <div class="detail-heading">Anomaly Events (${anomalyEvents.length})</div>
+              <div class="event-list" id="events-${idx}">${renderEventList(anomalyEvents)}</div>
+            </div>
+            <div class="detail-section">
+              <div class="detail-heading">Planning Failure</div>
+              ${renderPFDetail(pf)}
+            </div>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function renderEventList(events) {
+  if (!events || events.length === 0) return '<div class="text-mute">No anomaly events detected</div>';
+  return events.map((evt, i) => {
+    const cfg = CATEGORIES[evt.category] || { label: evt.category, color: '#9a9a9a' };
+    return `
+      <div class="event-item">
+        <div class="event-item-header">
+          <span class="cat-pill" style="background:${cfg.color}20;color:${cfg.color};font-weight:500">${evt.category}</span>
+          <span class="badge badge-neutral">${evt.subtype || '—'}</span>
+          <span style="font-size:12px;color:var(--ink-mute-2);font-family:var(--font-code)">conf ${(evt.confidence||0).toFixed(2)}</span>
+        </div>
+        <div class="event-message">${escHtml(evt.message || '')}</div>
+        <div class="event-meta">
+          <span class="event-meta-item"><strong>Step:</strong> ${evt.first_error_step >= 0 ? evt.first_error_step : '—'}</span>
+          <span class="event-meta-item"><strong>Recovery:</strong> ${evt.recovery_outcome || '—'}</span>
+          <span class="event-meta-item"><strong>Impact:</strong> ${evt.impact || '—'}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function renderPFDetail(pf) {
+  if (!pf || Object.keys(pf).length === 0) return '<div class="text-mute">No planning failure data</div>';
+  const scoreColor = pf.required_completion_score >= 0.95 ? 'var(--primary)' :
+                      pf.required_completion_score >= 0.7 ? 'var(--accent-yellow)' : 'var(--accent-tomato)';
+  return `
+    <div class="pf-summary">
+      <div class="pf-stat"><div class="pf-stat-val" style="color:${scoreColor}">${(pf.required_completion_score*100).toFixed(0)}%</div><div class="pf-stat-lbl">Required Completion</div></div>
+      <div class="pf-stat"><div class="pf-stat-val">${pf.required_achieved||pf.summary?.required_achieved||'-'}/${pf.required_total||pf.summary?.required_total||'-'}</div><div class="pf-stat-lbl">Required Achieved</div></div>
+      <div class="pf-stat"><div class="pf-stat-val">${pf.achieved_count||pf.summary?.achieved_count||'-'}/${pf.total_checkpoints||pf.summary?.total_checkpoints||'-'}</div><div class="pf-stat-lbl">All Achieved</div></div>
+    </div>
+    ${pf.subtype && pf.subtype !== 'none' ? `<div><span class="badge badge-abnormal">${pf.subtype}</span> <span class="text-mute" style="margin-left:8px">confidence ${(pf.confidence||0).toFixed(2)}</span></div>` : ''}
+    ${(pf.missing_checkpoints||[]).length > 0 ? `<div class="missing-cp-list"><strong style="font-size:13px">Missing Checkpoints:</strong>${(pf.missing_checkpoints||[]).map(cp => `<div class="missing-cp-item">&bull; ${escHtml(cp.name)} <span class="text-mute">(${cp.status})</span></div>`).join('')}</div>` : ''}
+    ${pf.summary?.summary || pf.summary && typeof pf.summary === 'string' ? `<div class="text-mute" style="margin-top:8px">${escHtml(pf.summary.summary || pf.summary)}</div>` : ''}
+  `;
+}
+
+/* ── Detail Toggle ── */
+async function toggleDetail(taskUuid, idx, row) {
+  const detailRow = document.getElementById('detail-' + idx);
+  const isOpen = detailRow.classList.contains('show');
+
+  // Close all other detail rows
+  document.querySelectorAll('.detail-row.show').forEach(r => r.classList.remove('show'));
+  document.querySelectorAll('.task-row.expanded').forEach(r => r.classList.remove('expanded'));
+
+  if (isOpen) return;
+
+  // Load detail data if not cached
+  if (!taskDetails[taskUuid]) {
+    const result = batchData.results.find(r => r.task_uuid === taskUuid);
+    if (result && result.output_dir) {
+      try {
+        const [aeResp, pfResp] = await Promise.all([
+          fetch(result.output_dir + '/anomaly_events.json').then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(result.output_dir + '/planning_failure_result.json').then(r => r.ok ? r.json() : null).catch(() => null)
+        ]);
+        taskDetails[taskUuid] = {
+          anomalyEvents: aeResp || [],
+          planningFailure: pfResp || {}
+        };
+      } catch(e) {
+        taskDetails[taskUuid] = { anomalyEvents: [], planningFailure: {} };
+      }
+    } else {
+      taskDetails[taskUuid] = { anomalyEvents: [], planningFailure: {} };
+    }
+    // Re-render to show detail data
+    renderTable();
+    // Re-open after re-render
+    setTimeout(() => {
+      const newDetail = document.getElementById('detail-' + idx);
+      const newRow = document.getElementById('row-' + idx);
+      if (newDetail) newDetail.classList.add('show');
+      if (newRow) newRow.classList.add('expanded');
+    }, 10);
+  } else {
+    detailRow.classList.add('show');
+    row.classList.add('expanded');
+  }
+}
+
+/* ── Sorting ── */
+function sortTable(col) {
+  if (sortCol === col) { sortAsc = !sortAsc; }
+  else { sortCol = col; sortAsc = true; }
+  // Update header indicators
+  document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
+  const thMap = { task_uuid: 'th-uuid', label: 'th-label', pf_label: 'th-pflabel', anomaly_count: 'th-anomaly', confidence: 'th-conf' };
+  const thId = thMap[col];
+  if (thId) document.getElementById(thId).classList.add('sorted');
+  renderTable();
+}
+
+function sortResults(results) {
+  results.sort((a, b) => {
+    let va, vb;
+    switch (sortCol) {
+      case 'task_uuid': va = a.task_uuid || ''; vb = b.task_uuid || ''; break;
+      case 'label': va = a.label || ''; vb = b.label || ''; break;
+      case 'pf_label': va = a.planning_failure_label || ''; vb = b.planning_failure_label || ''; break;
+      case 'anomaly_count': va = a.anomaly_event_count || 0; vb = b.anomaly_event_count || 0; break;
+      case 'confidence': va = a.confidence || 0; vb = b.confidence || 0; break;
+      default: va = a.task_uuid || ''; vb = b.task_uuid || '';
+    }
+    if (typeof va === 'number') return sortAsc ? va - vb : vb - va;
+    return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+  });
+}
+
+/* ── Demo Data ── */
+function loadDemo() {
+  batchData = {
+    schema_version: 'repeated_baseline_batch.v1',
+    total: 12, ok: 11, error: 1,
+    results: [
+      { task_uuid: 'task-001-settings-search', label: 'normal', confidence: 0.87, planning_failure_label: 'normal', planning_failure_subtype: 'none', anomaly_event_count: 2, output_dir: 'demo/task-001' },
+      { task_uuid: 'task-002-taobao-reorder', label: 'abnormal', confidence: 0.73, planning_failure_label: 'abnormal', planning_failure_subtype: 'missing_required_checkpoint', anomaly_event_count: 5, output_dir: 'demo/task-002' },
+      { task_uuid: 'task-003-login-flow', label: 'normal', confidence: 0.91, planning_failure_label: 'normal', planning_failure_subtype: 'none', anomaly_event_count: 0, output_dir: 'demo/task-003' },
+      { task_uuid: 'task-004-captcha-verify', label: 'abnormal', confidence: 0.68, planning_failure_label: 'abnormal', planning_failure_subtype: 'premature_termination', anomaly_event_count: 3, output_dir: 'demo/task-004' },
+      { task_uuid: 'task-005-search-filter', label: 'normal', confidence: 0.94, planning_failure_label: 'normal', planning_failure_subtype: 'none', anomaly_event_count: 1, output_dir: 'demo/task-005' },
+      { task_uuid: 'task-006-loop-settings', label: 'abnormal', confidence: 0.55, planning_failure_label: 'abnormal', planning_failure_subtype: 'execution_blocked', anomaly_event_count: 7, output_dir: 'demo/task-006' },
+      { task_uuid: 'task-007-form-submit', label: 'normal', confidence: 0.89, planning_failure_label: 'normal', planning_failure_subtype: 'none', anomaly_event_count: 0, output_dir: 'demo/task-007' },
+      { task_uuid: 'task-008-ghost-element', label: 'abnormal', confidence: 0.62, planning_failure_label: 'abnormal', planning_failure_subtype: 'missing_required_checkpoint', anomaly_event_count: 4, output_dir: 'demo/task-008' },
+      { task_uuid: 'task-009-exit-early', label: 'abnormal', confidence: 0.71, planning_failure_label: 'abnormal', planning_failure_subtype: 'premature_termination', anomaly_event_count: 2, output_dir: 'demo/task-009' },
+      { task_uuid: 'task-010-scroll-list', label: 'normal', confidence: 0.92, planning_failure_label: 'normal', planning_failure_subtype: 'none', anomaly_event_count: 1, output_dir: 'demo/task-010' },
+      { task_uuid: 'task-011-network-error', label: 'abnormal', confidence: 0.48, planning_failure_label: 'uncertain', planning_failure_subtype: 'none', anomaly_event_count: 3, output_dir: 'demo/task-011' },
+    ],
+    errors: [
+      { task_uuid: 'task-012-corrupt', payload_path: '/data/raw/task-012/payload.json', error: 'JSONDecodeError: Unterminated string at line 847' }
+    ]
+  };
+
+  // Pre-populate demo detail data
+  taskDetails = {
+    'task-001-settings-search': { anomalyEvents: [
+      { category: 'repeated_action', subtype: 'consecutive_click', first_error_step: 3, confidence: 0.74, message: 'repeated click on settings icon at steps 3-4', recovery_outcome: 'recovered', impact: 'low' },
+      { category: 'grounding_error', subtype: 'wrong_tap_target', first_error_step: 7, confidence: 0.72, message: 'tap at step 7 produced no expected page change', recovery_outcome: 'recovered', impact: 'medium' }
+    ], planningFailure: {} },
+    'task-002-taobao-reorder': { anomalyEvents: [
+      { category: 'loop', subtype: 'state_action_loop', first_error_step: 2, confidence: 0.81, message: 'state-action loop detected on order list page steps 2-8', recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'repeated_action', subtype: 'consecutive_click', first_error_step: 2, confidence: 0.74, message: 'repeated click on reorder button', recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'planning_failure', subtype: 'missing_required_checkpoint', first_error_step: 10, confidence: 0.84, message: 'required checkpoint: 订单确认页面已就绪', recovery_outcome: 'not_recovered', impact: 'task_blocking' },
+      { category: 'hallucination', subtype: 'non_existent_element', first_error_step: 5, confidence: 0.72, message: "agent referenced '立即购买按钮' not found in OCR or page_description", recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'abnormal_interruption_response', subtype: 'captcha_or_security_verification', first_error_step: 0, confidence: 0.86, message: '安全验证界面 detected', recovery_outcome: 'unknown', impact: 'task_blocking' }
+    ], planningFailure: { label: 'abnormal', subtype: 'missing_required_checkpoint', confidence: 0.84, first_error_step: 10, required_completion_score: 0.50, total_checkpoints: 4, required_total: 2, achieved_count: 2, required_achieved: 1, missing_checkpoints: [{name: '订单确认页面已就绪', required: true, status: 'unmatched_intent'}], summary: '检测到规划失效：missing_required_checkpoint；缺失/未达成 checkpoint：订单确认页面已就绪；required 完成率 0.50。' } },
+    'task-004-captcha-verify': { anomalyEvents: [
+      { category: 'abnormal_interruption_response', subtype: 'captcha_or_security_verification', first_error_step: 0, confidence: 0.86, message: '滑块验证码 detected at login page', recovery_outcome: 'not_recovered', impact: 'task_blocking' },
+      { category: 'premature_termination', subtype: 'premature_termination', first_error_step: 5, confidence: 0.82, message: 'Agent declared finished before captcha was resolved', recovery_outcome: 'not_recovered', impact: 'task_blocking' },
+      { category: 'planning_failure', subtype: 'execution_blocked', first_error_step: 5, confidence: 0.78, message: 'execution blocked at captcha verification', recovery_outcome: 'not_recovered', impact: 'task_blocking' }
+    ], planningFailure: { label: 'abnormal', subtype: 'premature_termination', confidence: 0.82, first_error_step: 5, required_completion_score: 0.00, total_checkpoints: 3, required_total: 1, achieved_count: 0, required_achieved: 0, missing_checkpoints: [{name: '登录后主页已展示', required: true, status: 'unmatched_intent'}], summary: '检测到规划失效：premature_termination。' } },
+    'task-006-loop-settings': { anomalyEvents: [
+      { category: 'loop', subtype: 'state_action_loop', first_error_step: 3, confidence: 0.83, message: '死循环: settings -> display -> settings, steps 3-12', recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'repeated_action', subtype: 'consecutive_click', first_error_step: 3, confidence: 0.76, message: 'repeated click on display option', recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'repeated_action', subtype: 'repeated_swipe', first_error_step: 6, confidence: 0.71, message: 'repeated swipe between settings pages', recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'grounding_error', subtype: 'wrong_tap_target', first_error_step: 3, confidence: 0.68, message: 'tap on display option missed target at step 3', recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'grounding_error', subtype: 'wrong_scroll_direction', first_error_step: 8, confidence: 0.65, message: 'scroll at step 8 produced no page change', recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'planning_failure', subtype: 'execution_blocked', first_error_step: 3, confidence: 0.79, message: 'execution blocked: cannot navigate to target setting', recovery_outcome: 'not_recovered', impact: 'task_blocking' },
+      { category: 'hallucination', subtype: 'wrong_page_understanding', first_error_step: 10, confidence: 0.66, message: "agent claimed '已到达目标设置页' but OCR shows display settings", recovery_outcome: 'not_recovered', impact: 'cascading' }
+    ], planningFailure: { label: 'abnormal', subtype: 'execution_blocked', confidence: 0.79, first_error_step: 3, required_completion_score: 0.00, total_checkpoints: 5, required_total: 3, achieved_count: 0, required_achieved: 0, missing_checkpoints: [
+      {name: '目标设置页面已打开', required: true, status: 'not_achieved'},
+      {name: '设置值已修改', required: true, status: 'not_achieved'},
+      {name: '修改已确认', required: true, status: 'unmatched_intent'}
+    ], summary: '检测到规划失效：execution_blocked；缺失/未达成 checkpoint：目标设置页面已打开、设置值已修改、修改已确认；required 完成率 0.00。' } },
+    'task-008-ghost-element': { anomalyEvents: [
+      { category: 'hallucination', subtype: 'non_existent_element', first_error_step: 2, confidence: 0.74, message: "agent referenced '确认支付按钮' not found in OCR", recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'hallucination', subtype: 'fabricated_capability', first_error_step: 4, confidence: 0.64, message: 'agent attempted scroll when page shows no scrollable content', recovery_outcome: 'not_recovered', impact: 'cascading' },
+      { category: 'planning_failure', subtype: 'missing_required_checkpoint', first_error_step: 8, confidence: 0.84, message: 'required checkpoint: 支付成功页面已展示', recovery_outcome: 'not_recovered', impact: 'task_blocking' },
+      { category: 'premature_termination', subtype: 'premature_termination', first_error_step: 8, confidence: 0.80, message: 'Agent terminated before payment confirmation page was reached', recovery_outcome: 'not_recovered', impact: 'task_blocking' }
+    ], planningFailure: { label: 'abnormal', subtype: 'missing_required_checkpoint', confidence: 0.84, first_error_step: 8, required_completion_score: 0.33, total_checkpoints: 3, required_total: 3, achieved_count: 1, required_achieved: 1, missing_checkpoints: [{name: '支付成功页面已展示', required: true, status: 'unmatched_intent'}], summary: '检测到规划失效：missing_required_checkpoint；缺失/未达成 checkpoint：支付成功页面已展示；required 完成率 0.33。' } },
+  };
+
+  document.getElementById('fileInfo').textContent = 'Demo data loaded (12 tasks, 1 error)';
+  renderAll();
+}
+
+/* ── Utilities ── */
+function escHtml(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function escAttr(s) { if (!s) return ''; return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ── Init ── */
+document.getElementById('demoBtn').addEventListener('click', loadDemo);
+</script>
+</body>
+</html>

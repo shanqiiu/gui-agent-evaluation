@@ -128,7 +128,10 @@ def run_repeated_baseline(
     planning_failure_prediction["task_uuid"] = task_uuid
     anomaly_events = build_anomaly_events(
         hydrated,
+        repeated_prediction=repeated_prediction,
         planning_failure_prediction=planning_failure_prediction,
+        state_sequence=state_sequence,
+        ab_report=ab_report,
     )
 
     result = {

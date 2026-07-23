@@ -131,7 +131,9 @@ def test_repeated_baseline_mock_end_to_end(tmp_path):
     assert "intent_matches" in result
     assert "intent_matcher_diagnostics" in result
     assert result["intent_matcher_diagnostics"]["purpose_llm"]["status"] == "skipped_no_purpose_features"
-    assert result["anomaly_events"] == []
+    event_categories = {event["category"] for event in result["anomaly_events"]}
+    assert "repeated_action" in event_categories
+    assert "planning_failure" in event_categories
     assert (payload_path.parent / "repeated_baseline" / "intent_matcher_diagnostics.json").is_file()
     assert (payload_path.parent / "repeated_baseline" / "intent_matches.json").is_file()
     assert (payload_path.parent / "repeated_baseline" / "planning_failure_result.json").is_file()

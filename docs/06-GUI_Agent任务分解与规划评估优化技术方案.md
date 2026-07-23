@@ -745,14 +745,16 @@ RAG 内容不能直接作为任务已完成的证据。
 
 目标：异常事件的顶层分类与 `docs/GUI_Agent_异常Case_技术洞察.md` 1.2 保持一致。
 
-- [ ] 循环/死循环：复用 state sequence、页面签名、动作循环和无进展证据。
-- [ ] 重复动作：复用现有 repeated detector，并输出统一事件。
+- [x] 循环/死循环第一版：将 repeated detector 的 `state_action_loop` 投影为统一 `loop` 事件。
+- [x] 重复动作第一版：复用现有 repeated detector，并输出统一 `repeated_action` 事件。
 - [ ] Grounding 错误：结合动作目标、坐标、页面变化和 OCR/UI 证据。
-- [ ] 规划失效：由 TaskGraph/TaskProgress 驱动，不只依赖 flat checkpoint。
+- [x] 规划失效第一版：将现有 planning failure events 投影为统一 `planning_failure` 事件。
+- [ ] 规划失效后续：由 TaskGraph/TaskProgress 驱动，不只依赖 flat checkpoint。
 - [ ] Hallucination：对比 agent 描述、action purpose、页面描述和 OCR/UI 证据。
 - [x] 异常中断响应第一步：`clarify` 从主执行轨迹剥离，写入 `_interruption_events`，并映射为 `anomaly_events` 中的 `abnormal_interruption_response/manual_clarification_required`。
-- [ ] 异常中断响应后续：覆盖验证码、登录、权限弹窗、Crash、网络加载等中断状态。
-- [ ] 提前终止：从 planning failure 子类型提升为顶层事件。
+- [x] 异常中断响应关键词扫描第一版：基于 `state_sequence` 描述覆盖验证码/安全验证、登录、权限弹窗、Crash/App 异常、网络/加载异常。
+- [ ] 异常中断响应后续：识别中断后的等待、重试、放弃、绕路和错误继续，并用标注集校准关键词误报。
+- [x] 提前终止第一版：从 planning failure 子类型提升为顶层 `premature_termination` 事件。
 
 执行阻塞、恢复失败、错误级联、效率、证据完整度和高风险操作只作为 subtype、recovery outcome、impact、report metric 或 risk attribute，不作为新的顶层异常分类。
 

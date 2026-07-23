@@ -1,5 +1,10 @@
 # GUI Agent Evaluation — 项目依赖
 
+# ── Web Server ──
+fastapi>=0.115,<1
+uvicorn>=0.30,<1
+python-multipart>=0.0.18,<1
+
 # ── Decomposer (LLM + RAG 任务分解) ──
 chromadb>=1.5,<2
 sentence-transformers>=3,<6
