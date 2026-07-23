@@ -625,19 +625,27 @@ def _match_from_llm_item(
     matched_status = status in {"matched", "implicit"} and start_purpose_idx >= 0 and end_purpose_idx >= 0
 
     if matched_status and start_purpose_idx < min_purpose_index:
-        return CheckpointIntentMatch(
-            checkpoint_index=cp_idx,
-            matched=False,
-            score=score,
-            confidence="unmatched_intent",
-            evidence=[
-                "purpose_llm_status=order_violation",
-                f"purpose_span={start_purpose_idx}-{end_purpose_idx}",
-                f"min_purpose_index={min_purpose_index}",
-            ],
-            llm_used=True,
-            llm_reason=reason or "LLM purpose span moves backward",
-        )
+        # Allow overlapping spans: when a single agent-purpose span satisfies
+        # multiple adjacent checkpoints (e.g. "type search keyword" naturally
+        # covers both "keyword entered" and "search results loaded"), the LLM
+        # may correctly assign the same purpose span to both.  Reject only when
+        # the entire span falls strictly before the previously-claimed region.
+        if end_purpose_idx >= min_purpose_index:
+            pass  # overlap → accept the LLM match
+        else:
+            return CheckpointIntentMatch(
+                checkpoint_index=cp_idx,
+                matched=False,
+                score=score,
+                confidence="unmatched_intent",
+                evidence=[
+                    "purpose_llm_status=order_violation",
+                    f"purpose_span={start_purpose_idx}-{end_purpose_idx}",
+                    f"min_purpose_index={min_purpose_index}",
+                ],
+                llm_used=True,
+                llm_reason=reason or "LLM purpose span moves backward",
+            )
     if matched_status and end_purpose_idx < start_purpose_idx:
         return CheckpointIntentMatch(
             checkpoint_index=cp_idx,
