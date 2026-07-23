@@ -98,7 +98,7 @@ _TASK_GRAPH_PROMPT = """你是 GUI Agent 执行评测中的任务规划专家。
 每条 edge 必须包含 from、to、type、condition，type 只能是 requires 或 recommended。
 
 ## 合法 JSON 示例
-以下只展示格式，实际内容必须根据用户指令生成：
+以下场景：用户在搜索结果页同时应用"价格区间"和"品牌"两个独立筛选条件。注意 st_003 和 st_004 是同一筛选面板内的独立操作，无先后依赖，均设为 allowed_reorder=true：
 {
   "schema_version": "task_graph.v1",
   "goal": {
@@ -116,15 +116,15 @@ _TASK_GRAPH_PROMPT = """你是 GUI Agent 执行评测中的任务规划专家。
   "subtasks": [
     {
       "subtask_id": "st_001",
-      "name": "入口页面已打开",
-      "description": "页面显示任务相关入口或列表",
+      "name": "搜索关键词已输入",
+      "description": "搜索框中显示目标关键词",
       "required": true,
       "depends_on": [],
       "preconditions": [],
       "success_criteria": [
         {
           "criterion_id": "vc_st_001_01",
-          "description": "任务相关入口或列表在页面中可见",
+          "description": "搜索框中显示目标关键词文本",
           "evidence_types": ["screenshot", "ocr"],
           "required": true
         }
@@ -138,15 +138,15 @@ _TASK_GRAPH_PROMPT = """你是 GUI Agent 执行评测中的任务规划专家。
     },
     {
       "subtask_id": "st_002",
-      "name": "目标状态已达成",
-      "description": "页面显示用户请求的目标状态",
+      "name": "搜索结果页已加载",
+      "description": "页面展示搜索结果列表",
       "required": true,
       "depends_on": ["st_001"],
-      "preconditions": ["入口页面已打开"],
+      "preconditions": ["搜索关键词已输入"],
       "success_criteria": [
         {
           "criterion_id": "vc_st_002_01",
-          "description": "用户请求的目标状态在页面中可见",
+          "description": "搜索结果列表在页面中可见",
           "evidence_types": ["screenshot", "ocr"],
           "required": true
         }
@@ -160,15 +160,59 @@ _TASK_GRAPH_PROMPT = """你是 GUI Agent 执行评测中的任务规划专家。
     },
     {
       "subtask_id": "st_003",
-      "name": "任务完成状态已确认",
-      "description": "页面显示任务最终完成状态",
+      "name": "价格筛选条件已应用",
+      "description": "筛选面板中价格区间选项被选中，列表已刷新",
       "required": true,
       "depends_on": ["st_002"],
-      "preconditions": ["目标状态已达成"],
+      "preconditions": ["搜索结果页已加载"],
       "success_criteria": [
         {
           "criterion_id": "vc_st_003_01",
-          "description": "任务最终完成状态在页面中可见",
+          "description": "价格区间选项高亮且商品价格符合条件",
+          "evidence_types": ["screenshot", "ocr"],
+          "required": true
+        }
+      ],
+      "forbidden_states": [],
+      "risk_level": "low",
+      "reversible": true,
+      "allowed_reorder": true,
+      "alternative_group_id": "",
+      "checkpoint_ids": ["cp_003"]
+    },
+    {
+      "subtask_id": "st_004",
+      "name": "品牌筛选条件已应用",
+      "description": "筛选面板中品牌选项被勾选，列表已刷新",
+      "required": true,
+      "depends_on": ["st_002"],
+      "preconditions": ["搜索结果页已加载"],
+      "success_criteria": [
+        {
+          "criterion_id": "vc_st_004_01",
+          "description": "品牌选项高亮且商品列表仅显示该品牌",
+          "evidence_types": ["screenshot", "ocr"],
+          "required": true
+        }
+      ],
+      "forbidden_states": [],
+      "risk_level": "low",
+      "reversible": true,
+      "allowed_reorder": true,
+      "alternative_group_id": "",
+      "checkpoint_ids": ["cp_004"]
+    },
+    {
+      "subtask_id": "st_005",
+      "name": "筛选结果确认已应用",
+      "description": "筛选面板关闭，商品列表同时体现价格和品牌两个条件",
+      "required": true,
+      "depends_on": ["st_003", "st_004"],
+      "preconditions": ["价格筛选条件已应用", "品牌筛选条件已应用"],
+      "success_criteria": [
+        {
+          "criterion_id": "vc_st_005_01",
+          "description": "筛选面板已关闭，商品列表同时满足价格和品牌条件",
           "evidence_types": ["screenshot", "ocr"],
           "required": true
         }
@@ -178,7 +222,7 @@ _TASK_GRAPH_PROMPT = """你是 GUI Agent 执行评测中的任务规划专家。
       "reversible": true,
       "allowed_reorder": false,
       "alternative_group_id": "",
-      "checkpoint_ids": ["cp_003"]
+      "checkpoint_ids": ["cp_005"]
     }
   ],
   "edges": [
@@ -186,26 +230,45 @@ _TASK_GRAPH_PROMPT = """你是 GUI Agent 执行评测中的任务规划专家。
       "from": "st_001",
       "to": "st_002",
       "type": "requires",
-      "condition": "入口页面已打开"
+      "condition": "搜索关键词已输入"
     },
     {
       "from": "st_002",
       "to": "st_003",
       "type": "requires",
-      "condition": "目标状态已达成"
+      "condition": "搜索结果页已加载"
+    },
+    {
+      "from": "st_002",
+      "to": "st_004",
+      "type": "requires",
+      "condition": "搜索结果页已加载"
+    },
+    {
+      "from": "st_003",
+      "to": "st_005",
+      "type": "requires",
+      "condition": "价格筛选条件已应用"
+    },
+    {
+      "from": "st_004",
+      "to": "st_005",
+      "type": "requires",
+      "condition": "品牌筛选条件已应用"
     }
   ],
   "alternative_groups": [],
   "metadata": {}
 }
 
-约束：
+ 约束：
 - 顶层字段只能是 schema_version、goal、constraints、subtasks、edges、alternative_groups、metadata。
 - 禁止输出 tasks、start_task、end_task、dependencies、nodes 等未知顶层字段。
 - 子任务描述可观察状态边界，不要描述点击、输入、滑动等具体操作步骤。
 - required 子任务必须至少有一个可观察成功条件。
 - requires 依赖必须构成 DAG，且 depends_on 与 requires edge 双向一致。
 - 可交换的子任务设置 allowed_reorder=true，不要添加虚假依赖。
+- 同一 UI 界面内互不依赖的多个独立操作（如筛选面板中同时勾选"百亿补贴"和选择"价格区间"、设置页中互不依赖的多个开关）应设为 allowed_reorder=true，且 depends_on 不添加彼此之间的虚假依赖。但存在明确先后关系的操作（如必须先打开搜索结果页才能进入筛选面板）仍必须保持 false。
 - 替代路径成员必须填写 alternative_group_id，并在 alternative_groups 中声明。
 - ID 必须稳定且唯一，建议 st_001、vc_st_001_01、constraint_001、alt_001。
 - 不要输出未知字段、Markdown 或额外文字。"""
