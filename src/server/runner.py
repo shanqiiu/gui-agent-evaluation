@@ -166,6 +166,28 @@ class JobManager:
         if not success:
             return
 
+        # Verify preprocess actually produced output
+        pp_dir = Path(preprocess_output) if preprocess_output else Path(raw_input)
+        pp_payloads = list(pp_dir.rglob("payload.json")) if pp_dir.is_dir() else []
+        if not pp_payloads:
+            job.status = "failed"
+            job.finished_at = time.time()
+            job.error = (
+                f"Preprocess produced no payload.json files under {pp_dir}. "
+                "Check that the raw data path contains valid task directories "
+                "(each with utg.json + clearRes.gzip)."
+            )
+            await queue.put(json.dumps({
+                "type": "status", "status": "failed",
+                "error": job.error,
+            }))
+            await queue.put(None)
+            return
+        await queue.put(json.dumps({
+            "type": "log",
+            "line": f"Preprocess OK: {len(pp_payloads)} payload(s) found",
+        }))
+
         # ── Phase 2: Evaluate ──
         ev_input = preprocess_output or raw_input
         await queue.put(json.dumps({"type": "log", "line": "═══ Phase 2/2: Evaluate ═══"}))
