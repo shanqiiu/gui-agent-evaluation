@@ -181,6 +181,7 @@ def _match_checkpoint_purposes(
                 purpose_features,
                 min_score=min_score,
                 min_purpose_index=last_purpose_pos,
+                allowed_reorder=checkpoint.allowed_reorder,
             )
             if match is not None:
                 if match.matched and match.candidates:
@@ -191,7 +192,7 @@ def _match_checkpoint_purposes(
         scored: list[tuple[int, dict[str, Any], float, list[str]]] = []
         cp_text = _checkpoint_text(checkpoint)
         for pos, feature in enumerate(purpose_features):
-            if pos < last_purpose_pos:
+            if not checkpoint.allowed_reorder and pos < last_purpose_pos:
                 continue
             score, evidence = _score(cp_text, checkpoint, feature)
             scored.append((pos, feature, score, ["purpose_local_match"] + evidence))
@@ -240,7 +241,7 @@ def _match_checkpoint_features(
         cp_text = _checkpoint_text(checkpoint)
         scored: list[tuple[int, dict[str, Any], float, list[str]]] = []
         for pos, feature in enumerate(features):
-            if pos < last_pos:
+            if not checkpoint.allowed_reorder and pos < last_pos:
                 continue
             score, evidence = _score(cp_text, checkpoint, feature)
             scored.append((pos, feature, score, evidence))
@@ -615,6 +616,7 @@ def _match_from_llm_item(
     *,
     min_score: float,
     min_purpose_index: int = -1,
+    allowed_reorder: bool = False,
 ) -> CheckpointIntentMatch | None:
     status = str(item.get("status", "")).strip().lower()
     purpose_idx = _safe_int(item.get("agent_purpose_index", -1), -1)
@@ -632,6 +634,8 @@ def _match_from_llm_item(
         # the entire span falls strictly before the previously-claimed region.
         if end_purpose_idx >= min_purpose_index:
             pass  # overlap → accept the LLM match
+        elif allowed_reorder:
+            pass  # checkpoint explicitly permits reordering → trust the LLM match
         else:
             return CheckpointIntentMatch(
                 checkpoint_index=cp_idx,
