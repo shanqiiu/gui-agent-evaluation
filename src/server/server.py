@@ -170,6 +170,30 @@ async def run_evaluate(
     return {"job_id": job.job_id, "status": "started"}
 
 
+@app.post("/api/run/pipeline")
+async def run_pipeline(
+    input_path: str = Form(...),
+    output_dir: str = Form(...),
+    batch: bool = Form(True),
+    task_graph: bool = Form(False),
+    mock: bool = Form(False),
+    skip_checkpoint_verify: bool = Form(False),
+):
+    """Start a full pipeline job: preprocess → evaluate."""
+    manager = get_job_manager()
+    config = {
+        "input_path": input_path,
+        "output_dir": output_dir,
+        "batch": batch,
+        "task_graph_enabled": task_graph,
+        "mock": mock,
+        "skip_checkpoint_verify": skip_checkpoint_verify,
+    }
+    job = manager.create_job("pipeline", config)
+    asyncio.create_task(manager.run_pipeline(job))
+    return {"job_id": job.job_id, "status": "started"}
+
+
 # ── quick info ───────────────────────────────────────────────────────
 
 
@@ -183,6 +207,7 @@ async def server_info():
             "jobs": "/api/jobs",
             "run_preprocess": "/api/run/preprocess",
             "run_evaluate": "/api/run/evaluate",
+            "run_pipeline": "/api/run/pipeline",
         },
     }
 

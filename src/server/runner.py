@@ -129,6 +129,115 @@ class JobManager:
 
         await self._run_command(job, cmd, os.environ.copy())
 
+    async def run_pipeline(self, job: JobInfo) -> None:
+        """Run preprocess → evaluate as a single chained job."""
+        config = job.config
+        raw_input = config.get("input_path", "")
+        pipeline_output = config.get("output_dir", "")
+        preprocess_output = str(Path(pipeline_output) / "preprocess") if pipeline_output else ""
+        evaluate_output = str(Path(pipeline_output) / "baseline") if pipeline_output else ""
+        batch_mode = config.get("batch", False)
+        task_graph = config.get("task_graph_enabled", False)
+        mock_mode = config.get("mock", False)
+        skip_verify = config.get("skip_checkpoint_verify", False)
+
+        queue = self._queues.get(job.job_id)
+        if queue is None:
+            return
+
+        await queue.put(json.dumps({"type": "status", "status": "running", "cmd": "pipeline: preprocess + evaluate"}))
+
+        # ── Phase 1: Preprocess ──
+        await queue.put(json.dumps({"type": "log", "line": "═══ Phase 1/2: Preprocess ═══"}))
+        pp_cmd = list(PREPROCESS_CMD)
+        if batch_mode:
+            pp_cmd.extend(["--batch", raw_input])
+        else:
+            pp_cmd.append(raw_input)
+        if preprocess_output:
+            pp_cmd.extend(["--output", preprocess_output])
+        pp_env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"}
+        if task_graph:
+            pp_env["TASK_GRAPH_ENABLED"] = "1"
+        if mock_mode:
+            pp_env["PREPROCESS_MOCK"] = "1"
+
+        success = await self._run_phase(job, pp_cmd, pp_env)
+        if not success:
+            return
+
+        # ── Phase 2: Evaluate ──
+        ev_input = preprocess_output or raw_input
+        await queue.put(json.dumps({"type": "log", "line": "═══ Phase 2/2: Evaluate ═══"}))
+        ev_cmd = list(EVALUATE_CMD)
+        if batch_mode:
+            ev_cmd.extend(["--batch", ev_input])
+        else:
+            ev_cmd.append(ev_input)
+        if evaluate_output:
+            ev_cmd.extend(["--output-dir", evaluate_output])
+        job.output_dir = evaluate_output or str(Path(ev_input).parent / "repeated_baseline")
+        if mock_mode:
+            ev_cmd.append("--mock")
+        if skip_verify:
+            ev_cmd.append("--skip-checkpoint-verify")
+
+        await queue.put(json.dumps({"type": "status", "status": "running", "cmd": " ".join(ev_cmd)}))
+        success = await self._run_phase(job, ev_cmd, os.environ.copy())
+
+        if success:
+            job.status = "completed"
+            job.finished_at = time.time()
+            result = self._read_result(job)
+            job.result = result
+            await queue.put(json.dumps({"type": "status", "status": "completed", "result": result}))
+        else:
+            job.status = "failed"
+            job.finished_at = time.time()
+
+        await queue.put(None)
+
+    async def _run_phase(
+        self,
+        job: JobInfo,
+        cmd: list[str],
+        env: dict[str, str],
+    ) -> bool:
+        """Run a single command and stream output. Returns True on success."""
+        queue = self._queues.get(job.job_id)
+        if queue is None:
+            return False
+
+        env = {**env, "PYTHONIOENCODING": "utf-8", "PYTHONUNBUFFERED": "1"}
+        try:
+            process = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.STDOUT,
+                cwd=str(ROOT_DIR),
+                env=env,
+            )
+            assert process.stdout is not None
+            while True:
+                line = await process.stdout.readline()
+                if not line:
+                    break
+                text = line.decode("utf-8", errors="replace").rstrip("\n\r")
+                if text:
+                    job.logs.append(text)
+                    await queue.put(json.dumps({"type": "log", "line": text}))
+            returncode = await process.wait()
+            if returncode != 0:
+                job.error = f"Exit code: {returncode} (cmd: {' '.join(cmd)})"
+                await queue.put(json.dumps({"type": "status", "status": "failed", "error": job.error}))
+                return False
+            await queue.put(json.dumps({"type": "status", "status": "phase_completed", "cmd": " ".join(cmd)}))
+            return True
+        except Exception as exc:
+            job.error = str(exc)
+            await queue.put(json.dumps({"type": "status", "status": "failed", "error": str(exc)}))
+            return False
+
     async def _run_command(
         self,
         job: JobInfo,

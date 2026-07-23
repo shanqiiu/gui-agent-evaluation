@@ -149,6 +149,30 @@
   <div class="layout">
     <!-- Sidebar Config -->
     <div class="sidebar">
+      <div class="section-label" style="color:var(--primary)">Full Pipeline</div>
+      <div class="field-group">
+        <div class="field-label">Raw Data Path</div>
+        <input class="field-input" id="plInput" placeholder="D:\data\raw_tasks" value="">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Output Dir</div>
+        <input class="field-input" id="plOutput" placeholder="D:\output" value="">
+      </div>
+      <div class="field-row" style="margin-bottom:var(--s-sm)">
+        <input type="checkbox" id="plBatch" checked><label for="plBatch" style="font-size:13px;cursor:pointer">Batch mode</label>
+      </div>
+      <div class="field-row" style="margin-bottom:var(--s-sm)">
+        <input type="checkbox" id="plTG"><label for="plTG" style="font-size:13px;cursor:pointer">Task Graph</label>
+      </div>
+      <div class="field-row" style="margin-bottom:var(--s-sm)">
+        <input type="checkbox" id="plMock"><label for="plMock" style="font-size:13px;cursor:pointer">Mock (no VLM)</label>
+      </div>
+      <div class="field-row" style="margin-bottom:var(--s-sm)">
+        <input type="checkbox" id="plSkipV"><label for="plSkipV" style="font-size:13px;cursor:pointer">Skip verify</label>
+      </div>
+      <button class="btn btn-primary" id="btnPL" onclick="runPipeline()">Run Pipeline</button>
+      <div class="text-mute" style="margin-top:6px;font-size:11px">Preprocess → Evaluate, output/<br>preprocess/ + output/baseline/</div>
+
       <div class="section-label">Preprocess</div>
       <div class="field-group">
         <div class="field-label">Input Path</div>
@@ -245,6 +269,12 @@ async function runEvaluate(){
   const r=await apiPost('/api/run/evaluate',{input_path:document.getElementById('evInput').value,output_dir:document.getElementById('evOutput').value,batch:document.getElementById('evBatch').checked,mock:document.getElementById('evMock').checked,skip_checkpoint_verify:document.getElementById('evSkipV').checked});
   if(r.job_id){streamJob(r.job_id);state.currentLogJob=r.job_id}
   btn.disabled=false;btn.textContent='Run Evaluate';
+}
+async function runPipeline(){
+  const btn=document.getElementById('btnPL');btn.disabled=true;btn.textContent='Running...';
+  const r=await apiPost('/api/run/pipeline',{input_path:document.getElementById('plInput').value,output_dir:document.getElementById('plOutput').value,batch:document.getElementById('plBatch').checked,task_graph:document.getElementById('plTG').checked,mock:document.getElementById('plMock').checked,skip_checkpoint_verify:document.getElementById('plSkipV').checked});
+  if(r.job_id){streamJob(r.job_id);state.currentLogJob=r.job_id}
+  btn.disabled=false;btn.textContent='Run Pipeline';
 }
 
 /* ── Log Streaming (SSE) ── */
