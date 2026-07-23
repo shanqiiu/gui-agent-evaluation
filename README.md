@@ -58,6 +58,26 @@ MODE=single bash start.sh
 MODE=batch bash start.sh
 ```
 
+### Web 界面运行（推荐）
+
+启动 Web 服务器，通过浏览器完成预处理和评估：
+
+```bash
+# 安装依赖
+pip install fastapi python-multipart
+
+# 启动服务器
+python -m src.server.server
+# 浏览器打开 http://localhost:8025
+```
+
+面板支持实时日志流式输出、运行参数配置、结果可视化。也提供独立静态面板（无需服务器）：
+
+```bash
+# 浏览器直接打开即可加载 batch_result.json
+start src/evaluator/dashboard.html
+```
+
 ## 环境配置
 
 `src.evaluator.repeated_baseline` 会自动加载仓库根目录 `.env`。
@@ -121,7 +141,29 @@ output/<task_uuid>/
 | `verification_report.json` | 检查点截图/VLM 达成报告 |
 | `state_sequence.json` | 状态、OCR 和视觉证据 |
 | `repeated_prediction.json` | 重复操作基线结果 |
+| `planning_failure_result.json` | 规划失效聚合结果 |
+| `anomaly_events.json` | 统一异常事件（7 类 taxonomy） |
 | `baseline_result.json` | 全量汇总结果 |
+
+批跑额外输出：
+
+| 文件 | 含义 |
+|---|---|
+| `batch_result.json` | 批跑汇总（total/ok/error + 每任务 label/anomaly_count） |
+
+### 异常事件（7 类 taxonomy）
+
+`anomaly_events.json` 输出统一事件列表，覆盖 7 类顶层异常：
+
+| Category | 检测来源 |
+|---|---|
+| `loop` | repeated detector → `state_action_loop` |
+| `repeated_action` | repeated detector → consecutive/wait/swipe repeats |
+| `grounding_error` | AB 验证 + 视觉/OCR 证据（`wrong_tap_target`, `wrong_input_location`, `wrong_scroll_direction`） |
+| `planning_failure` | planning failure aggregator（`missing_required_checkpoint`, `execution_blocked`, `fail_to_terminate`） |
+| `hallucination` | agent 意图 vs OCR/页面描述（`non_existent_element`, `wrong_page_understanding`, `fabricated_capability`） |
+| `abnormal_interruption_response` | clarify 事件 + state 关键词扫描（captcha/login/permission/crash/network） |
+| `premature_termination` | planning failure → 提升为顶层事件 |
 
 ## Benchmark 对比
 
@@ -138,19 +180,21 @@ python -m src.evaluator.benchmark D:\path\to\benchmark_samples --output D:\path\
 | 模块 | 定位 |
 |---|---|
 | `src/preprocessor` | 当前数据预处理入口 |
-| `src/decomposer` | LLM + RAG 检查点生成 |
+| `src/decomposer` | LLM + RAG 检查点 / TaskGraph 生成 |
 | `src/common` | 图片水合、ABValidator、重复检测器 |
-| `src/evaluator` | 当前基线编排入口 |
+| `src/evaluator` | 当前基线编排入口、异常检测（grounding / hallucination / planning_failure）、状态/视觉证据聚合 |
 | `src/verifier` | 意图召回、检查点对齐、VLM 验证 |
+| `src/server` | **Web 服务器** — FastAPI + SSE 实时日志、面板触发预处理和评估 |
 | `src/oracle` | legacy Darwin 服务，不是默认基线路径 |
 | `src/state_extractor` | legacy/prototype 状态提取器；新基线使用 `src/evaluator/state_evidence.py` |
+| `src/evaluator/dashboard.html` | 独立静态批跑结果可视化面板（无需服务器） |
 
 ## 测试
 
-主要回归命令：
+主要回归命令（排除依赖 chromadb 的 decomposer 测试）：
 
 ```bash
-python -m pytest src\verifier src\evaluator src\common\test_common.py
+python -m pytest src\verifier src\evaluator src\common\test_common.py src\efficiency src\trajectory --ignore=src\evaluator\test_benchmark.py -q
 ```
 
 ## 文档索引
@@ -159,9 +203,13 @@ python -m pytest src\verifier src\evaluator src\common\test_common.py
 |---|---|
 | `docs/01-技术方案.md` | 当前唯一规范性技术方案 |
 | `docs/04-当前进展与开发计划.md` | 当前唯一可执行 TODO 清单 |
+| `docs/05-GUI_Agent执行评估总体方案.md` | 方案介绍与评审用总览 |
+| `docs/06-GUI_Agent任务分解与规划评估优化技术方案.md` | TaskGraph 优化设计 |
+| `docs/06-当前项目进展分析.md` | 当前工程进展与成熟度分析 |
 | `docs/07-人工标注契约与TaskGraph-Schema.md` | TaskGraph 与远程人工标注数据契约 |
 | `docs/重复动作异常判定技术方案.md` | 重复操作专题方案 |
 | `docs/规划失效异常判定技术方案.md` | 规划失效专题方案 |
+| `docs/GUI_Agent_异常Case_技术洞察.md` | 异常 taxonomy 和研究洞察 |
 | `docs/02-论文调研.md` | 研究背景，不作为实现规范 |
 | `docs/03-相关资源.md` | 资源索引，不作为实现规范 |
-| `docs/GUI_Agent_异常Case_技术洞察.md` | 异常 taxonomy 和研究洞察 |
+| `DESIGN.md` | Web 界面的 Supabaze 设计系统规范 |
