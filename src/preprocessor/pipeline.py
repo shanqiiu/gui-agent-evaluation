@@ -354,6 +354,7 @@ def run_batch(
 
     for i, task_dir in enumerate(task_dirs, 1):
         uuid = task_dir.name
+        print(f"[{i}/{len(task_dirs)}] {uuid} ...", flush=True)
         try:
             result = run_pipeline(task_dir, output_path)
             results.append({"uuid": uuid, "status": "ok", **result})

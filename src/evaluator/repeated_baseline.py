@@ -190,6 +190,7 @@ def run_repeated_baseline_batch(
     for payload_path in payloads:
         task_uuid = payload_path.parent.name
         task_output = output_root / task_uuid
+        print(f"[{len(results)+1}/{len(payloads)}] {task_uuid} ...", flush=True)
         try:
             result = run_repeated_baseline(
                 payload_path,
@@ -207,12 +208,16 @@ def run_repeated_baseline_batch(
                 "planning_failure_confidence": result["planning_failure_prediction"].get("confidence", 0.0),
                 "anomaly_event_count": len(result.get("anomaly_events") or []),
             })
+            print(f"  -> label={result['repeated_prediction']['label']}, "
+                  f"planning={result['planning_failure_prediction']['label']}, "
+                  f"anomalies={len(result.get('anomaly_events') or [])}", flush=True)
         except Exception as exc:
             errors.append({
                 "task_uuid": task_uuid,
                 "payload_path": str(payload_path),
                 "error": str(exc),
             })
+            print(f"  -> ERROR: {exc}", flush=True)
 
     summary = {
         "schema_version": "repeated_baseline_batch.v1",
