@@ -139,6 +139,7 @@ class JobManager:
         if queue is None:
             return
 
+        env = {**env, "PYTHONIOENCODING": "utf-8"}
         job.status = "running"
         job.started_at = time.time()
         job.logs = []
