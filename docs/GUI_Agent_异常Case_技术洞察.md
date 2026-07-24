@@ -4,13 +4,13 @@
 
 与当前实现的对应关系：
 
-- 循环/死循环 -> `src.evaluator.state_evidence` + 重复检测器，后续统一输出 `loop` 事件。
-- 重复动作 -> `src.common.repeated_action_detector`，后续映射为顶层 `repeated_action` 事件。
-- Grounding 错误 -> 待补齐，需结合动作目标、坐标、页面变化和 OCR/UI 证据。
+- 循环/死循环 -> `src.common.repeated_action_detector` + `src.evaluator.state_evidence`，输出 `loop` 事件。
+- 重复动作 -> `src.common.repeated_action_detector`，映射为顶层 `repeated_action` 事件。
+- Grounding 错误 -> `src.evaluator.grounding.py` 第一版：AB 验证 + 视觉/OCR 证据 → `wrong_tap_target` / `wrong_input_location` / `wrong_scroll_direction`，纳入 `anomaly_events`。
 - 规划失效 -> 当前由 `src.evaluator.planning_failure` 第一版聚合，后续接入 TaskGraph/TaskProgress。
-- Hallucination -> 待补齐，需对比 agent 描述、action purpose、页面描述和 OCR/UI 证据。
+- Hallucination -> `src.evaluator.hallucination.py` 第一版：agent 意图 vs OCR/页面描述 → `non_existent_element` / `wrong_page_understanding` / `fabricated_capability`，纳入 `anomaly_events`。
 - 异常中断响应 -> `clarify` 已剥离为 `_interruption_events` 并映射到 `anomaly_events`；验证码/安全验证、登录、权限弹窗、Crash/App 异常、网络/加载异常已接入 state keyword scan 第一版。
-- 提前终止 -> 当前是 planning failure 子类型，后续提升为顶层 `premature_termination` 事件。
+- 提前终止 -> 当前是 planning failure 子类型，已提升为顶层 `premature_termination` 事件。
 
 ---
 # GUI Agent 异常Case 技术洞察文档
